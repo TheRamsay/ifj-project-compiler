@@ -1,1 +1,4 @@
-int main() { printf("Ahoj"); }
+#include "scanner.h"
+#include "stdio.h"
+
+int main() { Scan(stdin); }
