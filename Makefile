@@ -1,9 +1,9 @@
 # Implementace překladače imperativního jazyka IFJ22
 #
-# Josef Kuchař (xkucha28@stud.fit.vutbr.cz)
-# Matej Sirovatka (xsirov00@stud.fit.vutbr.cz)
-# Tomáš Běhal (xbehal02@stud.fit.vutbr.cz)
-# Šimon Benčík (xbenci01@stud.fit.vutbr.cz)
+# Dominik Huml (xhumld00@stud.fit.vutbr.cz)
+# Matyáš Krejza (xkrejz07@stud.fit.vutbr.cz)
+# Petra Šimonová (xsimon30@stud.fit.vutbr.cz)
+# Lukáš Witpeerd (xwitpe00@stud.fit.vutbr.cz)
 
 # Compiler settings
 CC = gcc
@@ -31,8 +31,7 @@ include $(wildcard $(DEPS))
 
 # Run the program
 run: main
-	./main < php/test.php > test.ifjc22
-	./ic22int test.ifjc22
+	./main
 
 # Clean up
 clean:
@@ -44,11 +43,7 @@ pdf:
 
 # Pack for submission
 zip:
-	zip xkucha28.zip *.c *.h dokumentace.pdf Makefile rozdeleni rozsireni
-
-# Submission test
-submission_test: zip
-	./is_it_ok.sh xkucha28.zip send_test
+	zip xhumld00.zip *.c *.h dokumentace.pdf Makefile rozdeleni rozsireni
 
 # Tests
 GTEST_DIR=test/lib/googletest
@@ -79,10 +74,3 @@ tests.o: $(GTEST_HEADERS) test/tests.cpp
 
 test: tests.o gtest_main.a $(TEST_OBJS)
 	$(CXX) $(CPPFLAGS_T) $(CXXFLAGS_T) -lm -lpthread $^ -o run_tests && ./run_tests
-
-examples: main
-	cd examples && ./examples.sh
-
-jirka_tests: main
-	echo "CYCLES" > IFJ22_Tester/extensions
-	cd IFJ22_Tester && python3 test.py ../main ../ic22int
