@@ -48,7 +48,7 @@ void Stack_Init(Stack *stack, int size) {
     return;
   }
 
-  stack->array = malloc(size * sizeof(char));
+  stack->array = malloc(size * sizeof(int));
   stack->error_code = 0;
   stack->size = size;
   stack->topIndex = -1;
@@ -81,7 +81,7 @@ bool Stack_IsFull(const Stack *stack) { return stack->topIndex == stack->size - 
  * @param stack Ukazatel na inicializovanou strukturu zásobníku
  * @param dataPtr Ukazatel na cílovou proměnnou
  */
-void Stack_Top(Stack *stack, char *dataPtr) {
+void Stack_Top(Stack *stack, int *dataPtr) {
   if (Stack_IsEmpty(stack)) {
     Stack_Error(stack, STACK_SERR_TOP);
     return;
@@ -110,7 +110,7 @@ void Stack_Pop(Stack *stack) {
  * @param stack Ukazatel na inicializovanou strukturu zásobníku
  * @param data Znak k vložení
  */
-void Stack_Push(Stack *stack, char data) {
+void Stack_Push(Stack *stack, int data) {
   if (Stack_IsFull(stack)) {
     Stack_Error(stack, STACK_SERR_PUSH);
     return;

@@ -1,4 +1,4 @@
-/* ******************************* stack.c ********************************** */
+/* ******************************* stack.h ********************************** */
 /*  Zdroj:                                                                    */
 /*  Předmět: Algoritmy (IAL) - FIT VUT v Brně                                 */
 /*  Úkol: c202 - Zásobník znaků v poli                                        */
@@ -46,14 +46,12 @@ bool Stack_IsEmpty(const Stack *);
 
 bool Stack_IsFull(const Stack *);
 
-void Stack_Top(Stack *, char *);
+void Stack_Top(Stack *, int *);
 
 void Stack_Pop(Stack *);
 
-void Stack_Push(Stack *, char);
+void Stack_Push(Stack *, int);
 
 void Stack_Dispose(Stack *);
 
 #endif
-
-/* Konec hlavičkového souboru c202.h */
