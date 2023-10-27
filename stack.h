@@ -17,17 +17,19 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-/** Stack_Init error. */
+/** stack_init error. */
 #define STACK_SERR_INIT 1
-/** Stack_Push error. */
+/** stack_push error. */
 #define STACK_SERR_PUSH 2
-/** Stack_Top error. */
+/** stack_top error. */
 #define STACK_SERR_TOP 3
+/** stack_pop error. */
+#define STACK_SERR_POP 4
 
 /** ADT stack implemented with a static array. */
 typedef struct {
   /** Pole pro uložení hodnot. */
-  char *array;
+  char *items;
   /** Index prvku na vrcholu zásobníku. */
   int topIndex;
   /** Stack size. */

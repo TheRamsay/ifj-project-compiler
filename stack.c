@@ -48,7 +48,7 @@ void stack_init(Stack *stack, int size) {
     return;
   }
 
-  stack->array = malloc(size * sizeof(int));
+  stack->items = malloc(size * sizeof(int));
   stack->error_code = 0;
   stack->size = size;
   stack->topIndex = -1;
@@ -86,7 +86,7 @@ int stack_top(Stack *stack) {
     return 0;
   }
 
-  return stack->array[stack->topIndex];
+  return stack->items[stack->topIndex];
 }
 
 /**
@@ -96,10 +96,11 @@ int stack_top(Stack *stack) {
  */
 int stack_pop(Stack *stack) {
   if (stack_is_empty(stack)) {
+    stack_error(stack, STACK_SERR_POP);
     return 0;
   }
 
-  return stack->array[stack->topIndex--];
+  return stack->items[stack->topIndex--];
 }
 
 /**
@@ -115,7 +116,7 @@ void stack_push(Stack *stack, int data) {
     return;
   }
 
-  stack->array[stack->topIndex++ + 1] = data;
+  stack->items[stack->topIndex++ + 1] = data;
 }
 
 /**
@@ -129,12 +130,11 @@ void stack_dispose(Stack *stack) {
     return;
   }
 
-  if (stack->array == NULL) {
-    return;
+  if (stack->items != NULL) {
+    free(stack->items);
+    stack->items = NULL;
   }
 
-  free(stack->array);
-  stack->array = NULL;
   stack->size = 0;
   stack->topIndex = -1;
 }
