@@ -20,12 +20,17 @@ void delete_stack(Stack *stack) {
 
 TEST(StackTest, Init)
 {
-  Stack *stack = create_stack(20);
+  Stack *stack = NULL;
+  ASSERT_FALSE(stack_init(stack, 20));
+
+  stack = create_stack(20);
   
   ASSERT_EQ(stack->size, 20);
   ASSERT_EQ(stack->topIndex, -1);
-  ASSERT_EQ(stack->error_code, 0);
+  ASSERT_EQ(stack->errorCode, 0);
   ASSERT_NE(stack->items, nullptr);
+
+  delete_stack(stack);
 }
 
 TEST(StackTest, Push)
@@ -35,17 +40,17 @@ TEST(StackTest, Push)
   stack_push(stack, 1);
   ASSERT_EQ(stack_top(stack), 1);
   ASSERT_EQ(stack->topIndex, 0);
-  ASSERT_EQ(stack->error_code, 0);
+  ASSERT_EQ(stack->errorCode, 0);
 
   stack_push(stack, 2);
   ASSERT_EQ(stack_top(stack), 2);
   ASSERT_EQ(stack->topIndex, 1);
-  ASSERT_EQ(stack->error_code, 0);
+  ASSERT_EQ(stack->errorCode, 0);
 
   stack_push(stack, 3);
   ASSERT_EQ(stack_top(stack), 2);
   ASSERT_NE(stack->topIndex, 2);
-  ASSERT_EQ(stack->error_code, STACK_SERR_PUSH);
+  ASSERT_EQ(stack->errorCode, STACK_SERR_PUSH);
 
   delete_stack(stack);
 }
@@ -57,15 +62,15 @@ TEST(StackTest, Pop)
   stack_push(stack, 1);
   ASSERT_EQ(stack_top(stack), 1);
   ASSERT_EQ(stack->topIndex, 0);
-  ASSERT_EQ(stack->error_code, 0);
+  ASSERT_EQ(stack->errorCode, 0);
 
   ASSERT_EQ(stack_pop(stack), 1);
   ASSERT_EQ(stack->topIndex, -1);
-  ASSERT_EQ(stack->error_code, 0);
+  ASSERT_EQ(stack->errorCode, 0);
 
   ASSERT_EQ(stack_pop(stack), 0);
   ASSERT_EQ(stack->topIndex, -1);
-  ASSERT_EQ(stack->error_code, STACK_SERR_POP);
+  ASSERT_EQ(stack->errorCode, STACK_SERR_POP);
 
   delete_stack(stack);
 }
@@ -80,7 +85,7 @@ TEST(StackTest, EmptyFull)
   stack_push(stack, 1);
   ASSERT_EQ(stack_top(stack), 1);
   ASSERT_EQ(stack->topIndex, 0);
-  ASSERT_EQ(stack->error_code, 0);
+  ASSERT_EQ(stack->errorCode, 0);
 
   ASSERT_TRUE(stack_is_full(stack));
   ASSERT_FALSE(stack_is_empty(stack));
@@ -102,4 +107,6 @@ TEST(StackTest, Dispose)
   ASSERT_EQ(stack->items, nullptr);
   ASSERT_EQ(stack->size, 0);
   ASSERT_EQ(stack->topIndex, -1);
+
+  stack_dispose(stack);
 }

@@ -2,6 +2,7 @@
   "files.associations": {
     "symtable.h": "c",
     "stack.h": "c",
-    "stdlib.h": "c"
+    "stdlib.h": "c",
+    "system_error": "c"
   }
 }

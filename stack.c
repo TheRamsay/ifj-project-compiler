@@ -18,21 +18,21 @@
 /**
  *
  * @param stack Pointer to the stack structure
- * @param error_code Internal error identifier
+ * @param errorCode Internal error identifier
  */
 void stack_error(Stack *stack, int errorCode) {
   if (errorCode <= 0) {
     errorCode = 0;
   }
 
-  stack->error_code = errorCode;
+  stack->errorCode = errorCode;
 }
 
 /**
  *
  * @param stack Pointer to the stack structure
  */
-void stack_clear_error(Stack *stack) { stack->error_code = 0; }
+void stack_clear_error(Stack *stack) { stack->errorCode = 0; }
 
 /**
  * Provede inicializaci zásobníku - nastaví vrchol zásobníku.
@@ -42,16 +42,17 @@ void stack_clear_error(Stack *stack) { stack->error_code = 0; }
  *
  * @param stack Ukazatel na strukturu zásobníku
  */
-void stack_init(Stack *stack, int size) {
+bool stack_init(Stack *stack, int size) {
   if (stack == NULL) {
-    stack_error(stack, STACK_SERR_INIT);
-    return;
+    return false;
   }
 
   stack->items = malloc(size * sizeof(int));
-  stack->error_code = 0;
+  stack->errorCode = 0;
   stack->size = size;
   stack->topIndex = -1;
+
+  return true;
 }
 
 /**

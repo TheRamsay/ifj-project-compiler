@@ -17,14 +17,12 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-/** stack_init error. */
-#define STACK_SERR_INIT 1
 /** stack_push error. */
-#define STACK_SERR_PUSH 2
+#define STACK_SERR_PUSH 1
 /** stack_top error. */
-#define STACK_SERR_TOP 3
+#define STACK_SERR_TOP 2
 /** stack_pop error. */
-#define STACK_SERR_POP 4
+#define STACK_SERR_POP 3
 
 /** ADT stack implemented with a static array. */
 typedef struct {
@@ -35,14 +33,14 @@ typedef struct {
   /** Stack size. */
   int size;
   /** Error code. */
-  int error_code;
+  int errorCode;
 } Stack;
 
 void stack_error(Stack *, int);
 
 void stack_clear_error(Stack *);
 
-void stack_init(Stack *, int);
+bool stack_init(Stack *, int);
 
 bool stack_is_empty(const Stack *);
 
