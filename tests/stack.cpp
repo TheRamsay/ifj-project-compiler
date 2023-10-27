@@ -109,4 +109,5 @@ TEST(StackTest, Dispose)
   ASSERT_EQ(stack->topIndex, -1);
 
   stack_dispose(stack);
+  free(stack);
 }

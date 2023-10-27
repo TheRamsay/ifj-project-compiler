@@ -43,7 +43,7 @@ typedef struct {
   SymtableItem **items;
 } Symtable;
 
-void symtable_init(Symtable *table, unsigned int capacity);
+bool symtable_init(Symtable *table, unsigned int capacity);
 
 void symtable_insert(Symtable *table, char *key, void *data);
 
@@ -52,5 +52,7 @@ bool symtable_search(Symtable *table, const char *key);
 void symtable_delete(Symtable *table, const char *key);
 
 void *symtable_get(const Symtable *table, const char *key);
+
+void symtable_dispose(Symtable *table);
 
 #endif

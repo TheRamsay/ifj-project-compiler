@@ -43,19 +43,22 @@ unsigned int hash_function(const char *key, const unsigned int capacity) {
  * @param capacity Initial capacity of the symtable
  *
  */
-void symtable_init(Symtable *table, unsigned int capacity) {
+bool symtable_init(Symtable *table, unsigned int capacity) {
   if (table == NULL) {
-    table->errorCode = SYMTABLE_INIT_ERROR;
-    return;
+    return false;
   }
 
-  table->capacity = capacity;
-  table->errorCode = 0;
   table->items = calloc(capacity, sizeof(SymtableItem *));
 
   if (table->items == NULL) {
     table->errorCode = SYMTABLE_INIT_ERROR;
+    return false;
   }
+
+  table->capacity = capacity;
+  table->errorCode = 0;
+
+  return true;
 }
 
 /**
@@ -114,6 +117,11 @@ bool symtable_search(Symtable *table, const char *key) {
   unsigned int hash = hash_function(key, table->capacity);
 
   SymtableItem *current = table->items[hash];
+
+  if (current == NULL) {
+    return false;
+  }
+
   while (current->key != key && current->next != NULL) {
     current = current->next;
   }
@@ -154,6 +162,12 @@ void symtable_delete(Symtable *table, const char *key) {
       previous->next = current->next;
     }
 
+    if (current->data != NULL) {
+      free(current->data);
+    }
+    if (current->key != NULL) {
+      free(current->key);
+    }
     free(current);
   } else {
     table->errorCode = SYMTABLE_SEARCH_ERROR;
@@ -175,6 +189,11 @@ void *symtable_get(const Symtable *table, const char *key) {
   unsigned int hash = hash_function(key, table->capacity);
 
   SymtableItem *current = table->items[hash];
+
+  if (current == NULL) {
+    return NULL;
+  }
+
   while (current->key != key && current->next != NULL) {
     current = current->next;
   }
@@ -184,4 +203,39 @@ void *symtable_get(const Symtable *table, const char *key) {
   } else {
     return NULL;
   }
+}
+
+/**
+ *
+ * Deletes and frees the allocated memory of the symtable and all of it's allocated items
+ *
+ * @param table Pointer to the symtable structure
+ *
+ */
+void symtable_dispose(Symtable *table) {
+  if (table == NULL) {
+    return;
+  }
+
+  for (unsigned int i = 0; i < table->capacity; i++) {
+    SymtableItem *current = table->items[i];
+    SymtableItem *next = NULL;
+
+    while (current != NULL) {
+      next = current->next;
+      if (current->data != NULL) {
+        free(current->data);
+      }
+      if (current->key != NULL) {
+        free(current->key);
+      }
+      free(current);
+      current = next;
+    }
+  }
+
+  free(table->items);
+  table->items = NULL;
+  table->capacity = 0;
+  table->errorCode = 0;
 }
