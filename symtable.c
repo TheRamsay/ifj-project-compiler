@@ -19,12 +19,12 @@
  * @see http://www.cse.yorku.ca/~oz/hash.html (variant sdbm)
  *
  * @param key The key to hash
- * @param capacity Current size of the symtable
+ * @param capacity Current capacity of the symtable
  *
  * @returns The hash of the key
  *
  */
-unsigned int hash_function(const char *key, const unsigned int size) {
+unsigned int hash_function(const char *key, const unsigned int capacity) {
   int h = 0;
   const unsigned char *p;
 
@@ -32,7 +32,7 @@ unsigned int hash_function(const char *key, const unsigned int size) {
     h = 65599 * h + *p;
   }
 
-  return h % size;
+  return h % capacity;
 }
 
 /*                             Public functions                               */
@@ -49,11 +49,8 @@ void symtable_init(Symtable *table, unsigned int capacity) {
     return;
   }
 
-  table->size = 0;
   table->capacity = capacity;
-
   table->errorCode = 0;
-
   table->items = calloc(capacity, sizeof(SymtableItem *));
 
   if (table->items == NULL) {

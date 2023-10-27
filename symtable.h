@@ -20,6 +20,8 @@
 #define SYMTABLE_INSERT_ERROR 2
 /** symtable_search error. */
 #define SYMTABLE_SEARCH_ERROR 3
+/** symtable_expend error. */
+#define SYMTABLE_EXPAND_ERROR 4
 
 typedef struct SymtableItem SymtableItem;
 
@@ -33,8 +35,6 @@ struct SymtableItem {
 };
 
 typedef struct {
-  /** Current table size. */
-  unsigned int size;
   /** Current table capacity. */
   unsigned int capacity;
   /** Error code. */
