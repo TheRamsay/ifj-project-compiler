@@ -24,7 +24,7 @@
 /** Stack_Top error. */
 #define STACK_SERR_TOP 3
 
-/** ADT zásobník implementovaný ve statickém poli. */
+/** ADT stack implemented with a static array. */
 typedef struct {
   /** Pole pro uložení hodnot. */
   char *array;
@@ -36,22 +36,22 @@ typedef struct {
   int error_code;
 } Stack;
 
-void Stack_Error(Stack *, int);
+void stack_error(Stack *, int);
 
-void Stack_ClearError(Stack *);
+void stack_clear_error(Stack *);
 
-void Stack_Init(Stack *, int);
+void stack_init(Stack *, int);
 
-bool Stack_IsEmpty(const Stack *);
+bool stack_is_empty(const Stack *);
 
-bool Stack_IsFull(const Stack *);
+bool stack_is_full(const Stack *);
 
-void Stack_Top(Stack *, int *);
+int stack_top(Stack *);
 
-void Stack_Pop(Stack *);
+int stack_pop(Stack *);
 
-void Stack_Push(Stack *, int);
+void stack_push(Stack *, int);
 
-void Stack_Dispose(Stack *);
+void stack_dispose(Stack *);
 
 #endif

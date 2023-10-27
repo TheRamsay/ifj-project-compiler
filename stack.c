@@ -20,31 +20,31 @@
  * @param stack Pointer to the stack structure
  * @param error_code Internal error identifier
  */
-void Stack_Error(Stack *stack, int error_code) {
-  if (error_code <= 0) {
-    error_code = 0;
+void stack_error(Stack *stack, int errorCode) {
+  if (errorCode <= 0) {
+    errorCode = 0;
   }
 
-  stack->error_code = error_code;
+  stack->error_code = errorCode;
 }
 
 /**
  *
  * @param stack Pointer to the stack structure
  */
-void Stack_ClearError(Stack *stack) { stack->error_code = 0; }
+void stack_clear_error(Stack *stack) { stack->error_code = 0; }
 
 /**
  * Provede inicializaci zásobníku - nastaví vrchol zásobníku.
  *
  * V případě, že funkce dostane jako parametr stack == NULL,
- * je volána funkce Stack_Error(SERR_INIT).
+ * je volána funkce stack_error(SERR_INIT).
  *
  * @param stack Ukazatel na strukturu zásobníku
  */
-void Stack_Init(Stack *stack, int size) {
+void stack_init(Stack *stack, int size) {
   if (stack == NULL) {
-    Stack_Error(stack, STACK_SERR_INIT);
+    stack_error(stack, STACK_SERR_INIT);
     return;
   }
 
@@ -61,7 +61,7 @@ void Stack_Init(Stack *stack, int size) {
  *
  * @returns true v případě, že je zásobník prázdný, jinak false
  */
-bool Stack_IsEmpty(const Stack *stack) { return stack->topIndex == -1; }
+bool stack_is_empty(const Stack *stack) { return stack->topIndex == -1; }
 
 /**
  * Vrací nenulovou hodnotu, je-li zásobník plný, jinak vrací hodnotu 0.
@@ -70,24 +70,23 @@ bool Stack_IsEmpty(const Stack *stack) { return stack->topIndex == -1; }
  *
  * @returns true v případě, že je zásobník plný, jinak false
  */
-bool Stack_IsFull(const Stack *stack) { return stack->topIndex == stack->size - 1; }
+bool stack_is_full(const Stack *stack) { return stack->topIndex == stack->size - 1; }
 
 /**
  * Vrací znak z vrcholu zásobníku prostřednictvím parametru dataPtr.
  * Tato operace ale prvek z vrcholu zásobníku neodstraňuje.
  * Volání operace Top při prázdném zásobníku je nekorektní a je ošěřeno voláním
- * procedury Stack_Error(SERR_TOP).
+ * procedury stack_error(SERR_TOP).
  *
  * @param stack Ukazatel na inicializovanou strukturu zásobníku
- * @param dataPtr Ukazatel na cílovou proměnnou
  */
-void Stack_Top(Stack *stack, int *dataPtr) {
-  if (Stack_IsEmpty(stack)) {
-    Stack_Error(stack, STACK_SERR_TOP);
-    return;
+int stack_top(Stack *stack) {
+  if (stack_is_empty(stack)) {
+    stack_error(stack, STACK_SERR_TOP);
+    return 0;
   }
 
-  *dataPtr = stack->array[stack->topIndex];
+  return stack->array[stack->topIndex];
 }
 
 /**
@@ -95,24 +94,24 @@ void Stack_Top(Stack *stack, int *dataPtr) {
  *
  * @param stack Ukazatel na inicializovanou strukturu zásobníku
  */
-void Stack_Pop(Stack *stack) {
-  if (Stack_IsEmpty(stack)) {
-    return;
+int stack_pop(Stack *stack) {
+  if (stack_is_empty(stack)) {
+    return 0;
   }
 
-  stack->topIndex--;
+  return stack->array[stack->topIndex--];
 }
 
 /**
  * Vloží znak na vrchol zásobníku. Pokus o vložení prvku do plného zásobníku
- * je nekorektní a je ošetřen voláním procedury Stack_Error(SERR_PUSH).
+ * je nekorektní a je ošetřen voláním procedury stack_error(SERR_PUSH).
  *
  * @param stack Ukazatel na inicializovanou strukturu zásobníku
  * @param data Znak k vložení
  */
-void Stack_Push(Stack *stack, int data) {
-  if (Stack_IsFull(stack)) {
-    Stack_Error(stack, STACK_SERR_PUSH);
+void stack_push(Stack *stack, int data) {
+  if (stack_is_full(stack)) {
+    stack_error(stack, STACK_SERR_PUSH);
     return;
   }
 
@@ -125,7 +124,7 @@ void Stack_Push(Stack *stack, int data) {
  *
  * @param stack Ukazatel na inicializovanou strukturu zásobníku
  */
-void Stack_Dispose(Stack *stack) {
+void stack_dispose(Stack *stack) {
   if (stack == NULL) {
     return;
   }
