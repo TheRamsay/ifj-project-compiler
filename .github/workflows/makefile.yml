@@ -18,3 +18,18 @@ jobs:
 
             - name: test application
               run: make test
+
+            - uses: DoozyX/clang-format-lint-action@v0.14
+              with:
+                  source: "."
+                  exclude: "./third_party ./external"
+                  extensions: "h,cpp"
+                  clangFormatVersion: 14
+                  style: chromium
+            - uses: EndBug/add-and-commit@v9
+              with:
+                  author_name: Clang linter
+                  author_email: clang@lint.xd
+                  message: "Committing clang-format changes"
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
