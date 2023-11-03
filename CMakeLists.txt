@@ -73,3 +73,12 @@ add_executable(Test_str
 target_link_libraries(Test_str gtest gtest_main)
 
 add_test(str Test_str)
+# ----------------------------------------------------------------
+
+# ------- Generator -------
+add_executable(Test_generator
+        generator.h generator.c
+        tests/generator.cpp)
+target_link_libraries(Test_generator gtest gtest_main)
+
+add_test(generator Test_generator)

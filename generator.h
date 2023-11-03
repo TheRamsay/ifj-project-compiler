@@ -1,7 +1,4 @@
 /* ******************************* generator.h ****************************** */
-// // /*  Zdroje:                                                                   */
-// // /*  - IAL, studijní opora, Prof. Ing. Jan M. Honzík, Csc., Verze 14 N         */
-/* ************************************************************************** */
 /*                                                                            */
 /*  Vytvořil a zpracoval: Lukáš Witpeerd, listopad 2023                       */
 /*
@@ -12,8 +9,20 @@
 
 #include <stdio.h>
 
+#include "str.h"
+
 typedef struct Generator {
-  int placeholder;
+  str *out_str;
 } Generator;
+
+/*                            Orchestration functions                         */
+Generator *generator_new();
+
+void generator_print(Generator *gen);
+
+void generator_dispose(Generator *gen);
+
+/*                            Generator functions                             */
+void generator_header(Generator *gen);
 
 #endif
