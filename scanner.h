@@ -1,18 +1,25 @@
-#include "stdio.h"
+#ifndef __SCANNER_H__
+#define __SCANNER_H__
+
+#include <stdio.h>
 
 typedef enum {
   NONE,
-  TOKEN_IF,
-  TOKEN_ELSE,
-  TOKEN_WHILE,
-  TOKEN_INT,
-  TOKEN_FLOAT,
-  TOKEN_CHAR,
-  TOKEN_RETURN,
-  TOKEN_VOID,
-  TOKEN_NULL,
-  TOKEN_LET,
-  TOKEN_UNKNOWN_KEYWORD,
+  KW_IF,
+  KW_ELSE,
+  KW_WHILE,
+  KW_INT,
+  KW_FLOAT,
+  KW_CHAR,
+  KW_RETURN,
+  KW_VOID,
+  KW_NULL,
+  KW_LET,
+  KW_UNKNOWN,
+  KW_VAR,
+  KW_PRINT,
+  KW_IN,
+  KW_FOR,
 } Keyword;
 
 typedef enum {
@@ -76,3 +83,9 @@ typedef struct {
   char *val;
   int length;
 } Token;
+
+void scanner_init(FILE *file);
+void scanner_destroy();
+int get_next_token(Token *token);
+
+#endif // __SCANNER_H__
