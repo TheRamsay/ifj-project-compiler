@@ -3,7 +3,7 @@
 // // /*  - IAL, studijní opora, Prof. Ing. Jan M. Honzík, Csc., Verze 14 N         */
 /* ************************************************************************** */
 /*                                                                            */
-/*  Vytvořil a zpracoval: Lukáš Witpeerd, listopad    2023                    */
+/*  Vytvořil a zpracoval: Lukáš Witpeerd, listopad 2023                       */
 /*
  **/
 
@@ -13,6 +13,7 @@
 #include <stdio.h>
 
 typedef struct Generator {
+  int placeholder;
 } Generator;
 
 #endif
