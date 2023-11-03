@@ -80,7 +80,7 @@ str *str_new_from(const char *s) {
   str *str = str_new(strlen(s) + 1);
 
   if (str == NULL) {
-    str_destroy(str);
+    str_dispose(str);
     return NULL;
   }
 
@@ -200,7 +200,7 @@ bool str_append_str(str *s, str *c) {
  * @returns Pointer to the string.
  *
  */
-bool str_append_cstr_destroy(str *s, char **c) {
+bool str_append_cstr_dispose(str *s, char **c) {
   if (s == NULL || c == NULL || *c == NULL) {
     return false;
   }
@@ -224,7 +224,7 @@ bool str_append_cstr_destroy(str *s, char **c) {
  * @returns Pointer to the string.
  *
  */
-bool str_append_str_destroy(str *s, str **c) {
+bool str_append_str_dispose(str *s, str **c) {
   if (s == NULL || c == NULL || *c == NULL) {
     return false;
   }
@@ -233,7 +233,7 @@ bool str_append_str_destroy(str *s, str **c) {
     return false;
   }
 
-  str_destroy(*c);
+  str_dispose(*c);
   *c = NULL;
 
   return true;
@@ -246,7 +246,7 @@ bool str_append_str_destroy(str *s, str **c) {
  * @param s The string.
  *
  */
-void str_destroy(str *s) {
+void str_dispose(str *s) {
   if (s == NULL) {
     return;
   }

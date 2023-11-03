@@ -27,10 +27,10 @@ bool str_append_cstr(str *s, const char *c);
 
 bool str_append_str(str *s, str *c);
 
-bool str_append_cstr_destroy(str *s, char **c);
+bool str_append_cstr_dispose(str *s, char **c);
 
-bool str_append_str_destroy(str *s, str **c);
+bool str_append_str_dispose(str *s, str **c);
 
-void str_destroy(str *s);
+void str_dispose(str *s);
 
 #endif
