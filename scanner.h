@@ -17,9 +17,9 @@ typedef enum {
   KW_LET,
   KW_UNKNOWN,
   KW_VAR,
-  KW_PRINT,
   KW_IN,
   KW_FOR,
+  KW_DOUBLE,
 } Keyword;
 
 typedef enum {
@@ -75,6 +75,10 @@ typedef enum {
   TOKEN_PRINT,
   TOKEN_IN,
   TOKEN_FOR,
+  TOKEN_OPTIONAL_TYPE,
+  TOKEN_EXPONENT,
+  TOKEN_DECIMAL_LITERAL,
+  TOKEN_INTEGER_LITERAL,
 } TokenType;
 
 typedef struct {

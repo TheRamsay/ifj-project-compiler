@@ -31,15 +31,27 @@ void determine_token_type(Token *token) {
   if (strcmp(token->val, "if") == 0) {
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_IF;
+  } else if (strcmp(token->val, "Double") == 0) {
+    token->type = TOKEN_KEYWORD;
+    token->keyword = KW_DOUBLE;
   } else if (strcmp(token->val, "else") == 0) {
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_ELSE;
   } else if (strcmp(token->val, "while") == 0) {
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_WHILE;
-  } else if (strcmp(token->val, "int") == 0) {
+  } else if (strcmp(token->val, "Func") == 0) {
+    token->type = TOKEN_KEYWORD;
+    token->keyword = KW_FUNC;
+  } else if (strcmp(token->val, "Int") == 0) {
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_INT;
+  } else if (strcmp(token->val, "nil") == 0) {
+    token->type = TOKEN_KEYWORD;
+    token->keyword = KW_NIL;
+  } else if (strcmp(token->val, "return") == 0) {
+    token->type = TOKEN_KEYWORD;
+    token->keyword = KW_RETURN;
   } else if (strcmp(token->val, "float") == 0) {
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_FLOAT;
@@ -52,14 +64,8 @@ void determine_token_type(Token *token) {
   } else if (strcmp(token->val, "void") == 0) {
     token->keyword = KW_VOID;
     token->type = TOKEN_KEYWORD;
-  } else if (strcmp(token->val, "null") == 0) {
-    token->keyword = KW_NULL;
-    token->type = TOKEN_KEYWORD;
   } else if (strcmp(token->val, "var") == 0) {
     token->keyword = KW_VAR;
-    token->type = TOKEN_KEYWORD;
-  } else if (strcmp(token->val, "print") == 0) {
-    token->keyword = KW_PRINT;
     token->type = TOKEN_KEYWORD;
   } else if (strcmp(token->val, "let") == 0) {
     token->keyword = KW_LET;
@@ -215,7 +221,7 @@ void determine_token_type(Token *token) {
       if (strcmp(token->val, "??") == 0) {
         token->type = TOKEN_NULL_COALESCING;
       } else {
-        token->type = TOKEN_UNKNOWN;
+        token->type = TOKEN_OPTIONAL_TYPE;
       }
       break;
     // case '? :':
@@ -266,63 +272,93 @@ int get_next_token(Token *token) {
     if (c == EOF) {
       break;
     }
-    if (inString) {
-      if (c == '"') {
-        inString = false;
-        char_to_token(token, c);
-        token->type = TOKEN_STRING;
-        break;
-      } else {
-        char_to_token(token, c);
-      }
-    } else if (c == '"') {
-      inString = true;
+    if (isdigit(c)) {
       char_to_token(token, c);
-    } else if (isalpha(c) || c == '_') { // Identifier
-      char_to_token(token, c);
-      while (isalnum(c = fgetc(source_file)) || c == '_') {
+      while (isdigit(c = fgetc(source_file))) {
         char_to_token(token, c);
       }
       ungetc(c, source_file);
-      determine_token_type(token);
-      if (token->type == TOKEN_UNKNOWN) {
-        token->type = TOKEN_IDENTIFIER;
-      }
+      token->type = TOKEN_INTEGER_LITERAL;
       break;
-    } else if (c == '\n' || c == '\t' || c == ' ') {
-      continue;
-    } else if (c == '/') {
-      c = fgetc(source_file);
-      if (c == '/') {
-        while (fgetc(source_file) != '\n')
-          ;
-        continue;
-      } else if (c == '*') {
-      loop:
-        while (fgetc(source_file) != '*')
-          ;
-        if (fgetc(source_file) == '/') {
-          continue;
+    }
+    if (c == '.') {
+      char_to_token(token, c);
+      while (isdigit(c = fgetc(source_file))) {
+        char_to_token(token, c);
+      }
+      if (c == 'e' || c == 'E') {
+        char_to_token(token, c);
+        if ((c = fgetc(source_file)) == '+' || c == '-') {
+          char_to_token(token, c);
+        } else {
+          ungetc(c, source_file);
         }
-        goto loop;
-
-      } else {
+        while (isdigit(c = fgetc(source_file))) {
+          char_to_token(token, c);
+        }
+        token->type = TOKEN_EXPONENT;
+        else {
+          token->type = TOKEN_DECIMAL_LITERAL;
+        }
+        break;
+      }
+      if (inString) {
+        if (c == '"') {
+          inString = false;
+          char_to_token(token, c);
+          token->type = TOKEN_STRING;
+          break;
+        } else {
+          char_to_token(token, c);
+        }
+      } else if (c == '"') {
+        inString = true;
+        char_to_token(token, c);
+      } else if (isalpha(c) || c == '_') { // Identifier
+        char_to_token(token, c);
+        while (isalnum(c = fgetc(source_file)) || c == '_') {
+          char_to_token(token, c);
+        }
         ungetc(c, source_file);
-        char_to_token(token, '/');
+        determine_token_type(token);
+        if (token->type == TOKEN_UNKNOWN) {
+          token->type = TOKEN_IDENTIFIER;
+        }
+        break;
+      } else if (c == '\n' || c == '\t' || c == ' ') {
+        continue;
+      } else if (c == '/') {
+        c = fgetc(source_file);
+        if (c == '/') {
+          while (fgetc(source_file) != '\n')
+            ;
+          continue;
+        } else if (c == '*') {
+        loop:
+          while (fgetc(source_file) != '*')
+            ;
+          if (fgetc(source_file) == '/') {
+            continue;
+          }
+          goto loop;
+
+        } else {
+          ungetc(c, source_file);
+          char_to_token(token, '/');
+          determine_token_type(token);
+          break;
+        }
+      } else {
+        char_to_token(token, c);
         determine_token_type(token);
         break;
       }
-    } else {
-      char_to_token(token, c);
-      determine_token_type(token);
-      break;
     }
-  }
 
-  if (token->type == TOKEN_UNKNOWN && c == EOF) {
-    token->type = TOKEN_EOF;
-  }
-  printf("Token Type: %d, Token Value: %s\n", token->type, token->val);
+    if (token->type == TOKEN_UNKNOWN && c == EOF) {
+      token->type = TOKEN_EOF;
+    }
+    printf("Token Type: %d, Token Value: %s\n", token->type, token->val);
 
-  return token->type;
-}
+    return token->type;
+  }
