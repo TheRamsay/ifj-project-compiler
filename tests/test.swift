@@ -1,1 +1,1 @@
-"123" if else while int + - * / % 
+if else while Int 

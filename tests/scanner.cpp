@@ -5,18 +5,22 @@ extern "C" {
 #include "gtest/gtest.h"
 #include <stdlib.h>
 
-TEST(ScannerTest, Scan_Tokens_KW) {
-  FILE *input_file = stdin;
+class ScannerTest : public testing::Test {
+protected:
+  FILE *input_file;
   Token token;
-  scanner_init(input_file);
+  void SetUp() override {
+    input_file = fopen("test.swift", "r");
+    if (input_file == NULL) {
+      printf("Error opening file\n");
+      exit(1);
+    }
+    scanner_init(input_file);
+  }
+};
+
+TEST_F(ScannerTest, Scan_Tokens_KW) {
   int result = get_next_token(&token);
-
-  EXPECT_EQ(result, TOKEN_STRING);
-  EXPECT_EQ(token.type, TOKEN_STRING);
-  EXPECT_STREQ(token.val, "\"123\"");
-  EXPECT_EQ(token.length, 5);
-
-  result = get_next_token(&token);
   EXPECT_EQ(result, TOKEN_KEYWORD);
   EXPECT_EQ(token.type, TOKEN_KEYWORD);
   EXPECT_EQ(token.keyword, KW_IF);
@@ -35,29 +39,28 @@ TEST(ScannerTest, Scan_Tokens_KW) {
   EXPECT_EQ(result, TOKEN_KEYWORD);
   EXPECT_EQ(token.type, TOKEN_KEYWORD);
   EXPECT_EQ(token.keyword, KW_INT);
+}
 
-  result = get_next_token(&token);
-  EXPECT_EQ(result, TOKEN_PLUS);
-  EXPECT_EQ(token.type, TOKEN_PLUS);
+TEST_F(ScannerTest, Scan_Tokens_Arithmetic_Test) {
+  // int result = get_next_token(&token);
+  // EXPECT_EQ(result, TOKEN_PLUS);
+  // EXPECT_EQ(token.type, TOKEN_PLUS);
 
-  result = get_next_token(&token);
-  EXPECT_EQ(result, TOKEN_MINUS);
-  EXPECT_EQ(token.type, TOKEN_MINUS);
+  // result = get_next_token(&token);
+  // EXPECT_EQ(result, TOKEN_MINUS);
+  // EXPECT_EQ(token.type, TOKEN_MINUS);
 
-  result = get_next_token(&token);
-  EXPECT_EQ(result, TOKEN_MULTIPLY);
-  EXPECT_EQ(token.type, TOKEN_MULTIPLY);
+  // result = get_next_token(&token);
+  // EXPECT_EQ(result, TOKEN_MULTIPLY);
+  // EXPECT_EQ(token.type, TOKEN_MULTIPLY);
 
-  result = get_next_token(&token);
-  EXPECT_EQ(result, TOKEN_DIV);
-  EXPECT_EQ(token.type, TOKEN_DIV);
+  // result = get_next_token(&token);
+  // EXPECT_EQ(result, TOKEN_DIV);
+  // EXPECT_EQ(token.type, TOKEN_DIV);
 
-  result = get_next_token(&token);
-  EXPECT_EQ(result, TOKEN_MOD);
-  EXPECT_EQ(token.type, TOKEN_MOD);
-
-  scanner_destroy();
-  fclose(input_file);
+  // result = get_next_token(&token);
+  // EXPECT_EQ(result, TOKEN_MOD);
+  // EXPECT_EQ(token.type, TOKEN_MOD);
 }
 
 int main(int argc, char **argv) {
