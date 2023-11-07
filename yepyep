@@ -1,4 +1,4 @@
-program -> func func_id (<func_params>) -> <return_type> { <statement_list> } <program>
+<program> -> func <func_id> (<func_params>) -> <return_type> { <statement_list> } <program>
 <program> -> <statement> <program>
 <program> -> epsilon
 
