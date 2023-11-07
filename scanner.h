@@ -13,13 +13,14 @@ typedef enum {
   KW_CHAR,
   KW_RETURN,
   KW_VOID,
-  KW_NULL,
+  KW_NIL,
   KW_LET,
   KW_UNKNOWN,
   KW_VAR,
   KW_IN,
   KW_FOR,
   KW_DOUBLE,
+  KW_FUNC,
 } Keyword;
 
 typedef enum {
