@@ -13,8 +13,7 @@
 #define RULES_SIZE 17
 #define RULE_MAX_LENGHT 4
 
-const char operators[] = {TOKEN_PLUS, TOKEN_IDENTIFIER, TOKEN_STACK_BOTTOM,
-                          TOKEN_EXPRESSION};
+const char operators[] = {TOKEN_PLUS, TOKEN_IDENTIFIER, TOKEN_STACK_BOTTOM, TOKEN_EXPRESSION};
 
 typedef enum {
   L,    // < /SHIFT
@@ -37,14 +36,12 @@ typedef struct {
 } Stack_token_t;
 
 #ifdef PARSER_TEST
-Token parse_expression(Token expressionToParse[], int inputSize,
-                       Parser *parser);
+Token parse_expression(Token expressionToParse[], int inputSize, Parser *parser);
 #else
 Token parse_expression(Parser *parser);
 #endif
 
-Stack_token_t *extract_tokens_from_stack(Stack_token_t *stack_tokens,
-                                         size_t size);
+Stack_token_t *extract_tokens_from_stack(Stack_token_t *stack_tokens, size_t size);
 
 Stack_token_t *arrayFromStack(void_stack_t *stack, int *size);
 
