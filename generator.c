@@ -35,10 +35,10 @@ Generator *generator_new() {
     goto onfail;
   }
 
-  Stack *label_stack = (Stack *)malloc(sizeof(Stack));
-  gen->label_stack = label_stack;
   // ! MAX LABEL DEPTH
-  if (!stack_init(label_stack, 2048)) {
+  void_stack_t *label_stack = stack_new(2048);
+  gen->label_stack = label_stack;
+  if (gen->label_stack == NULL) {
     goto onfail;
   };
 
@@ -61,7 +61,6 @@ onfail:
 
   if (label_stack != NULL) {
     stack_dispose(label_stack);
-    free(label_stack);
   }
 
   return NULL;
@@ -96,6 +95,7 @@ void generator_dispose(Generator *gen) {
 
   str_dispose(gen->out_str);
   str_dispose(gen->main_str);
+  stack_dispose(gen->label_stack);
 
   free(gen);
 }

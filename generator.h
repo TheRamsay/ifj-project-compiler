@@ -16,7 +16,7 @@ typedef struct Generator {
   str *out_str;
   str *main_str;
 
-  Stack *label_stack;
+  void_stack_t *label_stack;
 
   int depth;
 } Generator;

@@ -30,7 +30,7 @@ TEST(SymtableTest, Init)
 
   symtable = create_symtable(2);
   ASSERT_EQ(symtable->capacity, 2);
-  ASSERT_EQ(symtable->errorCode, 0);
+  ASSERT_EQ(symtable->error_code, 0);
   ASSERT_NE(symtable->items, nullptr);
 
   delete_symtable(symtable);
@@ -62,7 +62,7 @@ TEST(SymtableTest, Insert)
     ]
   */
 
-  ASSERT_EQ(symtable->errorCode, 0);
+  ASSERT_EQ(symtable->error_code, 0);
 
   ASSERT_TRUE(symtable_search(symtable, key1));
   ASSERT_TRUE(symtable_search(symtable, key2));

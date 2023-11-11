@@ -51,12 +51,12 @@ bool symtable_init(Symtable *table, unsigned int capacity) {
   table->items = calloc(capacity, sizeof(SymtableItem *));
 
   if (table->items == NULL) {
-    table->errorCode = SYMTABLE_INIT_ERROR;
+    table->error_code = SYMTABLE_INIT_ERROR;
     return false;
   }
 
   table->capacity = capacity;
-  table->errorCode = 0;
+  table->error_code = 0;
 
   return true;
 }
@@ -70,14 +70,14 @@ bool symtable_init(Symtable *table, unsigned int capacity) {
  */
 void symtable_insert(Symtable *table, char *key, void *data) {
   if (table == NULL) {
-    table->errorCode = SYMTABLE_INSERT_ERROR;
+    table->error_code = SYMTABLE_INSERT_ERROR;
     return;
   }
 
   SymtableItem *item = malloc(sizeof(SymtableItem));
 
   if (item == NULL) {
-    table->errorCode = SYMTABLE_INSERT_ERROR;
+    table->error_code = SYMTABLE_INSERT_ERROR;
     return;
   }
 
@@ -110,7 +110,7 @@ void symtable_insert(Symtable *table, char *key, void *data) {
  */
 bool symtable_search(Symtable *table, const char *key) {
   if (table == NULL) {
-    table->errorCode = SYMTABLE_SEARCH_ERROR;
+    table->error_code = SYMTABLE_SEARCH_ERROR;
     return false;
   }
 
@@ -141,7 +141,7 @@ bool symtable_search(Symtable *table, const char *key) {
  */
 void symtable_delete(Symtable *table, const char *key) {
   if (table == NULL) {
-    table->errorCode = SYMTABLE_SEARCH_ERROR;
+    table->error_code = SYMTABLE_SEARCH_ERROR;
     return;
   }
 
@@ -170,7 +170,7 @@ void symtable_delete(Symtable *table, const char *key) {
     }
     free(current);
   } else {
-    table->errorCode = SYMTABLE_SEARCH_ERROR;
+    table->error_code = SYMTABLE_SEARCH_ERROR;
   }
 }
 
@@ -237,5 +237,5 @@ void symtable_dispose(Symtable *table) {
   free(table->items);
   table->items = NULL;
   table->capacity = 0;
-  table->errorCode = 0;
+  table->error_code = 0;
 }

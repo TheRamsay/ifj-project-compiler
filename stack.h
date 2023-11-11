@@ -19,39 +19,39 @@
 
 /** stack_push error. */
 #define STACK_SERR_PUSH 1
-/** stack_top error. */
+/** void_stack_top error. */
 #define STACK_SERR_TOP 2
 /** stack_pop error. */
 #define STACK_SERR_POP 3
 
 /** ADT stack implemented with a static array. */
-typedef struct {
-  /** Pole pro uložení hodnot. */
-  char *items;
-  /** Index prvku na vrcholu zásobníku. */
-  int topIndex;
+typedef struct void_stack_t {
+  /** Array for the elements of the stack. */
+  void **items;
+  /** Index of the top of the stack. */
+  int top_index;
   /** Stack size. */
   int size;
   /** Error code. */
-  int errorCode;
-} Stack;
+  int error_code;
+} void_stack_t;
 
-void stack_error(Stack *, int);
+void_stack_t *stack_new(int size);
 
-void stack_clear_error(Stack *);
+void stack_error(void_stack_t *stack, int error_code);
 
-bool stack_init(Stack *, int);
+void stack_clear_error(void_stack_t *stack);
 
-bool stack_is_empty(const Stack *);
+bool stack_is_empty(const void_stack_t *stack);
 
-bool stack_is_full(const Stack *);
+bool stack_is_full(const void_stack_t *stack);
 
-int stack_top(Stack *);
+void *void_stack_top(void_stack_t *stack);
 
-int stack_pop(Stack *);
+void *stack_pop(void_stack_t *stack);
 
-void stack_push(Stack *, int);
+void stack_push(void_stack_t *stack, void *ptr);
 
-void stack_dispose(Stack *);
+void stack_dispose(void_stack_t *stack);
 
 #endif
