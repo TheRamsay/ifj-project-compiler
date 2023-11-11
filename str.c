@@ -47,6 +47,10 @@ bool str_resize(str *s, unsigned int new_size) {
  *
  */
 str *str_new(unsigned int length) {
+  if (length == 0) {
+    return NULL;
+  }
+
   str *str = malloc(sizeof(struct str));
 
   if (str == NULL) {
@@ -60,6 +64,8 @@ str *str_new(unsigned int length) {
     free(str);
     return NULL;
   }
+
+  str->data[0] = '\0';
 
   return str;
 }

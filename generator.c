@@ -21,17 +21,50 @@ Generator *generator_new() {
   Generator *gen = malloc(sizeof(struct Generator));
 
   if (gen == NULL) {
-    return NULL;
+    goto onfail;
   }
 
   gen->out_str = str_new(2000);
-
   if (gen->out_str == NULL) {
-    free(gen);
-    return NULL;
+    goto onfail;
   }
 
+  str *main_str = str_new_from("LABEL main\n");
+  gen->main_str = main_str;
+  if (gen->main_str == NULL) {
+    goto onfail;
+  }
+
+  Stack *label_stack = (Stack *)malloc(sizeof(Stack));
+  gen->label_stack = label_stack;
+  // ! MAX LABEL DEPTH
+  if (!stack_init(label_stack, 2048)) {
+    goto onfail;
+  };
+
+  gen->depth = 0;
+
   return gen;
+
+onfail:
+  if (gen != NULL) {
+    free(gen);
+  }
+
+  if (gen->out_str == NULL) {
+    str_dispose(gen->out_str);
+  }
+
+  if (gen->main_str == NULL) {
+    str_dispose(gen->main_str);
+  }
+
+  if (label_stack != NULL) {
+    stack_dispose(label_stack);
+    free(label_stack);
+  }
+
+  return NULL;
 }
 
 /**
@@ -62,6 +95,8 @@ void generator_dispose(Generator *gen) {
   }
 
   str_dispose(gen->out_str);
+  str_dispose(gen->main_str);
+
   free(gen);
 }
 
@@ -76,4 +111,31 @@ void generator_header(Generator *gen) {
 
   str_append_cstr(gen->out_str, ".IFJCode23\n");
   str_append_cstr(gen->out_str, "# Kanvica: The Conqueror of Worls\n\n");
+  str_append_cstr(gen->out_str, "JUMP main\n");
 }
+
+void generator_footer(Generator *gen) {
+  if (gen == NULL) {
+    return;
+  }
+
+  str_append_str_dispose(gen->out_str, &gen->main_str);
+}
+
+void generator_var_create(Generator *gen, str *name) {
+  str *fr = str_new(4);
+  str *dest;
+
+  if (gen->depth == 0) {
+    str_set_cstr(fr, "GF@");
+    dest = gen->main_str;
+  } else {
+    str_set_cstr(fr, "LF@");
+    dest = gen->out_str;
+  }
+
+  str_append_cstr(dest, "DEFVAR ");
+  str_append_str_dispose(dest, &fr);
+  str_append_str(dest, name);
+  str_append_cstr(dest, "\n");
+};

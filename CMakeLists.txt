@@ -80,6 +80,7 @@ add_test(str Test_str)
 add_executable(Test_generator
         generator.h generator.c
         str.h str.c
+        stack.h stack.c
         tests/generator.cpp)
 target_link_libraries(Test_generator gtest gtest_main)
 
