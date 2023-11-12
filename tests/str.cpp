@@ -124,6 +124,27 @@ TEST(StrTest, AppendStr) {
   str_dispose(c);
 }
 
+TEST(StrTest, AppendInt) {
+  str *s = str_new(5);
+  int c = 123;
+
+  str_set_cstr(s, "0");
+
+  str_append_int(s, c);
+  ASSERT_EQ(strcmp(s->data, "0123"), 0);
+
+  str_append_int(s, c);
+  ASSERT_EQ(strcmp(s->data, "0123123"), 0);
+
+  str_set_cstr(s, "");
+  c = 2147483647;
+
+  str_append_int(s, c);
+  ASSERT_EQ(strcmp(s->data, "2147483647"), 0);
+
+  str_dispose(s);
+}
+
 TEST(StrTest, AppendCstrResize) {
   str *s = str_new(5);
 

@@ -12,6 +12,7 @@
 #include "symtable.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 /*                            Private functions                               */
 /**
@@ -126,7 +127,7 @@ bool symtable_search(symtable_t *table, const char *key) {
     current = current->next;
   }
 
-  if (current->key == key) {
+  if (strcmp(current->key, key) == 0) {
     return true;
   } else {
     return false;
