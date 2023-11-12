@@ -20,7 +20,7 @@ void deleteTmpFile() {
 }
 
 TEST(GeneratorTest, HeaderFooter) {
-  Generator *gen = generator_new();
+  gen_t *gen = generator_new();
 
   generator_header(gen);
   generator_footer(gen);
@@ -36,13 +36,31 @@ TEST(GeneratorTest, HeaderFooter) {
 }
 
 TEST(GeneratorTest, FunAndGames) {
-  Generator *gen = generator_new();
+  gen_t *gen = generator_new();
 
   generator_header(gen);
 
   str *name = str_new_from("a");
   generator_var_create(gen, name);
-  str_dispose(name);
+
+  generator_function_begin(gen, str_new_from("test1"), NULL);
+  generator_var_create(gen, name);
+  generator_function_end(gen);
+
+  void_stack_t *args = stack_new(4);
+  stack_push(args, str_new_from("arg1"));
+
+  generator_function_begin(gen, str_new_from("test4s"), args);
+  stack_push(args, str_new_from("arg1"));
+  generator_function_call(gen, str_new_from("test4s"), args);
+  generator_function_end(gen);
+
+  generator_var_create(gen, str_new_from("arg1"));
+  generator_var_set(gen, str_new_from("arg1"), str_new_from("int@1"));
+
+  stack_push(args, str_new_from("arg1"));
+  generator_function_call(gen, str_new_from("test4s"), args);
+
   generator_footer(gen);
 
   createTmpFile(gen->out_str);
@@ -54,9 +72,3 @@ TEST(GeneratorTest, FunAndGames) {
 
   generator_dispose(gen);
 }
-
-void generator_function_begin(Generator *gen, str *name) {
-  stack_push(gen->label_stack, (char *)name->data);
-
-  str_append_cstr(gen->out_str, "LABEL ");
-};

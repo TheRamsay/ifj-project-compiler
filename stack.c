@@ -89,7 +89,7 @@ bool stack_is_full(const void_stack_t *stack) {
  *
  * @param stack Ukazatel na inicializovanou strukturu zásobníku
  */
-void *void_stack_top(void_stack_t *stack) {
+void *stack_top(void_stack_t *stack) {
   if (stack_is_empty(stack)) {
     stack_error(stack, STACK_SERR_TOP);
     return 0;

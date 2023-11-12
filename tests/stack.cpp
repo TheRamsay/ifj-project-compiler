@@ -26,17 +26,17 @@ TEST(StackTest, Push) {
   void_stack_t *stack = stack_new(2);
 
   stack_push(stack, (void *)1);
-  ASSERT_EQ(void_stack_top(stack), (void *)1);
+  ASSERT_EQ(stack_top(stack), (void *)1);
   ASSERT_EQ(stack->top_index, 0);
   ASSERT_EQ(stack->error_code, 0);
 
   stack_push(stack, (void *)2);
-  ASSERT_EQ(void_stack_top(stack), (void *)2);
+  ASSERT_EQ(stack_top(stack), (void *)2);
   ASSERT_EQ(stack->top_index, 1);
   ASSERT_EQ(stack->error_code, 0);
 
   stack_push(stack, (void *)3);
-  ASSERT_EQ(void_stack_top(stack), (void *)2);
+  ASSERT_EQ(stack_top(stack), (void *)2);
   ASSERT_NE(stack->top_index, 2);
   ASSERT_EQ(stack->error_code, STACK_SERR_PUSH);
 
@@ -47,7 +47,7 @@ TEST(StackTest, Pop) {
   void_stack_t *stack = stack_new(2);
 
   stack_push(stack, (void *)1);
-  ASSERT_EQ(void_stack_top(stack), (void *)1);
+  ASSERT_EQ(stack_top(stack), (void *)1);
   ASSERT_EQ(stack->top_index, 0);
   ASSERT_EQ(stack->error_code, 0);
 
@@ -69,7 +69,7 @@ TEST(StackTest, EmptyFull) {
   ASSERT_FALSE(stack_is_full(stack));
 
   stack_push(stack, (void *)1);
-  ASSERT_EQ(void_stack_top(stack), (void *)1);
+  ASSERT_EQ(stack_top(stack), (void *)1);
   ASSERT_EQ(stack->top_index, 0);
   ASSERT_EQ(stack->error_code, 0);
 

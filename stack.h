@@ -46,7 +46,7 @@ bool stack_is_empty(const void_stack_t *stack);
 
 bool stack_is_full(const void_stack_t *stack);
 
-void *void_stack_top(void_stack_t *stack);
+void *stack_top(void_stack_t *stack);
 
 void *stack_pop(void_stack_t *stack);
 

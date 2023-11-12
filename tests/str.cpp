@@ -16,10 +16,7 @@ TEST(StrTest, New) {
 
   s = str_new(0);
 
-  ASSERT_EQ(s->alloc_size, 0);
-  ASSERT_NE(s->data, nullptr);
-
-  str_dispose(s);
+  ASSERT_EQ(s, nullptr);
 }
 
 TEST(StrTest, NewFrom) {
