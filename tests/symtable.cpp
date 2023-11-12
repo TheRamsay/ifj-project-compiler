@@ -6,13 +6,13 @@ extern "C"
 #include <string.h>
 #include "gtest/gtest.h"
 
-Symtable *create_symtable(unsigned int capacity) {
-  Symtable *symtable = (Symtable *) malloc(sizeof(Symtable));
+symtable_t *create_symtable(unsigned int capacity) {
+  symtable_t *symtable = (symtable_t *) malloc(sizeof(symtable_t));
   symtable_init(symtable, capacity);
   return symtable;
 }
 
-void delete_symtable(Symtable *symtable) {
+void delete_symtable(symtable_t *symtable) {
   symtable_dispose(symtable);
   free(symtable);
 }
@@ -25,7 +25,7 @@ char *getKey(const char* key) {
 
 TEST(SymtableTest, Init)
 {
-  Symtable *symtable = NULL;
+  symtable_t *symtable = NULL;
   ASSERT_FALSE(symtable_init(symtable, 5));
 
   symtable = create_symtable(2);
@@ -36,10 +36,10 @@ TEST(SymtableTest, Init)
   delete_symtable(symtable);
 }
 
-TEST(SymtableTest, Insert)
+TEST(symtable_tTest, Insert)
 {
 
-  Symtable *symtable = create_symtable(2);
+  symtable_t *symtable = create_symtable(2);
 
   void *item1 = malloc(1);
   char *key1 = getKey("a");
@@ -82,7 +82,7 @@ TEST(SymtableTest, Insert)
 }
 
 TEST(SymtableTest, Get) {
-  Symtable *symtable = create_symtable(2);
+  symtable_t *symtable = create_symtable(2);
 
   void *item1 = malloc(1);
   char *key1 = getKey("a");
@@ -101,7 +101,7 @@ TEST(SymtableTest, Get) {
 }
 
 TEST(SymtableTest, Delete) {
-  Symtable *symtable = create_symtable(2);
+  symtable_t *symtable = create_symtable(2);
 
   void *item1 = malloc(1);
   char *key1 = getKey("a");

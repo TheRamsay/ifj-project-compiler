@@ -43,12 +43,12 @@ unsigned int hash_function(const char *key, const unsigned int capacity) {
  * @param capacity Initial capacity of the symtable
  *
  */
-bool symtable_init(Symtable *table, unsigned int capacity) {
+bool symtable_init(symtable_t *table, unsigned int capacity) {
   if (table == NULL) {
     return false;
   }
 
-  table->items = calloc(capacity, sizeof(SymtableItem *));
+  table->items = calloc(capacity, sizeof(symtable_item_t *));
 
   if (table->items == NULL) {
     table->error_code = SYMTABLE_INIT_ERROR;
@@ -68,13 +68,13 @@ bool symtable_init(Symtable *table, unsigned int capacity) {
  * @param data Data of the item to be inserted
  *
  */
-void symtable_insert(Symtable *table, char *key, void *data) {
+void symtable_insert(symtable_t *table, char *key, void *data) {
   if (table == NULL) {
     table->error_code = SYMTABLE_INSERT_ERROR;
     return;
   }
 
-  SymtableItem *item = malloc(sizeof(SymtableItem));
+  symtable_item_t *item = malloc(sizeof(symtable_item_t));
 
   if (item == NULL) {
     table->error_code = SYMTABLE_INSERT_ERROR;
@@ -90,7 +90,7 @@ void symtable_insert(Symtable *table, char *key, void *data) {
   if (table->items[hash] == NULL) {
     table->items[hash] = item;
   } else {
-    SymtableItem *current = table->items[hash];
+    symtable_item_t *current = table->items[hash];
 
     while (current->next != NULL) {
       current = current->next;
@@ -108,7 +108,7 @@ void symtable_insert(Symtable *table, char *key, void *data) {
  * @returns true if the item was found, false otherwise
  *
  */
-bool symtable_search(Symtable *table, const char *key) {
+bool symtable_search(symtable_t *table, const char *key) {
   if (table == NULL) {
     table->error_code = SYMTABLE_SEARCH_ERROR;
     return false;
@@ -116,7 +116,7 @@ bool symtable_search(Symtable *table, const char *key) {
 
   unsigned int hash = hash_function(key, table->capacity);
 
-  SymtableItem *current = table->items[hash];
+  symtable_item_t *current = table->items[hash];
 
   if (current == NULL) {
     return false;
@@ -139,7 +139,7 @@ bool symtable_search(Symtable *table, const char *key) {
  * @param key Key of the item to be deleted
  *
  */
-void symtable_delete(Symtable *table, const char *key) {
+void symtable_delete(symtable_t *table, const char *key) {
   if (table == NULL) {
     table->error_code = SYMTABLE_SEARCH_ERROR;
     return;
@@ -147,8 +147,8 @@ void symtable_delete(Symtable *table, const char *key) {
 
   unsigned int hash = hash_function(key, table->capacity);
 
-  SymtableItem *current = table->items[hash];
-  SymtableItem *previous = NULL;
+  symtable_item_t *current = table->items[hash];
+  symtable_item_t *previous = NULL;
 
   while (current->key != key && current->next != NULL) {
     previous = current;
@@ -181,14 +181,14 @@ void symtable_delete(Symtable *table, const char *key) {
  *
  * @returns Pointer to the data of the item if found, NULL otherwise
  */
-void *symtable_get(const Symtable *table, const char *key) {
+void *symtable_get(const symtable_t *table, const char *key) {
   if (table == NULL) {
     return NULL;
   }
 
   unsigned int hash = hash_function(key, table->capacity);
 
-  SymtableItem *current = table->items[hash];
+  symtable_item_t *current = table->items[hash];
 
   if (current == NULL) {
     return NULL;
@@ -212,14 +212,14 @@ void *symtable_get(const Symtable *table, const char *key) {
  * @param table Pointer to the symtable structure
  *
  */
-void symtable_dispose(Symtable *table) {
+void symtable_dispose(symtable_t *table) {
   if (table == NULL) {
     return;
   }
 
   for (unsigned int i = 0; i < table->capacity; i++) {
-    SymtableItem *current = table->items[i];
-    SymtableItem *next = NULL;
+    symtable_item_t *current = table->items[i];
+    symtable_item_t *next = NULL;
 
     while (current != NULL) {
       next = current->next;

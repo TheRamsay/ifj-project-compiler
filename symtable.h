@@ -23,15 +23,15 @@
 /** symtable_expend error. */
 #define SYMTABLE_EXPAND_ERROR 4
 
-typedef struct SymtableItem SymtableItem;
+typedef struct symtable_item_t symtable_item_t;
 
-struct SymtableItem {
+struct symtable_item_t {
   /** The key of the item */
   char *key;
   /** The data of the item */
   void *data;  // TODO: Change to whatever we're gonna need
   /** Pointer to the next item with the same hash */
-  SymtableItem *next;
+  symtable_item_t *next;
 };
 
 typedef struct {
@@ -40,19 +40,19 @@ typedef struct {
   /** Error code. */
   int error_code;
   /** Pointer to the first item of the table. */
-  SymtableItem **items;
-} Symtable;
+  symtable_item_t **items;
+} symtable_t;
 
-bool symtable_init(Symtable *table, unsigned int capacity);
+bool symtable_init(symtable_t *table, unsigned int capacity);
 
-void symtable_insert(Symtable *table, char *key, void *data);
+void symtable_insert(symtable_t *table, char *key, void *data);
 
-bool symtable_search(Symtable *table, const char *key);
+bool symtable_search(symtable_t *table, const char *key);
 
-void symtable_delete(Symtable *table, const char *key);
+void symtable_delete(symtable_t *table, const char *key);
 
-void *symtable_get(const Symtable *table, const char *key);
+void *symtable_get(const symtable_t *table, const char *key);
 
-void symtable_dispose(Symtable *table);
+void symtable_dispose(symtable_t *table);
 
 #endif
