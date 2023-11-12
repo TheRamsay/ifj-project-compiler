@@ -43,7 +43,7 @@ typedef struct {
   symtable_item_t **items;
 } symtable_t;
 
-bool symtable_init(symtable_t *table, unsigned int capacity);
+symtable_t *symtable_new(unsigned int capacity);
 
 void symtable_insert(symtable_t *table, char *key, void *data);
 

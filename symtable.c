@@ -39,26 +39,26 @@ unsigned int hash_function(const char *key, const unsigned int capacity) {
 
 /**
  *
- * @param table Pointer to the symtable structure
  * @param capacity Initial capacity of the symtable
  *
  */
-bool symtable_init(symtable_t *table, unsigned int capacity) {
+symtable_t *symtable_new(unsigned int capacity) {
+  symtable_t *table = malloc(sizeof(symtable_t));
   if (table == NULL) {
-    return false;
+    return NULL;
   }
 
   table->items = calloc(capacity, sizeof(symtable_item_t *));
 
   if (table->items == NULL) {
     table->error_code = SYMTABLE_INIT_ERROR;
-    return false;
+    return NULL;
   }
 
   table->capacity = capacity;
   table->error_code = 0;
 
-  return true;
+  return table;
 }
 
 /**
