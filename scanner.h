@@ -11,7 +11,7 @@ typedef enum keyword_type
     KW_WHILE,
     KW_INT,
     KW_FLOAT,
-    KW_CHAR,
+    KW_STRING,
     KW_RETURN,
     KW_VOID,
     KW_NIL,
@@ -82,6 +82,8 @@ typedef enum token_type
     TOKEN_EXPONENT,
     TOKEN_DECIMAL_LITERAL,
     TOKEN_INTEGER_LITERAL,
+    TOKEN_ARROW,
+    TOKEN_COLON
 } TokenType;
 
 typedef struct

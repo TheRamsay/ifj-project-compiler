@@ -20,7 +20,7 @@ statement:
 	| 'continue'
 	| 'return' optional_expr
 	| FUNC_ID '(' call_params ')'
-	| VAR_DEFINITION_KW IDENTIFIER var_definition_value
+	| VAR_DEFINITION IDENTIFIER var_definition_value
 	| expr;
 
 var_definition_value: '=' expr |;
@@ -37,6 +37,7 @@ term: IDENTIFIER | LITERAL;
 
 LITERAL: STRING_LITERAL | INTEGER_LITERAL | 'nil';
 
+VAR_DEFINITION: VAR_DEFINITION_KW | VAR_DEFINITION_KW ':' TYPE;
 VAR_DEFINITION_KW: 'var' | 'let';
 
 TYPE: 'Int' | 'Double' | 'String';

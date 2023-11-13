@@ -55,7 +55,7 @@ void determine_token_type(Token *token)
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_WHILE;
   }
-  else if (strcmp(token->val, "Func") == 0)
+  else if (strcmp(token->val, "func") == 0)
   {
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_FUNC;
@@ -80,10 +80,10 @@ void determine_token_type(Token *token)
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_FLOAT;
   }
-  else if (strcmp(token->val, "char") == 0)
+  else if (strcmp(token->val, "String") == 0)
   {
     token->type = TOKEN_KEYWORD;
-    token->keyword = KW_CHAR;
+    token->keyword = KW_STRING;
   }
   else if (strcmp(token->val, "return") == 0)
   {

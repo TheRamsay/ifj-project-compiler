@@ -1,8 +1,18 @@
 {
   "files.associations": {
+    "*.html": "html",
+    "*.py": "python",
     "symtable.h": "c",
     "stack.h": "c",
     "stdlib.h": "c",
-    "system_error": "c"
-  }
+    "system_error": "c",
+    "parser.h": "c"
+  },
+  "makefile.launchConfigurations": [
+    {
+      "cwd": "/home/ramsay/school/ifj/ifj-project",
+      "binaryPath": "/home/ramsay/school/ifj/ifj-project/main",
+      "binaryArgs": []
+    }
+  ]
 }
