@@ -85,3 +85,6 @@ run_tests
 
 build*/
 cmake-build*/
+cmake-build*/
+
+build/
