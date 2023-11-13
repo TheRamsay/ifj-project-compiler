@@ -1,17 +1,33 @@
 #include "scanner.h"
 
-Token current_token;
+Token current_token, prev_token;
+
+bool match(TokenType token_type)
+{
+    
+}
+
+void function()
+{
+}
+
+void statement()
+{
+}
 
 void rule_program()
 {
-    switch (current_token.type)
+    if (current_token.type == TOKEN_EOF)
     {
-    case:
-        break;
-    case TOKEN_EOF:
         return;
-    default:
-        break;
+    }
+    else if (current_token.type == TOKEN_KEYWORD && current_token.keyword == KW_FUNC)
+    {
+        function();
+    }
+    else
+    {
+        statement();
     }
 
     rule_program();
