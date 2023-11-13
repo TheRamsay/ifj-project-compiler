@@ -2,7 +2,13 @@
 // Created by padak on 10/26/23.
 //
 
-#ifndef IFJ_PROJECT_EXP_PARSER_H
-#define IFJ_PROJECT_EXP_PARSER_H
+#ifndef _EXP_PARSER_H
+#define _EXP_PARSER_H
 
-#endif //IFJ_PROJECT_EXP_PARSER_H
+#include "stack.h"
+
+int ParseExpression(char *expressionToParse);
+
+char *charArrayFromStack(Stack *stack);
+
+#endif // _EXP_PARSER_H

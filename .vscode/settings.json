@@ -6,18 +6,7 @@
     "stack.h": "c",
     "stdlib.h": "c",
     "system_error": "c",
-    "parser.h": "c"
+    "exp_parser.h": "c"
   },
-  "makefile.launchConfigurations": [
-    {
-      "cwd": "/home/ramsay/school/ifj/ifj-project",
-      "binaryPath": "/home/ramsay/school/ifj/ifj-project/main",
-      "binaryArgs": []
-    },
-    {
-      "cwd": "/home/ramsay/school/ifj/project",
-      "binaryPath": "/home/ramsay/school/ifj/project/main",
-      "binaryArgs": []
-    }
-  ]
+  "C_Cpp.errorSquiggles": "disabled"
 }

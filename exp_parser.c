@@ -5,7 +5,7 @@
 #include "exp_parser.h"
 #include "stack.h"
 
-#define TABLE_SIZE 2
+#define TABLE_SIZE 4
 
 char expression[] = "1 + 1";
 
@@ -16,9 +16,11 @@ enum {
   Err, // Invalid
 };
 const int precedence_table[TABLE_SIZE][TABLE_SIZE] = {
-    //      +       i
-    {R, R},  //+
-    {R, Err} // i
+    //+ i  $  E
+    {R, L, R, E},     //+
+    {R, Err, R, Err}, // i
+    {L, L, Err, L},   //$
+    {E, Err, R, Err}  // E
 };
 
 int get_precedence(char stack_top, char input) {
@@ -29,6 +31,10 @@ int get_precedence(char stack_top, char input) {
       return precedence_table[0][0];
     case 'i':
       return precedence_table[0][1];
+    case '$':
+      return precedence_table[0][2];
+    case 'E':
+      return precedence_table[0][3];
     }
   case 'i':
     switch (input) {
@@ -36,45 +42,125 @@ int get_precedence(char stack_top, char input) {
       return precedence_table[1][0];
     case 'i':
       return precedence_table[1][1];
+    case '$':
+      return precedence_table[1][2];
+    case 'E':
+      return precedence_table[1][3];
+    }
+  case '$':
+    switch (input) {
+    case '+':
+      return precedence_table[2][0];
+    case 'i':
+      return precedence_table[2][1];
+    case '$':
+      return precedence_table[2][2];
+    case 'E':
+      return precedence_table[2][3];
+    }
+  case 'E':
+    switch (input) {
+    case '+':
+      return precedence_table[3][0];
+    case 'i':
+      return precedence_table[3][1];
+    case '$':
+      return precedence_table[3][2];
+    case 'E':
+      return precedence_table[3][3];
     }
   }
 
   return precedence_table[stack_top][input];
 }
 
-typedef struct {
-  int type;
-  int value;
-} token;
+char evaluateRule(char *rightSide) {
 
-int ParseExpression(char expressionToParse[]) {
+  if (strcmp(rightSide, "E+E") == 0) {
+    return 'E';
+  } else if (strcmp(rightSide, "i") == 0) {
+    return 'E';
+  }
+  return ' ';
+}
+
+char getNextChar(char *str, int index) {
+  if (index >= 0 && index <= strlen(str)) {
+    // Return the character at the specified index
+    return str[index];
+  }
+  return '\0';
+}
+
+int ParseExpression(char *expressionToParse) {
+
+  int eIndex = 0;
 
   Stack *stack = (Stack *)malloc(sizeof(Stack));
-  stack_init(stack, 1);
+  stack_init(stack, 100);
 
   stack_push(stack, (int)'$');
 
   // TODO
   // token = next_token();
-  char token = 'i';
+  char token = getNextChar(expressionToParse, eIndex);
+  eIndex++;
+  if (token == '\0') {
+    return 0;
+  }
+
   while (420 == 420) {
     char stackTop = (char)stack_top(stack);
 
     int action = get_precedence(stackTop, token);
+    if (action == Err) {
+      return 0;
+    }
 
     switch (action) {
     case R:
-      stack_push(stack, token);
-      stack_push(stack, token);
+      // Get value to be reduced
+      char *result = charArrayFromStack(stack);
 
-    // TODO
-    // token = next_token()
+      char ruleProduct = evaluateRule(result);
+
+      if (ruleProduct == ' ') {
+        if (*result == 'E') {
+          return 1;
+        }
+        return 0;
+      }
+
+      stackTop = (char)stack_top(stack);
+      action = get_precedence(stackTop, token);
+      stack_push(stack, action);
+      stack_push(stack, ruleProduct);
+
+      // Maybe
+      // token = getNextChar(expressionToParse, eIndex);
+      // eIndex++;
+      // if (token == '\0') {
+      //   return 0;
+      // }
+      break;
     case E:
+      stack_push(stack, token);
+      token = getNextChar(expressionToParse, eIndex);
+      eIndex++;
+      if (token == '\0') {
+        return 0;
+      }
+      break;
+
     case L:
-        stack_push(stack, action);
-        stack_push(stack, token);
-        // TODO
-        // token = next_token()
+      stack_push(stack, action);
+      stack_push(stack, token);
+      token = getNextChar(expressionToParse, eIndex);
+      eIndex++;
+
+      if (token == '\0') {
+        return 0;
+      }
     }
   }
 
@@ -83,27 +169,26 @@ int ParseExpression(char expressionToParse[]) {
   return 1;
 }
 
-void stack_push_after_terminal(Stack *stack) {
-  // Check if stack is empty
-  if (stack_is_empty(stack)) {
-    //TODO ERROR
+char *charArrayFromStack(Stack *stack) {
+  // Check if the stack is empty
+  if (stack->topIndex == -1) {
+    return NULL;
   }
-   int *token;
 
-  for (int i = 1; i <= stack->size; i++) {
-    token = stack->items[stack->size - i];
-    if (token->terminal) {
-      if (stack->len + 1 >= stack->size) {
-        resize_stack(stack);
-      }
-      for (int j = 1; j < i + 1; j++) {
-        stack->tokens[stack->len - j + 1] = stack->tokens[stack->len - j];
-      }
-      stack->tokens[stack->len - i + 1] = token_term_new(token_new(TOK_HANDLE_START, 0, 0), false);
-      stack->len++;
+  // Allocate memory for the array
+  char *resultArray = (char *)malloc((stack->topIndex + 1) * sizeof(char)); // +1 for the null terminator
 
-      return;
-    }
+  if (resultArray == NULL) {
+    fprintf(stderr, "Memory allocation failed\n");
+    return NULL;
   }
-  error_exit(ERR_SYN);
+
+  int currentIndex = 0;
+  while (stack_top(stack) != L && stack->topIndex >= 0) {
+    resultArray[currentIndex++] = stack_pop(stack);
+  }
+  // Get rid of the L
+  stack_pop(stack);
+
+  return resultArray;
 }

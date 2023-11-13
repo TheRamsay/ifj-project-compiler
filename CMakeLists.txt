@@ -37,20 +37,18 @@ add_executable(main
         error.h error.c
         scanner.h scanner.c
         stack.h stack.c
-        str.h str.c
         symtable.h symtable.c)
 
 # ------- Tests -------
-# ------- Scanner -------
+
 add_executable(Test_scanner
         scanner.h scanner.c
         tests/scanner.cpp)
 target_link_libraries(Test_scanner gtest gtest_main)
 
 add_test(scanner Test_scanner)
-# ----------------------------------------------------------------
 
-# ------- Symbtable -------
+
 add_executable(Test_symtable
         symtable.h symtable.c
         error.h error.c
@@ -58,22 +56,19 @@ add_executable(Test_symtable
 target_link_libraries(Test_symtable gtest gtest_main)
 
 add_test(symtable Test_symtable)
-# ----------------------------------------------------------------
 
-# ------- Stack -------
+
 add_executable(Test_stack
         stack.h stack.c
         tests/stack.cpp)
 target_link_libraries(Test_stack gtest gtest_main)
 
 add_test(stack Test_stack)
-# ----------------------------------------------------------------
 
-# ------- STR -------
-add_executable(Test_str
-        str.h str.c
-        tests/str.cpp)
-target_link_libraries(Test_str gtest gtest_main)
+add_executable(ExpParserTest
+        exp_parser.h exp_parser.c stack.h stack.c
+        tests/exp_parser.cpp)
+target_link_libraries(ExpParserTest gtest gtest_main)
 
 add_test(str Test_str)
 # ----------------------------------------------------------------
