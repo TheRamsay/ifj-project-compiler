@@ -57,7 +57,8 @@ gen_t *generator_new() {
   };
   stack_push(gen->construct_count_stack, 0);
 
-  gen->depth = 0;
+  gen->indent_depth = 0;
+  gen->function_depth = 0;
 
   return gen;
 
@@ -148,7 +149,7 @@ str *get_label(gen_t *gen, int depth) {
 str *get_frame(gen_t *gen) {
   str *fr = str_new(4);
 
-  if (gen->depth == 0) {
+  if (gen->indent_depth == 0) {
     str_set_cstr(fr, "GF@");
   } else {
     str_set_cstr(fr, "TF@");
@@ -160,7 +161,7 @@ str *get_frame(gen_t *gen) {
 str *get_dest(gen_t *gen) {
   str *dest;
 
-  if (gen->depth == 0) {
+  if (gen->function_depth == 0) {
     dest = gen->main_str;
   } else {
     dest = gen->out_str;
@@ -216,6 +217,68 @@ str *get_symbol_path(gen_t *gen, str *name) {
   }
 }
 
+void add_indentation(gen_t *gen) {
+  str *dest = get_dest(gen);
+
+  for (int i = 0; i < gen->indent_depth; i++) {
+    str_append_cstr(dest, "  ");
+  }
+}
+
+str *get_instruction(char symbol) {
+  switch (symbol) {
+    case '+': {
+      return str_new_from("ADDS\n");
+    }
+    case '-': {
+      return str_new_from("SUBS\n");
+    }
+    case '*': {
+      return str_new_from("MULS\n");
+    }
+    // float / float -> float
+    case '/': {
+      return str_new_from("DIVS\n");
+    }
+    // int / int -> int
+    case ':': {
+      return str_new_from("IDIVS\n");
+    }
+    case '<': {
+      return str_new_from("LTS\n");
+    }
+    case '>': {
+      return str_new_from("GTS\n");
+    }
+    case '=': {
+      return str_new_from("EQS\n");
+    }
+    case '&': {
+      return str_new_from("ANDS\n");
+    }
+    case '|': {
+      return str_new_from("ORS\n");
+    }
+    case '!': {
+      return str_new_from("NOTS\n");
+    }
+  }
+
+  return NULL;
+}
+
+void generator_if_begin_base(gen_t *gen) {
+  stack_push(gen->frame_stack, symtable_new(128));
+
+  intptr_t struct_count = (intptr_t)stack_pop(gen->construct_count_stack);
+  stack_push(gen->construct_count_stack, (void *)(struct_count + 1));
+  stack_push(gen->construct_count_stack, (void *)0);
+
+  str *new_sub_label = str_new_from("if");
+  str_append_int(new_sub_label, struct_count);
+  stack_push(gen->label_stack, new_sub_label);
+}
+
 /*                            Public functions                                */
 void generator_header(gen_t *gen) {
   if (gen == NULL) {
@@ -224,6 +287,7 @@ void generator_header(gen_t *gen) {
 
   str_append_cstr(gen->out_str, ".IFJCode23\n");
   str_append_cstr(gen->out_str, "# Kanvica: The Conqueror of Worlds\n\n");
+  str_append_cstr(gen->out_str, "DEFVAR GF@?\n");
   str_append_cstr(gen->out_str, "JUMP main\n");
 }
 
@@ -243,6 +307,7 @@ void generator_var_create(gen_t *gen, str *name) {
 
   str *label = get_label(gen, -1);
 
+  add_indentation(gen);
   str_append_cstr(dest, "DEFVAR ");
   str_append_str_dispose(dest, &fr);
   str_append_str(dest, label);
@@ -256,20 +321,23 @@ void generator_var_set(gen_t *gen, str *dest_symbol, str *src_symbol) {
   str *dest_path = get_symbol_path(gen, dest_symbol);
   str *src_path = get_symbol_path(gen, src_symbol);
 
+  add_indentation(gen);
   str_append_cstr(dest, "MOVE ");
   str_append_str(dest, dest_path);
   str_append_cstr(dest, " ");
   str_append_str(dest, src_path);
   str_append_cstr(dest, "\n");
-};
+}
 
 void generator_function_begin(gen_t *gen, str *name, void_stack_t *args) {
   stack_push(gen->label_stack, str_new_from(name->data));
   stack_push(gen->frame_stack, symtable_new(128));
-  gen->depth++;
+  gen->function_depth++;
+  gen->indent_depth++;
 
   str *label = get_label(gen, -1);
 
+  add_indentation(gen);
   str_append_cstr(gen->out_str, "\nLABEL ");
   str_append_str(gen->out_str, label);
   str_append_cstr(gen->out_str, "\n");
@@ -284,6 +352,7 @@ void generator_function_begin(gen_t *gen, str *name, void_stack_t *args) {
     generator_var_create(gen, arg);
 
     str *path = get_closest_var_path(gen, arg);
+    add_indentation(gen);
     str_append_cstr(gen->out_str, "POPS ");
     str_append_str(gen->out_str, path);
 
@@ -295,17 +364,30 @@ void generator_function_begin(gen_t *gen, str *name, void_stack_t *args) {
   str_append_cstr(gen->out_str, "\n");
 
   str_dispose(label);
-};
+}
 
-void generator_function_end(gen_t *gen) {
+void generator_function_return(gen_t *gen, str *return_symbol) {
+  if (return_symbol != NULL) {
+    add_indentation(gen);
+    str_append_cstr(gen->out_str, "MOVE GF@? ");
+    str_append_str(gen->out_str, get_symbol_path(gen, return_symbol));
+    str_append_cstr(gen->out_str, "\n");
+  }
+
+  add_indentation(gen);
+  str_append_cstr(gen->out_str, "RETURN\n\n");
+}
+
+void generator_function_end(gen_t *gen, str *return_symbol) {
   str_dispose(stack_pop(gen->label_stack));
   symtable_dispose(stack_pop(gen->frame_stack));
-  gen->depth--;
+  gen->function_depth--;
+  gen->indent_depth--;
 
-  str_append_cstr(gen->out_str, "RETURN\n\n");
-};
+  generator_function_return(gen, return_symbol);
+}
 
-void generator_function_call(gen_t *gen, str *name, void_stack_t *args) {
+void generator_function_call(gen_t *gen, str *name, void_stack_t *args, str *return_var) {
   str *fr = get_frame(gen);
   str *dest = get_dest(gen);
   str *label = get_label(gen, -1);
@@ -314,6 +396,7 @@ void generator_function_call(gen_t *gen, str *name, void_stack_t *args) {
     while (!stack_is_empty(args)) {
       str *arg = stack_pop(args);
 
+      add_indentation(gen);
       str_append_cstr(dest, "PUSHS ");
       str_append_str(dest, fr);
       str_append_str(dest, label);
@@ -325,41 +408,45 @@ void generator_function_call(gen_t *gen, str *name, void_stack_t *args) {
   }
 
   if (dest == gen->out_str) {
+    add_indentation(gen);
     str_append_cstr(dest, "PUSHFRAME\n");
   }
+  add_indentation(gen);
   str_append_cstr(dest, "CREATEFRAME\n");
 
+  add_indentation(gen);
   str_append_cstr(dest, "CALL ");
   str_append_str(dest, name);
   str_append_cstr(dest, "$");
   str_append_cstr(dest, "\n");
 
   if (dest == gen->out_str) {
+    add_indentation(gen);
     str_append_cstr(dest, "POPFRAME\n");
   }
-};
 
-void generator_if_begin(gen_t *gen, str *left_symbol, char eq, str *right_symbol) {
-  stack_push(gen->frame_stack, symtable_new(128));
+  if (return_var != NULL) {
+    add_indentation(gen);
+    str_append_cstr(dest, "MOVE ");
+    str_append_str(dest, get_symbol_path(gen, return_var));
+    str_append_cstr(dest, " GF@?\n");
+  }
+}
 
-  intptr_t struct_count = (intptr_t)stack_pop(gen->construct_count_stack);
-  stack_push(gen->construct_count_stack, (void *)(struct_count + 1));
-  stack_push(gen->construct_count_stack, (void *)0);
-
-  str *new_sub_label = str_new_from("if");
-  str_append_int(new_sub_label, struct_count);
-  stack_push(gen->label_stack, new_sub_label);
-
-  gen->depth++;
+void generator_if_begin(gen_t *gen, str *left_symbol, bool eq, str *right_symbol) {
+  generator_if_begin_base(gen);
 
   str *dest = get_dest(gen);
 
   str *left_symbol_path = get_symbol_path(gen, left_symbol);
   str *right_symbol_path = get_symbol_path(gen, right_symbol);
 
+  str_append_cstr(dest, "\n");
+  add_indentation(gen);
   str_append_cstr(dest, "# IF START\n");
 
-  if (eq == 'e') {
+  add_indentation(gen);
+  if (eq) {
     str_append_cstr(dest, "JUMPIFNEQ ");
   } else {
     str_append_cstr(dest, "JUMPIFEQ ");
@@ -371,6 +458,48 @@ void generator_if_begin(gen_t *gen, str *left_symbol, char eq, str *right_symbol
   str_append_cstr(dest, " ");
   str_append_str(dest, right_symbol_path);
   str_append_cstr(dest, "\n");
+
+  gen->indent_depth++;
+}
+
+void generator_if_begin_stack(gen_t *gen, bool is_true, void_stack_t *expr_stack) {
+  generator_if_begin_base(gen);
+
+  str *dest = get_dest(gen);
+  str *item;
+
+  while (!stack_is_empty(expr_stack)) {
+    item = stack_pop(expr_stack);
+
+    add_indentation(gen);
+
+    str *instruction = get_instruction(item->data[0]);
+    if (instruction != NULL) {
+      str_append_str_dispose(dest, &instruction);
+    } else {
+      str_append_cstr(dest, "PUSHS ");
+      str *path = get_symbol_path(gen, item);
+      str_append_str_dispose(dest, &path);
+      str_append_cstr(dest, "\n");
+    }
+
+    str_dispose(item);
+  }
+
+  add_indentation(gen);
+  str_append_cstr(dest, "PUSHS bool@true\n");
+
+  add_indentation(gen);
+  if (is_true) {
+    str_append_cstr(dest, "JUMPIFNEQS ");
+  } else {
+    str_append_cstr(dest, "JUMPIFEQS ");
+  }
+
+  str_append_str(dest, get_label(gen, -1));
+  str_append_cstr(dest, "else\n");
+
+  gen->indent_depth++;
 }
 
 void generator_if_else(gen_t *gen) {
@@ -392,30 +521,75 @@ void generator_if_else(gen_t *gen) {
   str *dest = get_dest(gen);
   str *else_label = get_label(gen, -1);
 
+  add_indentation(gen);
   str_append_cstr(dest, "JUMP ");
   str_append_str(dest, else_label);
   str_append_cstr(dest, "end\n");
 
+  gen->indent_depth--;
+
+  add_indentation(gen);
   str_append_cstr(dest, "# ELSE START\n");
 
+  add_indentation(gen);
   str_append_cstr(dest, "LABEL ");
   str_append_str(dest, if_label);
   str_append_cstr(dest, "else\n");
+
+  gen->indent_depth++;
 }
 
 void generator_if_end(gen_t *gen) {
   str *label = get_label(gen, -1);
   str *dest = get_dest(gen);
 
+  gen->indent_depth--;
+
+  add_indentation(gen);
   str_append_cstr(dest, "# IF END\n");
 
+  add_indentation(gen);
   str_append_cstr(dest, "LABEL ");
   str_append_str(dest, label);
-  str_append_cstr(dest, "end\n");
+  str_append_cstr(dest, "end\n\n");
 
   stack_pop(gen->label_stack);
   stack_pop(gen->frame_stack);
   stack_pop(gen->construct_count_stack);
+}
 
-  gen->depth--;
+void generator_expr(gen_t *gen, void_stack_t *expr_stack) {
+  if (expr_stack == NULL || expr_stack->top_index < 1) {
+    return;
+  }
+
+  str *dest = get_dest(gen);
+  str *item;
+
+  while (!stack_is_empty(expr_stack)) {
+    item = stack_pop(expr_stack);
+    if (stack_is_empty(expr_stack)) {
+      add_indentation(gen);
+      str_append_cstr(dest, "POPS ");
+      str *path = get_symbol_path(gen, item);
+      str_append_str_dispose(dest, &path);
+      str_append_cstr(dest, "\n");
+      str_dispose(item);
+      break;
+    }
+
+    add_indentation(gen);
+
+    str *instruction = get_instruction(item->data[0]);
+    if (instruction != NULL) {
+      str_append_str_dispose(dest, &instruction);
+    } else {
+      str_append_cstr(dest, "PUSHS ");
+      str *path = get_symbol_path(gen, item);
+      str_append_str_dispose(dest, &path);
+      str_append_cstr(dest, "\n");
+    }
+
+    str_dispose(item);
+  }
 }

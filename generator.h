@@ -21,7 +21,8 @@ typedef struct gen_t {
   void_stack_t *frame_stack;
   void_stack_t *construct_count_stack;
 
-  int depth;
+  int indent_depth;
+  int function_depth;
 } gen_t;
 
 /*                            Orchestration functions                         */
@@ -42,14 +43,20 @@ void generator_var_set(gen_t *gen, str *dest, str *src);
 
 void generator_function_begin(gen_t *gen, str *name, void_stack_t *args);
 
-void generator_function_end(gen_t *gen);
+void generator_function_return(gen_t *gen, str *return_symbol);
 
-void generator_function_call(gen_t *gen, str *name, void_stack_t *args);
+void generator_function_end(gen_t *gen, str *return_symbol);
 
-void generator_if_begin(gen_t *gen, str *left_symbol, char eq, str *right_symbol);
+void generator_function_call(gen_t *gen, str *name, void_stack_t *args, str *return_var);
+
+void generator_if_begin(gen_t *gen, str *left_symbol, bool eq, str *right_symbol);
+
+void generator_if_begin_stack(gen_t *gen, bool is_true, void_stack_t *expr_stack);
 
 void generator_if_else(gen_t *gen);
 
 void generator_if_end(gen_t *gen);
+
+void generator_expr(gen_t *gen, void_stack_t *expr_stack);
 
 #endif
