@@ -10,7 +10,6 @@ typedef enum {
   KW_WHILE,
   KW_INT,
   KW_FLOAT,
-  KW_CHAR,
   KW_RETURN,
   KW_VOID,
   KW_NIL,
@@ -20,12 +19,14 @@ typedef enum {
   KW_IN,
   KW_FOR,
   KW_DOUBLE,
+  KW_STRING,
   KW_FUNC,
 } Keyword;
 
 typedef enum {
   TOKEN_KEYWORD,
-  TOKEN_STRING,
+  TOKEN_STRING_LITERAL,
+  TOKEN_COLON,
   TOKEN_IDENTIFIER,
   TOKEN_LPAREN,
   TOKEN_RPAREN,
