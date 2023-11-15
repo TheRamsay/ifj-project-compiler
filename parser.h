@@ -36,6 +36,7 @@ void call_params_n();
 void call_params();
 
 void statement();
+void body();
 
 void program();
 

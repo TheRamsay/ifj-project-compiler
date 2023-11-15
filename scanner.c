@@ -121,7 +121,7 @@ void determine_token_type(Token *token)
     char *buffer = NULL;
     int buffer_size = 0;
     int i = 0;
-    strcpy(token->val, buffer);
+    // strcpy(token->val, buffer);
 
     while ((character = fgetc(source_file)) != EOF && character != '"')
     {
@@ -184,6 +184,10 @@ void determine_token_type(Token *token)
       if (token->val[1] == '=')
       {
         token->type = TOKEN_MINUS_ASSIGN;
+      }
+      else if (token->val[1] == '>')
+      {
+        token->type = TOKEN_ARROW;
       }
       else
       {

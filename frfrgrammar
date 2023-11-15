@@ -1,13 +1,13 @@
-prog -> func_def prog | statement prog | .
+prog -> func_def prog | body prog | .
 
-func_def -> 'func' FUNC_ID '(' func_params ')' return_def '{' statement_list '}' .
+func_def -> 'func' FUNC_ID '(' func_params ')' return_def '{' body '}' .
 return_def-> '->' TYPE | .
 func_params -> PARAM_OUT_ID PARAM_IN_ID ':' TYPE func_params_n | .
 func_params_n -> 
 	',' PARAM_OUT_ID PARAM_IN_ID ':' TYPE func_params_n
 	| .
 
-statement_list -> statement statement_list | .
+body -> statement body | .
 
 statement -> 
 	  if_statement	
@@ -18,11 +18,12 @@ statement ->
 	| func_call
 	| assignment
 	| var_definition IDENTIFIER var_definition_value
-	| expression .
+	| expression 
+	| .
 
 
-if_statement -> 'if' expr '{' statement_list '} else {' statement_list '}' .
-while_statement -> 'while' expr '{' statement_list '}' .
+if_statement -> 'if' expr '{' body '} else {' body '}' .
+while_statement -> 'while' expr '{' body '}' .
 func_call -> FUNC_ID '(' call_params ')' .
 var_definition -> VAR_DEFINITION_KW var_definition_type . 
 var_definition_type -> ':' TYPE | .

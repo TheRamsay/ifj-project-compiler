@@ -6,6 +6,7 @@
 bool buffer_active = false;
 Token token_buffer[TOKEN_BUFFER_LEN] = {0};
 
+// Returns current token
 Token *get_current_token()
 {
     return token_buffer;
@@ -25,6 +26,7 @@ bool match_peek(TokenType token_type)
 Token *peek()
 {
     get_next_token(token_buffer + 1);
+    buffer_active = true;
     return token_buffer + 1;
 }
 
@@ -63,6 +65,7 @@ void advance()
 // Returns true if current token is of the expected type
 bool check_type(TokenType token_type)
 {
+    // printf("[PARSER] comparing token type %d with value %s (%d)\n", token_type, get_current_token()->val, get_current_token()->type);
     return get_current_token()->type == token_type;
 }
 
@@ -90,9 +93,11 @@ void return_def()
 {
     advance();
 
+    // printf("[PASER] current token: %s\n", get_current_token()->val);
+
     // Func has no return type
     // func <func_id> () {}
-    if (match(TOKEN_LBRACKET))
+    if (check_type(TOKEN_LBRACE))
     {
         return;
     }
@@ -158,9 +163,22 @@ void func_def()
     func_params();
     consume(TOKEN_RPAREN, "Expected ')'");
     return_def();
-    consume(TOKEN_LBRACKET, "Expected '{'");
-    statement();
-    consume(TOKEN_RBRACKET, "Expected '}'");
+
+    if (!match(TOKEN_LBRACE))
+    {
+        fprintf(stderr, "[PARSER ERROR] Expected '{'\n");
+        exit(69420);
+    }
+
+    // consume(TOKEN_LBRACKET, "Expected '{'");
+    body();
+    // consume(TOKEN_RBRACKET, "Expected '}'");
+
+    if (!match(TOKEN_RBRACE))
+    {
+        fprintf(stderr, "[PARSER ERROR] Expected '}'\n");
+        exit(69420);
+    }
 }
 
 // call_params_n -> , <call_params_kw> <term> <call_params_n>
@@ -192,6 +210,19 @@ void return_t()
     // if (!is_datatype())
 }
 
+void body()
+{
+    switch (get_current_token()->type)
+    {
+    // body -> eps rule
+    case TOKEN_RBRACE:
+        return;
+    default:
+        statement();
+        return;
+    }
+}
+
 void statement()
 {
     // statement -> if <expression> { <statement_list> } else { <statement_list> } rule
@@ -200,8 +231,13 @@ void statement()
         advance();
         expression();
         consume(TOKEN_LBRACKET, "Expected '{'");
-        statement();
-        consume(TOKEN_RBRACKET, "Expected '}'");
+        body();
+
+        if (!match(TOKEN_RBRACKET))
+        {
+            fprintf(stderr, "[PARSER ERROR] Expected '}'\n");
+            exit(69420);
+        }
     }
     // statement -> while <expression> { <statement_list> } else { <statement_list> } rule
     else if (check_keyword(KW_WHILE))
@@ -210,8 +246,13 @@ void statement()
         expression();
         consume(TOKEN_LBRACKET, "Expected '{'");
         // TODO: zmrd
-        statement();
-        consume(TOKEN_RBRACKET, "Expected '}'");
+        body();
+
+        if (!match(TOKEN_RBRACKET))
+        {
+            fprintf(stderr, "[PARSER ERROR] Expected '}'\n");
+            exit(69420);
+        }
     }
     // statement -> return <return_t>
     else if (check_keyword(KW_RETURN))
@@ -222,7 +263,6 @@ void statement()
     // statement -> <var_definition_kw> <identifier> <var_definition_value>
     else if (check_keyword(KW_LET) || check_keyword(KW_VAR))
     {
-        advance();
         consume(TOKEN_IDENTIFIER, "Expected identifier");
         // Variable type definition
         advance();
@@ -248,25 +288,28 @@ void statement()
         consume(TOKEN_RPAREN, "Expected ')'");
     }
 
-    statement();
+    body();
 }
 
 void program()
 {
+    // program -> eps
     // End of file
     if (check_type(TOKEN_EOF))
     {
         return;
     }
-    // prog -> 'func' FUNC_ID '(' func_params ')' return_def '{' statement_list '}' rule
+    // prog -> 'func' FUNC_ID '(' <func_params> ')' <return_def> '{' <body> '}' rule
+    // Func definition
     else if (check_keyword(KW_FUNC))
     {
         func_def();
     }
-    // prog -> statement rule
+    // prog -> body rule
+    // Parse statements
     else
     {
-        statement();
+        body();
     }
 
     program();
