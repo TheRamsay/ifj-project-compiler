@@ -79,7 +79,7 @@ void consume(TokenType token_type, char *error_msg)
 {
     if (!check_type(token_type))
     {
-        fprintf(stderr, "[PARSER ERROR] next token %d (value: %s) | error message: %s\n", peek()->type, peek()->val, error_msg);
+        fprintf(stderr, "[PARSER ERROR] current_token %d (value: %s) | next token %d (value: %s) | error message: %s\n", get_current_token()->keyword, get_current_token()->val, peek()->type, peek()->val, error_msg);
         exit(69420);
     }
 
@@ -173,9 +173,15 @@ void func_def()
 // call_params_n -> , <call_params_kw> <term> <call_params_n>
 void call_params_n()
 {
-    if (!check_type(TOKEN_COMMA))
+    if (check_type(TOKEN_RPAREN))
     {
         return;
+    }
+
+    consume(TOKEN_COMMA, "Expected ','");
+    if (match(TOKEN_IDENTIFIER))
+    {
+        consume(TOKEN_COLON, "Expected ':'");
     }
 
     expression();
@@ -188,6 +194,11 @@ void call_params()
     if (check_type(TOKEN_RPAREN))
     {
         return;
+    }
+
+    if (match(TOKEN_IDENTIFIER))
+    {
+        consume(TOKEN_COLON, "Expected ':'");
     }
 
     expression();
