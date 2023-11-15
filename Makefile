@@ -7,7 +7,7 @@
 
 # Compiler settings
 CC = gcc
-CFLAGS = -std=c11 -g -O2 -Wall -Wextra -Werror -pedantic
+CFLAGS = -std=c11 -g3 -O2 -Wall -Wextra -Werror -pedantic
 
 # Get all .c files
 SRCS = $(wildcard *.c)
