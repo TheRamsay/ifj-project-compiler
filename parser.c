@@ -1,13 +1,15 @@
 #include "scanner.h"
 #include "parser.h"
+#include "error.h"
 
 #define TOKEN_BUFFER_LEN 2
 
+// Buffer for tokens, max 1 lookahead
 bool buffer_active = false;
 Token token_buffer[TOKEN_BUFFER_LEN] = {0};
 
 // Returns current token
-Token *get_current_token()
+Token *current_token()
 {
     return token_buffer;
 }
@@ -50,7 +52,7 @@ bool match_keyword(KeywordType keyword)
 // Check if value of keyword is equal to the expected keyword
 bool check_keyword(KeywordType keyword)
 {
-    return get_current_token()->type == TOKEN_KEYWORD && get_current_token()->keyword == keyword;
+    return current_token()->type == TOKEN_KEYWORD && current_token()->keyword == keyword;
 }
 
 // Advance to next token
@@ -70,8 +72,7 @@ void advance()
 // Returns true if current token is of the expected type
 bool check_type(TokenType token_type)
 {
-    // printf("[PARSER] comparing token type %d with value %s (%d)\n", token_type, get_current_token()->val, get_current_token()->type);
-    return get_current_token()->type == token_type;
+    return current_token()->type == token_type;
 }
 
 // Check if current token is of the expected type and advance if it is, otherwise print error message and exit
@@ -79,8 +80,8 @@ void consume(TokenType token_type, char *error_msg)
 {
     if (!check_type(token_type))
     {
-        fprintf(stderr, "[PARSER ERROR] current_token %d (value: %s) | next token %d (value: %s) | error message: %s\n", get_current_token()->keyword, get_current_token()->val, peek()->type, peek()->val, error_msg);
-        exit(69420);
+
+        exit_custom(SYNTAX_ERR, "current_token %d (value: %s) | next token %d (value: %s) | error message: %s\n", current_token()->keyword, current_token()->val, peek()->type, peek()->val, error_msg);
     }
 
     advance();
@@ -88,11 +89,19 @@ void consume(TokenType token_type, char *error_msg)
 
 bool is_datatype()
 {
-    Token *token = get_current_token();
-    return token->type == TOKEN_KEYWORD &&
-           (token->keyword == KW_INT ||
-            token->keyword == KW_FLOAT || token->keyword == KW_DOUBLE ||
-            token->keyword == KW_STRING);
+    return check_keyword(KW_INT) ||
+           check_keyword(KW_FLOAT) ||
+           check_keyword(KW_DOUBLE) ||
+           check_keyword(KW_STRING);
+}
+
+bool is_term()
+{
+    return check_type(TOKEN_IDENTIFIER) ||
+           check_type(TOKEN_STRING_LITERAL) ||
+           check_type(TOKEN_INTEGER_LITERAL) ||
+           check_type(TOKEN_DECIMAL_LITERAL) ||
+           check_keyword(KW_NIL);
 }
 
 void return_def()
@@ -104,15 +113,13 @@ void return_def()
 
     if (!match(TOKEN_ARROW))
     {
-        fprintf(stderr, "[PARSER ERROR] missing '->' in function definition\n");
-        exit(69420);
+        exit_custom(SYNTAX_ERR, "missing '->' in function definition\n");
     }
 
     // Check if return type is valid datatype
     if (!is_datatype())
     {
-        fprintf(stderr, "[PARSER ERROR] expected datatype after '->'\n");
-        exit(69420);
+        exit_custom(SYNTAX_ERR, "expected datatype after '->'\n");
     }
 
     // TODO: this is temporary
@@ -132,7 +139,7 @@ void func_params_n()
 
     // Just consume type, idk what to do with it yet
     advance();
-    printf("[PARSER] Param type: %s\n", get_current_token()->val);
+    // printf("[PARSER] Param type: %s\n", current_token()->val);
     func_params_n();
 }
 
@@ -153,7 +160,7 @@ void func_params()
 
     // Just consume type, idk what to do with it yet
     advance();
-    printf("[PARSER] Param type: %s\n", get_current_token()->val);
+    // printf("[PARSER] Param type: %s\n", current_token()->val);
     func_params_n();
 }
 
@@ -201,7 +208,16 @@ void call_params()
         consume(TOKEN_COLON, "Expected ':'");
     }
 
-    expression();
+    // Checks if call params are valid terms
+    if (is_term())
+    {
+        advance();
+    }
+    else
+    {
+        exit_custom(SYNTAX_ERR, "Expected term in function call parameter\n");
+    }
+
     call_params_n();
 }
 
@@ -213,7 +229,7 @@ void return_t()
 void body()
 {
     // body -> eps rule
-    if (check_type(TOKEN_RBRACE))
+    if (check_type(TOKEN_RBRACE) || check_type(TOKEN_EOF))
     {
         return;
     }
@@ -226,33 +242,45 @@ void body()
     body();
 }
 
+// if_statement -> 'if' if_cond '{' body '} else {' body '}' .
+void if_statement()
+{
+    // if_cond -> <expr> | VAR_DEFINITION_KW IDENTIFIER '=' <expr>
+
+    if (match_keyword(KW_LET) || match_keyword(KW_VAR))
+    {
+        consume(TOKEN_IDENTIFIER, "Expected identifier");
+        consume(TOKEN_ASSIGN, "Expected '='");
+    }
+
+    expression();
+    consume(TOKEN_LBRACE, "Expected '{'");
+    body();
+
+    if (!match(TOKEN_RBRACE))
+    {
+        exit_custom(SYNTAX_ERR, "Expected '}'\n");
+    }
+}
+
 void statement()
 {
     // statement -> if <expression> { <statement_list> } else { <statement_list> } rule
     if (match_keyword(KW_IF))
     {
-        expression();
-        consume(TOKEN_LBRACKET, "Expected '{'");
-        body();
-
-        if (!match(TOKEN_RBRACE))
-        {
-            fprintf(stderr, "[PARSER ERROR] Expected '}'\n");
-            exit(69420);
-        }
+        if_statement();
     }
     // statement -> while <expression> { <statement_list> } else { <statement_list> } rule
     else if (match_keyword(KW_WHILE))
     {
         expression();
-        consume(TOKEN_LBRACKET, "Expected '{'");
+        consume(TOKEN_LBRACE, "Expected '{'");
         // TODO: zmrd
         body();
 
         if (!match(TOKEN_RBRACE))
         {
-            fprintf(stderr, "[PARSER ERROR] Expected '}'\n");
-            exit(69420);
+            exit_custom(SYNTAX_ERR, "Expected '}'\n");
         }
     }
     // statement -> return <return_t>
@@ -274,14 +302,19 @@ void statement()
 
         if (!match(TOKEN_ASSIGN))
         {
-            fprintf(stderr, "[PARSER ERROR] Expected '='\n");
-            exit(69420);
+            exit_custom(SYNTAX_ERR, "Expected '='\n");
         }
 
         expression();
     } // statement -> <func_id> ( <call_params> )
     else if (match(TOKEN_IDENTIFIER))
     {
+        // Its a variable
+        if (!match(TOKEN_LPAREN))
+        {
+            exit_custom(SYNTAX_ERR, "Expected '('");
+        }
+
         consume(TOKEN_LPAREN, "Expected '('");
         call_params();
         consume(TOKEN_RPAREN, "Expected ')'");
@@ -324,6 +357,6 @@ void parse()
 
 void expression()
 {
-    advance();
+    consume(TOKEN_COMMA, "Expected an expression");
     return;
 }

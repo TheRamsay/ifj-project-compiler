@@ -10,9 +10,10 @@ int main()
   Token token;
   (void)token;
   scanner_init(input_file);
+  printf("scanner_init\n");
   // while (get_next_token(&token) != TOKEN_EOF)
   // {
-  //   printf("%d", token.type);
+  //   printf("tokenik: %d %s\n", token.type, token.val);
   // }
   parse();
 

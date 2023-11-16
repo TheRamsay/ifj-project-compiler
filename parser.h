@@ -45,7 +45,7 @@ void expression();
 
 void return_t();
 
-Token *get_current_token();
+Token *current_token();
 bool match_peek(TokenType token_type);
 Token *peek();
 #endif
