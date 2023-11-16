@@ -121,7 +121,7 @@ void determine_token_type(Token *token)
     char *buffer = NULL; // The buffer to store the string literal
     int buffer_size = 0;
     int i = 0;
-    strcpy(token->val, buffer); // Copy the string literal into the buffer
+    // strcpy(token->val, buffer); // Copy the string literal into the buffer
 
     while ((character = fgetc(source_file)) != EOF && character != '"')
     { // Read until the end of the string literal
