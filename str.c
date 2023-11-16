@@ -78,7 +78,32 @@ str *str_new(unsigned int length) {
  * @returns Pointer to the new string.
  *
  */
-str *str_new_from(const char *s) {
+str *str_new_from_str(str *s) {
+  if (s == NULL) {
+    return NULL;
+  }
+
+  str *str = str_new(s->alloc_size);
+
+  if (str == NULL) {
+    str_dispose(str);
+    return NULL;
+  }
+
+  strcpy(str->data, s->data);
+
+  return str;
+}
+
+/**
+ *
+ * @brief Creates a new string from the given C string.
+ *
+ * @param s The C string.
+ * @returns Pointer to the new string.
+ *
+ */
+str *str_new_from_cstr(const char *s) {
   if (s == NULL) {
     return NULL;
   }

@@ -20,7 +20,7 @@ TEST(StrTest, New) {
 }
 
 TEST(StrTest, NewFrom) {
-  str *s = str_new_from("");
+  str *s = str_new_from_cstr("");
 
   // Null terminator
   ASSERT_EQ(s->alloc_size, 1);
@@ -28,14 +28,14 @@ TEST(StrTest, NewFrom) {
 
   str_dispose(s);
 
-  s = str_new_from("Hello, World!");
+  s = str_new_from_cstr("Hello, World!");
 
   ASSERT_EQ(s->alloc_size, 14);
   ASSERT_EQ(strcmp(s->data, "Hello, World!"), 0);
 
   str_dispose(s);
 
-  s = str_new_from(NULL);
+  s = str_new_from_cstr(NULL);
   
   ASSERT_EQ(s, nullptr);
 }
@@ -178,8 +178,8 @@ TEST(StrTest, AppendCstrDestroy) {
 }
 
 TEST(StrTest, AppendStrDestroy) {
-  str *s = str_new_from("123");
-  str *c = str_new_from("456");
+  str *s = str_new_from_cstr("123");
+  str *c = str_new_from_cstr("456");
 
   str_append_str_dispose(s, &c);
 

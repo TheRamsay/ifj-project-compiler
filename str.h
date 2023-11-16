@@ -17,7 +17,9 @@ typedef struct str {
 
 str *str_new(unsigned int length);
 
-str *str_new_from(const char *s);
+str *str_new_from_str(str *s);
+
+str *str_new_from_cstr(const char *s);
 
 char *str_to_cstr(str *s);
 
