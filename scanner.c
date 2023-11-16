@@ -79,9 +79,9 @@ void determine_token_type(Token *token) {
   } else if (token->val[0] == '"') { // String literal
     token->type = TOKEN_STRING_LITERAL;
     char *buffer = NULL; // The buffer to store the string literal
+
     int buffer_size = 0;
     int i = 0;
-    strcpy(token->val, buffer); // Copy the string literal into the buffer
 
     while ((character = fgetc(source_file)) != EOF && character != '"') { // Read until the end of the string literal
       if (i >= buffer_size - 1) {                                         // If the buffer is full, reallocate it
@@ -96,7 +96,9 @@ void determine_token_type(Token *token) {
       buffer[i++] = (char)character; // Add the character to the buffer
     }
     buffer[i] = '\0';
-    token->val = buffer;
+    strcpy(token->val, buffer); // Copy the string literal into the buffer
+    free(buffer);               // Free the buffer
+    // token->val = buffer;
   } else {
     switch (token->val[0]) { // Determine the token type based on the first character
     case '(':
@@ -136,6 +138,8 @@ void determine_token_type(Token *token) {
     case '-':
       if (token->val[1] == '=') {
         token->type = TOKEN_MINUS_ASSIGN;
+      } else if (token->val[1] == '>') {
+        token->type = TOKEN_ARROW;
       } else {
         token->type = TOKEN_MINUS;
       }
@@ -233,7 +237,15 @@ void determine_token_type(Token *token) {
     }
   }
 }
-
+// int print_token(Token *token){
+//   Token token;
+//   int token_type = get_next_token(&token);
+//   if (token_type == TOKEN_EOF) {
+//     return 0;
+//   }
+//   printf("Token Type: %d, Token Value: %s\n", token_type, token.val);
+//   return 1;
+// }
 void char_to_token(Token *token, char c) {
   char *new_val; // The new value of the token
   if (token->val == NULL) {
@@ -330,8 +342,10 @@ int get_next_token(Token *token) {
     } else if (c == '/') {                                        // Comment
       c = fgetc(source_file);                                     // Get the next character
       if (c == '/') {
-        while (fgetc(source_file) != '\n') // Read until the end of the line
-          ;
+        c = fgetc(source_file);
+        while (c != '\n' && c != EOF) {
+          c = fgetc(source_file);
+        }; // Read until the end of the line
         continue;
       } else if (c == '*') { // Block comment
         if (nested_block_comment > 0) {
@@ -364,10 +378,11 @@ int get_next_token(Token *token) {
     }
   }
 
-  if (token->type == TOKEN_UNKNOWN && c == EOF) { 
+  if (token->type == TOKEN_UNKNOWN && c == EOF) {
     token->type = TOKEN_EOF;
+  } else if (token->type == TOKEN_UNKNOWN) {
+    fprintf(stderr, "Unknown token: %s\n", token->val);
+    exit(1);
   }
-  // printf("Token Type: %d, Token Value: %s\n", token->type, token->val);
-
-  return token->type; 
+  return token->type;
 }
