@@ -7,14 +7,13 @@
 
 #define TABLE_SIZE 4
 
-char expression[] = "1 + 1";
-
 enum {
   L,   // < /SHIFT
   R,   // > /REDUCTION
   E,   // = /REDUCTION PREPARE
   Err, // Invalid
 };
+
 const int precedence_table[TABLE_SIZE][TABLE_SIZE] = {
     //+ i  $  E
     {R, L, R, E},     //+
@@ -23,68 +22,43 @@ const int precedence_table[TABLE_SIZE][TABLE_SIZE] = {
     {E, Err, R, Err}  // E
 };
 
+ExtendedToken rules[] = {
+    {TOKEN_EXPRESSION_RULE, "E+E", 'E'}, {TOKEN_EXPRESSION_RULE, "i", 'E'},
+};
+
+int get_operator_index(char op) {
+  for (int i = 0; i < TABLE_SIZE; ++i) {
+    if (operators[i] == op) {
+      return i;
+    }
+  }
+  return -1; // Operator not found
+}
+
 int get_precedence(char stack_top, char input) {
-  switch (stack_top) {
-  case '+':
-    switch (input) {
-    case '+':
-      return precedence_table[0][0];
-    case 'i':
-      return precedence_table[0][1];
-    case '$':
-      return precedence_table[0][2];
-    case 'E':
-      return precedence_table[0][3];
-    }
-  case 'i':
-    switch (input) {
-    case '+':
-      return precedence_table[1][0];
-    case 'i':
-      return precedence_table[1][1];
-    case '$':
-      return precedence_table[1][2];
-    case 'E':
-      return precedence_table[1][3];
-    }
-  case '$':
-    switch (input) {
-    case '+':
-      return precedence_table[2][0];
-    case 'i':
-      return precedence_table[2][1];
-    case '$':
-      return precedence_table[2][2];
-    case 'E':
-      return precedence_table[2][3];
-    }
-  case 'E':
-    switch (input) {
-    case '+':
-      return precedence_table[3][0];
-    case 'i':
-      return precedence_table[3][1];
-    case '$':
-      return precedence_table[3][2];
-    case 'E':
-      return precedence_table[3][3];
+  int stack_index = get_operator_index(stack_top);
+  int input_index = get_operator_index(input);
+
+  if (stack_index == -1 || input_index == -1) {
+    return Err; // Handle invalid operators
+  }
+
+  return precedence_table[stack_index][input_index];
+}
+
+char evaluate_rule(char *rightSide) {
+
+  // Check each rule
+  for (int i = 0; i < sizeof(rules) / sizeof(rules[0]); ++i) {
+    if (strcmp(rightSide, rules[i].rule) == 0) {
+      return rules[i].result;
     }
   }
 
-  return precedence_table[stack_top][input];
+  return ' '; // No matching rule
 }
 
-char evaluateRule(char *rightSide) {
-
-  if (strcmp(rightSide, "E+E") == 0) {
-    return 'E';
-  } else if (strcmp(rightSide, "i") == 0) {
-    return 'E';
-  }
-  return ' ';
-}
-
-char getNextChar(char *str, int index) {
+char get_next_char(char *str, int index) {
   if (index >= 0 && index <= strlen(str)) {
     // Return the character at the specified index
     return str[index];
@@ -92,9 +66,9 @@ char getNextChar(char *str, int index) {
   return '\0';
 }
 
-int ParseExpression(char *expressionToParse) {
+int parse_expresion(char *expressionToParse) {
 
-  int eIndex = 0;
+  int expIndex = 0;
 
   Stack *stack = (Stack *)malloc(sizeof(Stack));
   stack_init(stack, 100);
@@ -103,8 +77,8 @@ int ParseExpression(char *expressionToParse) {
 
   // TODO
   // token = next_token();
-  char token = getNextChar(expressionToParse, eIndex);
-  eIndex++;
+  char token = get_next_char(expressionToParse, expIndex);
+  expIndex++;
   if (token == '\0') {
     return 0;
   }
@@ -122,7 +96,7 @@ int ParseExpression(char *expressionToParse) {
       // Get value to be reduced
       char *result = charArrayFromStack(stack);
 
-      char ruleProduct = evaluateRule(result);
+      char ruleProduct = evaluate_rule(result);
 
       if (ruleProduct == ' ') {
         if (*result == 'E') {
@@ -137,16 +111,16 @@ int ParseExpression(char *expressionToParse) {
       stack_push(stack, ruleProduct);
 
       // Maybe
-      // token = getNextChar(expressionToParse, eIndex);
-      // eIndex++;
+      // token = get_next_char(expressionToParse, expIndex);
+      // expIndex++;
       // if (token == '\0') {
       //   return 0;
       // }
       break;
     case E:
       stack_push(stack, token);
-      token = getNextChar(expressionToParse, eIndex);
-      eIndex++;
+      token = get_next_char(expressionToParse, expIndex);
+      expIndex++;
       if (token == '\0') {
         return 0;
       }
@@ -155,8 +129,8 @@ int ParseExpression(char *expressionToParse) {
     case L:
       stack_push(stack, action);
       stack_push(stack, token);
-      token = getNextChar(expressionToParse, eIndex);
-      eIndex++;
+      token = get_next_char(expressionToParse, expIndex);
+      expIndex++;
 
       if (token == '\0') {
         return 0;
