@@ -305,19 +305,33 @@ void statement()
             exit_custom(SYNTAX_ERR, "Expected '='\n");
         }
 
-        expression();
+        if (match_peek(TOKEN_LPAREN))
+        {
+            consume(TOKEN_LPAREN, "Expected '('");
+            call_params();
+            consume(TOKEN_RPAREN, "Expected ')'");
+        }
+        else
+        {
+            expression();
+        }
+
     } // statement -> <func_id> ( <call_params> )
     else if (match(TOKEN_IDENTIFIER))
     {
         // Its a variable
         if (!match(TOKEN_LPAREN))
         {
-            exit_custom(SYNTAX_ERR, "Expected '('");
         }
 
-        consume(TOKEN_LPAREN, "Expected '('");
-        call_params();
+        // function call with no params
+    }
+    else if (match(TOKEN_LPAREN))
+    {
         consume(TOKEN_RPAREN, "Expected ')'");
+    }
+    else if (match(TOKEN_LPAREN))
+    {
     }
 
     body();

@@ -73,3 +73,14 @@ add_executable(Test_str
 target_link_libraries(Test_str gtest gtest_main)
 
 add_test(str Test_str)
+# ----------------------------------------------------------------
+
+# ------- Parser -------
+add_executable(Test_parser
+        parser.h parser.c
+        error.c error.h
+        tests/scanner.cpp)
+target_link_libraries(Test_Parser gtest gtest_main)
+
+add_test(parser Test_parser)
+# ----------------------------------------------------------------

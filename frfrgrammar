@@ -18,19 +18,21 @@ statement ->
 	| 'break'
 	| 'continue'
 	| 'return' return_t
-	| func_call
-	| assignment
-	| var_definition IDENTIFIER var_definition_value
+	| assignment_statement
+	| definition_statement
+	| function_call_statement
 	| expression 
 	| .
 
+
+function_call_statement -> IDENTIFIER '(' call_params ')' .
+definition_statement -> VAR_DEFINITION_KW '=' expression .
+assignment_statement -> IDENTIFIER '=' expression .
 
 if_statement -> 'if' if_cond '{' body '} else {' body '}' .
 if_cond -> expr | VAR_DEFINITION_KW IDENTIFIER '=' value
 
 while_statement -> 'while' expr '{' body '}' .
-
-func_call -> FUNC_ID '(' call_params ')' .
 
 assignment -> IDENTIFIER var_definition_value .
 var_definition_value -> '=' value | .

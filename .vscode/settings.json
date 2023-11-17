@@ -13,6 +13,11 @@
       "cwd": "/home/ramsay/school/ifj/ifj-project",
       "binaryPath": "/home/ramsay/school/ifj/ifj-project/main",
       "binaryArgs": []
+    },
+    {
+      "cwd": "/home/ramsay/school/ifj/project",
+      "binaryPath": "/home/ramsay/school/ifj/project/main",
+      "binaryArgs": []
     }
   ]
 }

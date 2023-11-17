@@ -1,0 +1,128 @@
+[
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/gcc -I/home/ramsay/school/ifj/project/build/googletest-src/googletest/include -I/home/ramsay/school/ifj/project/build/googletest-src/googletest -I/home/ramsay/school/ifj/project/src -g -std=gnu11 -o CMakeFiles/main.dir/main.c.o -c /home/ramsay/school/ifj/project/main.c",
+  "file": "/home/ramsay/school/ifj/project/main.c",
+  "output": "CMakeFiles/main.dir/main.c.o"
+},
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/gcc -I/home/ramsay/school/ifj/project/build/googletest-src/googletest/include -I/home/ramsay/school/ifj/project/build/googletest-src/googletest -I/home/ramsay/school/ifj/project/src -g -std=gnu11 -o CMakeFiles/main.dir/generator.c.o -c /home/ramsay/school/ifj/project/generator.c",
+  "file": "/home/ramsay/school/ifj/project/generator.c",
+  "output": "CMakeFiles/main.dir/generator.c.o"
+},
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/gcc -I/home/ramsay/school/ifj/project/build/googletest-src/googletest/include -I/home/ramsay/school/ifj/project/build/googletest-src/googletest -I/home/ramsay/school/ifj/project/src -g -std=gnu11 -o CMakeFiles/main.dir/parser.c.o -c /home/ramsay/school/ifj/project/parser.c",
+  "file": "/home/ramsay/school/ifj/project/parser.c",
+  "output": "CMakeFiles/main.dir/parser.c.o"
+},
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/gcc -I/home/ramsay/school/ifj/project/build/googletest-src/googletest/include -I/home/ramsay/school/ifj/project/build/googletest-src/googletest -I/home/ramsay/school/ifj/project/src -g -std=gnu11 -o CMakeFiles/main.dir/scanner.c.o -c /home/ramsay/school/ifj/project/scanner.c",
+  "file": "/home/ramsay/school/ifj/project/scanner.c",
+  "output": "CMakeFiles/main.dir/scanner.c.o"
+},
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/gcc -I/home/ramsay/school/ifj/project/build/googletest-src/googletest/include -I/home/ramsay/school/ifj/project/build/googletest-src/googletest -I/home/ramsay/school/ifj/project/src -g -std=gnu11 -o CMakeFiles/main.dir/stack.c.o -c /home/ramsay/school/ifj/project/stack.c",
+  "file": "/home/ramsay/school/ifj/project/stack.c",
+  "output": "CMakeFiles/main.dir/stack.c.o"
+},
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/gcc -I/home/ramsay/school/ifj/project/build/googletest-src/googletest/include -I/home/ramsay/school/ifj/project/build/googletest-src/googletest -I/home/ramsay/school/ifj/project/src -g -std=gnu11 -o CMakeFiles/main.dir/symtable.c.o -c /home/ramsay/school/ifj/project/symtable.c",
+  "file": "/home/ramsay/school/ifj/project/symtable.c",
+  "output": "CMakeFiles/main.dir/symtable.c.o"
+},
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/gcc -I/home/ramsay/school/ifj/project/src -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest/include -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest -g -std=gnu11 -o CMakeFiles/Test_scanner.dir/scanner.c.o -c /home/ramsay/school/ifj/project/scanner.c",
+  "file": "/home/ramsay/school/ifj/project/scanner.c",
+  "output": "CMakeFiles/Test_scanner.dir/scanner.c.o"
+},
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/g++ -I/home/ramsay/school/ifj/project/src -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest/include -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest -g -std=gnu++20 -o CMakeFiles/Test_scanner.dir/tests/scanner.cpp.o -c /home/ramsay/school/ifj/project/tests/scanner.cpp",
+  "file": "/home/ramsay/school/ifj/project/tests/scanner.cpp",
+  "output": "CMakeFiles/Test_scanner.dir/tests/scanner.cpp.o"
+},
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/gcc -I/home/ramsay/school/ifj/project/src -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest/include -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest -g -std=gnu11 -o CMakeFiles/Test_symtable.dir/symtable.c.o -c /home/ramsay/school/ifj/project/symtable.c",
+  "file": "/home/ramsay/school/ifj/project/symtable.c",
+  "output": "CMakeFiles/Test_symtable.dir/symtable.c.o"
+},
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/g++ -I/home/ramsay/school/ifj/project/src -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest/include -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest -g -std=gnu++20 -o CMakeFiles/Test_symtable.dir/tests/symtable.cpp.o -c /home/ramsay/school/ifj/project/tests/symtable.cpp",
+  "file": "/home/ramsay/school/ifj/project/tests/symtable.cpp",
+  "output": "CMakeFiles/Test_symtable.dir/tests/symtable.cpp.o"
+},
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/gcc -I/home/ramsay/school/ifj/project/src -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest/include -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest -g -std=gnu11 -o CMakeFiles/Test_stack.dir/stack.c.o -c /home/ramsay/school/ifj/project/stack.c",
+  "file": "/home/ramsay/school/ifj/project/stack.c",
+  "output": "CMakeFiles/Test_stack.dir/stack.c.o"
+},
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/g++ -I/home/ramsay/school/ifj/project/src -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest/include -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest -g -std=gnu++20 -o CMakeFiles/Test_stack.dir/tests/stack.cpp.o -c /home/ramsay/school/ifj/project/tests/stack.cpp",
+  "file": "/home/ramsay/school/ifj/project/tests/stack.cpp",
+  "output": "CMakeFiles/Test_stack.dir/tests/stack.cpp.o"
+},
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/gcc -I/home/ramsay/school/ifj/project/src -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest/include -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest -g -std=gnu11 -o CMakeFiles/Test_str.dir/str.c.o -c /home/ramsay/school/ifj/project/str.c",
+  "file": "/home/ramsay/school/ifj/project/str.c",
+  "output": "CMakeFiles/Test_str.dir/str.c.o"
+},
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/g++ -I/home/ramsay/school/ifj/project/src -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest/include -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest -g -std=gnu++20 -o CMakeFiles/Test_str.dir/tests/str.cpp.o -c /home/ramsay/school/ifj/project/tests/str.cpp",
+  "file": "/home/ramsay/school/ifj/project/tests/str.cpp",
+  "output": "CMakeFiles/Test_str.dir/tests/str.cpp.o"
+},
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/gcc -I/home/ramsay/school/ifj/project/build/googletest-src/googletest/include -I/home/ramsay/school/ifj/project/build/googletest-src/googletest -I/home/ramsay/school/ifj/project/src -g -std=gnu11 -o CMakeFiles/Test_parser.dir/parser.c.o -c /home/ramsay/school/ifj/project/parser.c",
+  "file": "/home/ramsay/school/ifj/project/parser.c",
+  "output": "CMakeFiles/Test_parser.dir/parser.c.o"
+},
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/gcc -I/home/ramsay/school/ifj/project/build/googletest-src/googletest/include -I/home/ramsay/school/ifj/project/build/googletest-src/googletest -I/home/ramsay/school/ifj/project/src -g -std=gnu11 -o CMakeFiles/Test_parser.dir/error.c.o -c /home/ramsay/school/ifj/project/error.c",
+  "file": "/home/ramsay/school/ifj/project/error.c",
+  "output": "CMakeFiles/Test_parser.dir/error.c.o"
+},
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/g++ -I/home/ramsay/school/ifj/project/build/googletest-src/googletest/include -I/home/ramsay/school/ifj/project/build/googletest-src/googletest -I/home/ramsay/school/ifj/project/src -g -std=gnu++20 -o CMakeFiles/Test_parser.dir/tests/scanner.cpp.o -c /home/ramsay/school/ifj/project/tests/scanner.cpp",
+  "file": "/home/ramsay/school/ifj/project/tests/scanner.cpp",
+  "output": "CMakeFiles/Test_parser.dir/tests/scanner.cpp.o"
+},
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/g++ -I/home/ramsay/school/ifj/project/build/googletest-src/googlemock/include -I/home/ramsay/school/ifj/project/build/googletest-src/googlemock -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest/include -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest -g -std=c++20 -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o googletest-build/googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o -c /home/ramsay/school/ifj/project/build/googletest-src/googlemock/src/gmock-all.cc",
+  "file": "/home/ramsay/school/ifj/project/build/googletest-src/googlemock/src/gmock-all.cc",
+  "output": "googletest-build/googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o"
+},
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/g++ -isystem /home/ramsay/school/ifj/project/build/googletest-src/googlemock/include -isystem /home/ramsay/school/ifj/project/build/googletest-src/googlemock -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest/include -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest -g -std=c++20 -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o googletest-build/googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o -c /home/ramsay/school/ifj/project/build/googletest-src/googlemock/src/gmock_main.cc",
+  "file": "/home/ramsay/school/ifj/project/build/googletest-src/googlemock/src/gmock_main.cc",
+  "output": "googletest-build/googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o"
+},
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/g++ -I/home/ramsay/school/ifj/project/build/googletest-src/googletest/include -I/home/ramsay/school/ifj/project/build/googletest-src/googletest -g -std=c++20 -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o googletest-build/googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o -c /home/ramsay/school/ifj/project/build/googletest-src/googletest/src/gtest-all.cc",
+  "file": "/home/ramsay/school/ifj/project/build/googletest-src/googletest/src/gtest-all.cc",
+  "output": "googletest-build/googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o"
+},
+{
+  "directory": "/home/ramsay/school/ifj/project/build",
+  "command": "/usr/bin/g++ -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest/include -isystem /home/ramsay/school/ifj/project/build/googletest-src/googletest -g -std=c++20 -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o googletest-build/googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o -c /home/ramsay/school/ifj/project/build/googletest-src/googletest/src/gtest_main.cc",
+  "file": "/home/ramsay/school/ifj/project/build/googletest-src/googletest/src/gtest_main.cc",
+  "output": "googletest-build/googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o"
+}
+]

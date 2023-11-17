@@ -74,3 +74,4 @@ run_tests
 !examples/*.out
 
 cmake-build*/
+build/
