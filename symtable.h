@@ -103,7 +103,7 @@ typedef struct
 	SymtableItem **items;
 } Symtable;
 
-void symtable_init(Symtable *table, unsigned int capacity);
+bool symtable_init(Symtable *table, unsigned int capacity);
 
 SymtableItem *symtable_search(Symtable *table, const char *key);
 

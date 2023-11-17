@@ -2,6 +2,7 @@
 #define __PARSER_H__
 
 #include "scanner.h"
+#include "symtable.h"
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -13,11 +14,13 @@ typedef struct
     bool buffer_active;
 } Parser;
 
+bool parser_init(Parser *parser);
+
 // Check if current token is of the expected type and advance if it is
 bool match(Parser *parser, TokenType token_type);
 
 // Check if value of keyword is equal to the expected keyword
-bool check_keyword(Parser *parser ,KeywordType keyword);
+bool check_keyword(Parser *parser, KeywordType keyword);
 
 // Advance to next token
 void advance(Parser *parser);

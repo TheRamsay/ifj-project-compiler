@@ -98,7 +98,7 @@ Token *consume(Parser *parser, TokenType token_type, char *error_msg)
 
     Token *token = current_token(parser);
     advance(parser);
-    return current_token;
+    return token;
 }
 
 bool is_datatype(Parser *parser)
@@ -141,9 +141,12 @@ void return_def(Parser *parser)
     {
         return;
     }
+    
+    printf("Before is token %s %d\n", current_token(parser)->val, current_token(parser)->type);
 
     if (!match(parser, TOKEN_ARROW))
     {
+        printf("Current token: %d %s, next token %d %s\n", current_token(parser)->type, current_token(parser)->val, peek(parser)->type, peek(parser)->val);
         exit_custom(SYNTAX_ERR, "missing '->' in function definition\n");
     }
 
@@ -167,7 +170,7 @@ void func_params_n(Parser *parser, SymtableItem *item)
     Token *out_param_id = consume(parser, TOKEN_IDENTIFIER, "Expected out identifier");
     // IN identifier for function param
     Token *in_param_id = consume(parser, TOKEN_IDENTIFIER, "Expected in identifier");
-    symtable_add_param(item, out_param_id->val, in_param_id->val, keyword_to_datatype(out_param_id->keyword));
+    // symtable_add_param(item, out_param_id->val, in_param_id->val, keyword_to_datatype(out_param_id->keyword));
 
     consume(parser, TOKEN_COLON, "Expected : ");
 
@@ -177,6 +180,7 @@ void func_params_n(Parser *parser, SymtableItem *item)
     }
 
     Token *param_type = current_token(parser);
+    (void)param_type;
     // Just consume type, idk what to do with it yet
     advance(parser);
     func_params_n(parser, item);
@@ -195,7 +199,7 @@ void func_params(Parser *parser, SymtableItem *item)
     Token *out_param_id = consume(parser, TOKEN_IDENTIFIER, "Expected out identifier");
     // IN identifier for function param
     Token *in_param_id = consume(parser, TOKEN_IDENTIFIER, "Expected in identifier");
-    symtable_add_param(item, out_param_id->val, in_param_id->val, keyword_to_datatype(out_param_id->keyword));
+    // symtable_add_param(item, out_param_id->val, in_param_id->val, keyword_to_datatype(out_param_id->keyword));
 
     consume(parser, TOKEN_COLON, "Expected : ");
 
@@ -206,6 +210,7 @@ void func_params(Parser *parser, SymtableItem *item)
         exit_custom(SYNTAX_ERR, "Expected datatype after ':'\n");
     }
     Token *param_type = current_token(parser);
+    (void)param_type;
 
     advance(parser);
 
@@ -216,10 +221,10 @@ void func_params(Parser *parser, SymtableItem *item)
 void func_def(Parser *parser)
 {
     Token *func_id = consume(parser, TOKEN_IDENTIFIER, "Expected identifier");
-    SymtableItem *item = symtable_insert(parser->global_table, func_id->val, SYMTABLE_FUNCTION, true);
+    // SymtableItem *item = symtable_insert(parser->global_table, func_id->val, SYMTABLE_FUNCTION, true);
 
     consume(parser, TOKEN_LPAREN, "Expected '('");
-    func_params(parser, item);
+    func_params(parser, NULL);
     consume(parser, TOKEN_RPAREN, "Expected ')'");
     return_def(parser);
     consume(parser, TOKEN_LBRACE, "Expected '{'");

@@ -47,7 +47,7 @@ unsigned int hash_function(const char *key, const unsigned int capacity)
  * @param capacity Initial capacity of the symtable
  *
  */
-void symtable_init(Symtable *table, unsigned int capacity)
+bool symtable_init(Symtable *table, unsigned int capacity)
 {
 	if (table == NULL)
 	{
