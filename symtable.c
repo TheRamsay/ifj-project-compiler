@@ -47,7 +47,7 @@ unsigned int hash_function(const char *key, const unsigned int capacity)
  * @param capacity Initial capacity of the symtable
  *
  */
-bool symtable_init(Symtable *table, unsigned int capacity)
+void symtable_init(Symtable *table, unsigned int capacity)
 {
 	if (table == NULL)
 	{
@@ -230,14 +230,18 @@ void symtable_dispose(Symtable *table)
 	table->errorCode = 0;
 }
 
-SymtableItem *symtable_insert(Symtable *table, char *key, SymtableValueType type)
+SymtableItem *symtable_insert(Symtable *table, char *key, SymtableValueType type, bool defined)
 {
 	SymtableItem *item = symtable_search(table, key);
 
 	// Item already exists
 	if (item != NULL)
 	{
-		exit_with_error(SEMANTIC_ERR_VAR);
+		// Function is already defined -> error
+		if (type == SYMTABLE_FUNCTION && item->data.function.defined == true)
+		{
+			exit_with_error(SEMANTIC_ERR_FUNC);
+		}
 	}
 
 	size_t index = hash_function(key, table->capacity) % table->capacity;
@@ -277,7 +281,7 @@ SymtableItem *symtable_insert(Symtable *table, char *key, SymtableValueType type
 	{
 		item->data.function.param_count = 0;
 		item->data.function.return_count = 0;
-		item->data.function.defined = false;
+		item->data.function.defined = defined;
 		item->data.function.params = NULL;
 		item->data.function.returns = NULL;
 	}
@@ -289,15 +293,8 @@ SymtableItem *symtable_insert(Symtable *table, char *key, SymtableValueType type
 	return item;
 }
 
-bool symtable_add_param(Symtable *table, char *key, char *out_identifier, char *in_identifier, SymtableDataType data_type)
+bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_identifier, SymtableDataType data_type)
 {
-	SymtableItem *item = symtable_search(table, key);
-
-	if (item == NULL)
-	{
-		return false;
-	}
-
 	SymtableParam *param = malloc(sizeof(SymtableParam));
 	if (param == NULL)
 	{

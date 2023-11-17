@@ -103,7 +103,7 @@ typedef struct
 	SymtableItem **items;
 } Symtable;
 
-bool symtable_init(Symtable *table, unsigned int capacity);
+void symtable_init(Symtable *table, unsigned int capacity);
 
 SymtableItem *symtable_search(Symtable *table, const char *key);
 
@@ -113,8 +113,8 @@ SymtableItem *symtable_get(const Symtable *table, const char *key);
 
 void symtable_dispose(Symtable *table);
 
-SymtableItem *symtable_insert(Symtable *table, char *key, SymtableValueType type);
+SymtableItem *symtable_insert(Symtable *table, char *key, SymtableValueType type, bool defined);
 
-bool symtable_add_param(Symtable *table, char *key, char *out_identifier, char *in_identifier, SymtableDataType data_type);
+bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_identifier, SymtableDataType data_type);
 
 #endif
