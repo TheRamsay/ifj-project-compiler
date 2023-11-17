@@ -1,12 +1,26 @@
 func ahoj() {
-
     return
 }
 
-return
+func coze(out_a a: Int, _ b: Int) {
+
+}
+
+func yep(hihi haha: Int, _ j: String) {
+    var lol
+
+    return ,
+}
 
 let a = ,
 var b = ,
+
+var c: Int = ,
+let x: Int = ,
+
+x = ,
+
+,
 
 if , {
     let x = ,
@@ -15,13 +29,7 @@ if , {
 if let x = , {
 }
 
-ahoj()
-
-ahoj(out: 10)
-ahoj(10)
-ahoj(nil)
-ahoj("")
 
 while , {
-    ahoj()
+    ,
 }
