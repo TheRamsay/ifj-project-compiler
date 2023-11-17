@@ -156,10 +156,17 @@ void func_params()
     consume(TOKEN_IDENTIFIER, "Expected out identifier");
     // IN identifier for function param
     consume(TOKEN_IDENTIFIER, "Expected in identifier");
-    consume(TOKEN_SEMICOLON, "Expected : ");
+    consume(TOKEN_COLON, "Expected : ");
 
     // Just consume type, idk what to do with it yet
+
+    if (!is_datatype())
+    {
+        exit_custom(SYNTAX_ERR, "Expected datatype after ':'\n");
+    }
+
     advance();
+
     // printf("[PARSER] Param type: %s\n", current_token()->val);
     func_params_n();
 }
@@ -167,7 +174,7 @@ void func_params()
 // function_def -> func FUNC_ID ( <func_params> ) <return_def> { <statement_list> }
 void func_def()
 {
-    consume(TOKEN_IDENTIFIER, "Expected keyword 'func'");
+    consume(TOKEN_IDENTIFIER, "Expected function identifier");
     consume(TOKEN_LPAREN, "Expected '('");
     func_params();
     consume(TOKEN_RPAREN, "Expected ')'");
@@ -223,6 +230,13 @@ void call_params()
 
 void return_t()
 {
+    // return_t -> eps rule
+    if (check_type(TOKEN_RBRACE))
+    {
+        return;
+    }
+
+    expression();
     // if (!is_datatype())
 }
 
@@ -297,41 +311,35 @@ void statement()
         if (match(TOKEN_COLON))
         {
             // TODO: Check if type is valid
+            if (!is_datatype())
+            {
+                exit_custom(SYNTAX_ERR, "Expected datatype after ':'\n");
+            }
             advance();
         }
 
-        if (!match(TOKEN_ASSIGN))
+        // Variable initialization
+        if (match(TOKEN_ASSIGN))
         {
-            exit_custom(SYNTAX_ERR, "Expected '='\n");
+            expression();
         }
-
-        if (match_peek(TOKEN_LPAREN))
+    } // statement -> expression
+    else if (check_type(TOKEN_IDENTIFIER))
+    {
+        if (peek()->type == TOKEN_ASSIGN)
         {
-            consume(TOKEN_LPAREN, "Expected '('");
-            call_params();
-            consume(TOKEN_RPAREN, "Expected ')'");
+            consume(TOKEN_IDENTIFIER, "Expected identifier");
+            consume(TOKEN_ASSIGN, "Expected '='");
+            expression();
         }
         else
         {
             expression();
         }
-
-    } // statement -> <func_id> ( <call_params> )
-    else if (match(TOKEN_IDENTIFIER))
-    {
-        // Its a variable
-        if (!match(TOKEN_LPAREN))
-        {
-        }
-
-        // function call with no params
     }
-    else if (match(TOKEN_LPAREN))
+    else
     {
-        consume(TOKEN_RPAREN, "Expected ')'");
-    }
-    else if (match(TOKEN_LPAREN))
-    {
+        expression();
     }
 
     body();
