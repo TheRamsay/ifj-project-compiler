@@ -1,6 +1,7 @@
 #include "scanner.h"
 #include "parser.h"
 #include "error.h"
+#include "symtable.h"
 
 #define TOKEN_BUFFER_LEN 2
 
@@ -323,20 +324,23 @@ void statement()
         {
             expression();
         }
-    } // statement -> expression
+    }
     else if (check_type(TOKEN_IDENTIFIER))
     {
+        // statement -> <identifier> <var_definition_value>
         if (peek()->type == TOKEN_ASSIGN)
         {
             consume(TOKEN_IDENTIFIER, "Expected identifier");
             consume(TOKEN_ASSIGN, "Expected '='");
             expression();
         }
+        // statemenet -> expression that starts with identifier
         else
         {
             expression();
         }
     }
+    // statement -> <expression> rule
     else
     {
         expression();
