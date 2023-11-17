@@ -28,6 +28,7 @@ void token_destroy(Token *token) {
 void determine_token_type(Token *token) {
   int character; // The current character being read
   token->type = TOKEN_UNKNOWN;
+  token->keyword = KW_UNKNOWN;
   if (strcmp(token->val, "if") == 0) {
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_IF;
@@ -98,8 +99,8 @@ void determine_token_type(Token *token) {
     buffer[i] = '\0';
     strcpy(token->val, buffer); // Copy the string literal into the buffer
     free(buffer);               // Free the buffer
-    // token->val = buffer;
   } else {
+    char c, k;
     switch (token->val[0]) { // Determine the token type based on the first character
     case '(':
       token->type = TOKEN_LPAREN;
@@ -129,104 +130,155 @@ void determine_token_type(Token *token) {
       token->type = TOKEN_COLON;
       break;
     case '+':
-      if (token->val[1] == '=') {
+      c = fgetc(source_file);
+      if (c == '=') {
+        token->val[1] = '=';
         token->type = TOKEN_PLUS_ASSIGN;
       } else {
+        ungetc(c, source_file);
         token->type = TOKEN_PLUS;
       }
       break;
     case '-':
-      if (token->val[1] == '=') {
+      c = fgetc(source_file);
+      if (c == '=') {
+        token->val[1] = '=';
         token->type = TOKEN_MINUS_ASSIGN;
-      } else if (token->val[1] == '>') {
+      } else if (c == '>') {
+        token->val[1] = '>';
         token->type = TOKEN_ARROW;
       } else {
+        ungetc(c, source_file);
         token->type = TOKEN_MINUS;
       }
       break;
     case '*':
-      if (token->val[1] == '=') {
+      c = fgetc(source_file);
+      if (c == '=') {
+        token->val[1] = '=';
         token->type = TOKEN_MULTIPLY_ASSIGN;
-
       } else {
+        ungetc(c, source_file);
         token->type = TOKEN_MULTIPLY;
       }
       break;
     case '/':
-      if (token->val[1] == '=') {
+      c = fgetc(source_file);
+      if (c == '=') {
+        token->val[1] = '=';
         token->type = TOKEN_DIV_ASSIGN;
       } else {
+        ungetc(c, source_file);
         token->type = TOKEN_DIV;
       }
       break;
     case '%':
-      if (token->val[1] == '=') {
+      c = fgetc(source_file);
+      if (c == '=') {
+        token->val[1] = '=';
         token->type = TOKEN_MOD_ASSIGN;
       } else {
+        ungetc(c, source_file);
         token->type = TOKEN_MOD;
       }
       break;
     case '<':
-      if (token->val[1] == '<' && token->val[2] == '=') {
+      c = fgetc(source_file);
+      k = fgetc(source_file);
+      if (c == '<' && k == '=') {
+        token->val[1] = '<';
+        token->val[2] = '=';
         token->type = TOKEN_LSHIFT_ASSIGN;
       } else if (token->val[1] == '<') {
+        ungetc(k, source_file);
+        token->val[1] = '<';
         token->type = TOKEN_LSHIFT;
       } else {
+        ungetc(k, source_file);
+        ungetc(c, source_file);
         token->type = TOKEN_LT;
       }
       break;
     case '>':
-      if (token->val[1] == '>' && token->val[2] == '=') {
+      c = fgetc(source_file);
+      k = fgetc(source_file);
+      if (c == '>' && k == '=') {
+        token->val[1] = '>';
+        token->val[2] = '=';
         token->type = TOKEN_RSHIFT_ASSIGN;
-      } else if (token->val[1] == '>') {
+      } else if (c == '>') {
+        ungetc(k, source_file);
+        token->val[1] = '>';
         token->type = TOKEN_RSHIFT;
       } else {
+        ungetc(k, source_file);
+        ungetc(c, source_file);
         token->type = TOKEN_GT;
       }
       break;
     case '=':
-      if (token->val[1] == '=') {
+      c = fgetc(source_file);
+      if (c == '=') {
+        token->val[1] = '=';
         token->type = TOKEN_EQ;
       } else {
+        ungetc(c, source_file);
         token->type = TOKEN_ASSIGN;
       }
       break;
     case '!':
-      if (token->val[1] == '=') {
+      c = fgetc(source_file);
+      if (c == '=') {
+        token->val[1] = '=';
         token->type = TOKEN_NE;
       } else {
+        ungetc(c, source_file);
         token->type = TOKEN_NOT;
       }
       break;
     case '&':
-      if (token->val[1] == '&') {
+      c = fgetc(source_file);
+      if (c == '&') {
+        token->val[1] = '&';
         token->type = TOKEN_AND;
-      } else if (token->val[1] == '=') {
+      } else if (c == '=') {
+        token->val[1] = '=';
         token->type = TOKEN_AND_ASSIGN;
       } else {
+        ungetc(c, source_file);
         token->type = TOKEN_BITWISE_AND;
       }
       break;
     case '|':
-      if (token->val[1] == '|') {
+      c = fgetc(source_file);
+      if (c == '|') {
+        token->val[1] = '|';
         token->type = TOKEN_BITWISE_OR;
-      } else if (token->val[1] == '=') {
+      } else if (c == '=') {
+        token->val[1] = '=';
         token->type = TOKEN_OR_ASSIGN;
       } else {
+        ungetc(c, source_file);
         token->type = TOKEN_OR;
       }
       break;
     case '^':
-      if (token->val[1] == '=') {
+      c = fgetc(source_file);
+      if (c == '=') {
+        token->val[1] = '=';
         token->type = TOKEN_BITWISE_XOR;
       } else {
+        ungetc(c, source_file);
         token->type = TOKEN_XOR_ASSIGN;
       }
       break;
     case '?':
-      if (strcmp(token->val, "??") == 0) {
+      c = fgetc(source_file);
+      if (c == '?') {
+        token->val[1] = '?';
         token->type = TOKEN_NULL_COALESCING;
       } else {
+        ungetc(c, source_file);
         token->type = TOKEN_OPTIONAL_TYPE;
       }
       break;
@@ -237,15 +289,7 @@ void determine_token_type(Token *token) {
     }
   }
 }
-// int print_token(Token *token){
-//   Token token;
-//   int token_type = get_next_token(&token);
-//   if (token_type == TOKEN_EOF) {
-//     return 0;
-//   }
-//   printf("Token Type: %d, Token Value: %s\n", token_type, token.val);
-//   return 1;
-// }
+
 void char_to_token(Token *token, char c) {
   char *new_val; // The new value of the token
   if (token->val == NULL) {
@@ -384,5 +428,17 @@ int get_next_token(Token *token) {
     fprintf(stderr, "Unknown token: %s\n", token->val);
     exit(1);
   }
+  printf("Token Type: %d, Token Value: %s\n", token->type, token->val);
   return token->type;
+}
+int main() {
+  FILE *input_file = stdin;
+  Token token;
+  scanner_init(input_file);
+  while (get_next_token(&token) != TOKEN_EOF)
+    ;
+
+  scanner_destroy();
+
+  return 0;
 }
