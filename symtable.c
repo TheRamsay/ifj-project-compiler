@@ -43,7 +43,6 @@ unsigned int hash_function(const char *key, const unsigned int capacity)
 
 /**
  *
- * @param table Pointer to the symtable structure
  * @param capacity Initial capacity of the symtable
  *
  */

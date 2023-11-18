@@ -109,13 +109,13 @@ typedef struct
 
 Symtable *symtable_init(unsigned int capacity);
 
-bool symtable_search(Symtable *table, const char *key);
+bool symtable_search(symtable_t *table, const char *key);
 
-void symtable_delete(Symtable *table, const char *key);
+void symtable_delete(symtable_t *table, const char *key);
 
 SymtableItem *symtable_get(const Symtable *table, const char *key);
 
-void symtable_dispose(Symtable *table);
+void symtable_dispose(symtable_t *table);
 
 SymtableItem *symtable_insert(Symtable *table, char *key, SymtableValueType type, bool defined);
 

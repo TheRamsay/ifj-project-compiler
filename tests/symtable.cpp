@@ -6,13 +6,7 @@ extern "C"
 #include <string.h>
 #include "gtest/gtest.h"
 
-Symtable *create_symtable(unsigned int capacity) {
-  Symtable *symtable = (Symtable *) malloc(sizeof(Symtable));
-  symtable_init(symtable, capacity);
-  return symtable;
-}
-
-void delete_symtable(Symtable *symtable) {
+void delete_symtable(symtable_t *symtable) {
   symtable_dispose(symtable);
   free(symtable);
 }
@@ -23,14 +17,11 @@ char *getKey(const char* key) {
   return newKey;
 }
 
-TEST(SymtableTest, Init)
+TEST(SymtableTest, New)
 {
-  Symtable *symtable = NULL;
-  ASSERT_FALSE(symtable_init(symtable, 5));
-
-  symtable = create_symtable(2);
+  symtable_t *symtable = symtable_new(2);
   ASSERT_EQ(symtable->capacity, 2);
-  ASSERT_EQ(symtable->errorCode, 0);
+  ASSERT_EQ(symtable->error_code, 0);
   ASSERT_NE(symtable->items, nullptr);
 
   delete_symtable(symtable);

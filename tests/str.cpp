@@ -12,33 +12,30 @@ TEST(StrTest, New) {
   ASSERT_EQ(s->alloc_size, 10);
   ASSERT_NE(s->data, nullptr);
 
-  str_destroy(s);
+  str_dispose(s);
 
   s = str_new(0);
 
-  ASSERT_EQ(s->alloc_size, 0);
-  ASSERT_NE(s->data, nullptr);
-
-  str_destroy(s);
+  ASSERT_EQ(s, nullptr);
 }
 
 TEST(StrTest, NewFrom) {
-  str *s = str_new_from("");
+  str *s = str_new_from_cstr("");
 
   // Null terminator
   ASSERT_EQ(s->alloc_size, 1);
   ASSERT_EQ(strcmp(s->data, ""), 0);
 
-  str_destroy(s);
+  str_dispose(s);
 
-  s = str_new_from("Hello, World!");
+  s = str_new_from_cstr("Hello, World!");
 
   ASSERT_EQ(s->alloc_size, 14);
   ASSERT_EQ(strcmp(s->data, "Hello, World!"), 0);
 
-  str_destroy(s);
+  str_dispose(s);
 
-  s = str_new_from(NULL);
+  s = str_new_from_cstr(NULL);
   
   ASSERT_EQ(s, nullptr);
 }
@@ -61,7 +58,7 @@ TEST(StrTest, SetCstr) {
   ASSERT_EQ(s->alloc_size, 20);
   ASSERT_EQ(strcmp(s->data, "Hello, World! 2"), 0);
 
-  str_destroy(s);
+  str_dispose(s);
 }
 
 TEST(StrTest, SetStr) {
@@ -73,8 +70,8 @@ TEST(StrTest, SetStr) {
 
   ASSERT_EQ(strcmp(c->data, "Hello, World!"), 0);
 
-  str_destroy(s);
-  str_destroy(c);
+  str_dispose(s);
+  str_dispose(c);
 }
 
 TEST(StrTest, SetResize) {
@@ -87,7 +84,7 @@ TEST(StrTest, SetResize) {
   ASSERT_EQ(s->alloc_size, 14);
   ASSERT_EQ(strcmp(s->data, "Hello, World!"), 0);
 
-  str_destroy(s);
+  str_dispose(s);
 }
 
 TEST(StrTest, AppendCstr) {
@@ -105,7 +102,7 @@ TEST(StrTest, AppendCstr) {
 
   ASSERT_EQ(strcmp(s->data, "123"), 0);
 
-  str_destroy(s);
+  str_dispose(s);
 }
 
 TEST(StrTest, AppendStr) {
@@ -123,8 +120,29 @@ TEST(StrTest, AppendStr) {
 
   ASSERT_EQ(strcmp(s->data, "122"), 0);
 
-  str_destroy(s);
-  str_destroy(c);
+  str_dispose(s);
+  str_dispose(c);
+}
+
+TEST(StrTest, AppendInt) {
+  str *s = str_new(5);
+  int c = 123;
+
+  str_set_cstr(s, "0");
+
+  str_append_int(s, c);
+  ASSERT_EQ(strcmp(s->data, "0123"), 0);
+
+  str_append_int(s, c);
+  ASSERT_EQ(strcmp(s->data, "0123123"), 0);
+
+  str_set_cstr(s, "");
+  c = 2147483647;
+
+  str_append_int(s, c);
+  ASSERT_EQ(strcmp(s->data, "2147483647"), 0);
+
+  str_dispose(s);
 }
 
 TEST(StrTest, AppendCstrResize) {
@@ -139,7 +157,7 @@ TEST(StrTest, AppendCstrResize) {
   ASSERT_EQ(s->alloc_size, 9);
   ASSERT_EQ(strcmp(s->data, "12345678"), 0);
 
-  str_destroy(s);
+  str_dispose(s);
 }
 
 
@@ -151,22 +169,22 @@ TEST(StrTest, AppendCstrDestroy) {
   char *c = (char *)malloc(sizeof(char) * 20);
   strcpy(c, "456");
 
-  str_append_cstr_destroy(s, &c);
+  str_append_cstr_dispose(s, &c);
 
   ASSERT_EQ(strcmp(s->data, "123456"), 0);
   ASSERT_EQ(c, nullptr);
 
-  str_destroy(s);
+  str_dispose(s);
 }
 
 TEST(StrTest, AppendStrDestroy) {
-  str *s = str_new_from("123");
-  str *c = str_new_from("456");
+  str *s = str_new_from_cstr("123");
+  str *c = str_new_from_cstr("456");
 
-  str_append_str_destroy(s, &c);
+  str_append_str_dispose(s, &c);
 
   ASSERT_EQ(strcmp(s->data, "123456"), 0);
   ASSERT_EQ(c, nullptr);
 
-  str_destroy(s);
+  str_dispose(s);
 }

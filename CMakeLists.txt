@@ -36,6 +36,7 @@ add_executable(main
         parser.h parser.c
         scanner.h scanner.c
         stack.h stack.c
+        str.h str.c
         symtable.h symtable.c)
 
 # ------- Tests -------
@@ -84,3 +85,13 @@ target_link_libraries(Test_Parser gtest gtest_main)
 
 add_test(parser Test_parser)
 # ----------------------------------------------------------------
+# ------- Generator -------
+add_executable(Test_generator
+        generator.h generator.c
+        str.h str.c
+        stack.h stack.c
+        symtable.h symtable.c
+        tests/generator.cpp)
+target_link_libraries(Test_generator gtest gtest_main)
+
+add_test(generator Test_generator)
