@@ -32,7 +32,7 @@ include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 include_directories(src)
 add_executable(main
         main.c
-        generator.h generator.c
+        # generator.h generator.c
         parser.h parser.c
         error.h error.c
         scanner.h scanner.c
