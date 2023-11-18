@@ -45,30 +45,34 @@ typedef enum
 
 typedef struct
 {
+	bool nullable;
 	SymtableDataType data_type;
+} SymtableIdentifierType;
+
+typedef struct
+{
+	SymtableIdentifierType identifier_type;
 } SymtableVariable;
 
 struct SymtableParam
 {
 	char *out_name;
 	char *in_name;
-	SymtableDataType data_type;
+	SymtableIdentifierType identifier_type;
 	SymtableParam *next;
 };
 
 struct SymtableReturn
 {
 	SymtableDataType data_type;
-	SymtableReturn *next;
 };
 
 typedef struct
 {
 	int param_count;
-	int return_count;
 	bool defined;
 	SymtableParam *params;
-	SymtableReturn *returns;
+	SymtableReturn *_return;
 } SymtableFunction;
 
 struct SymtableData
@@ -103,9 +107,9 @@ typedef struct
 	SymtableItem **items;
 } Symtable;
 
-bool symtable_init(Symtable *table, unsigned int capacity);
+Symtable *symtable_init(unsigned int capacity);
 
-SymtableItem *symtable_search(Symtable *table, const char *key);
+bool symtable_search(Symtable *table, const char *key);
 
 void symtable_delete(Symtable *table, const char *key);
 
@@ -115,6 +119,10 @@ void symtable_dispose(Symtable *table);
 
 SymtableItem *symtable_insert(Symtable *table, char *key, SymtableValueType type, bool defined);
 
-bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_identifier, SymtableDataType data_type);
+bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_identifier, SymtableIdentifierType identifier_type);
+
+bool symtable_add_return(SymtableItem *item, SymtableIdentifierType type);
+
+bool check_if_all_functions_defined(Symtable *table);
 
 #endif

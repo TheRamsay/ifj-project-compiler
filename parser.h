@@ -29,9 +29,9 @@ void advance(Parser *parser);
 bool check_type(Parser *parser, TokenType token_type);
 
 // Consumes next token, if it is not of the expected type, prints error message and exits
-Token *consume(Parser *parser, TokenType token_type, char *error_msg);
+Token consume(Parser *parser, TokenType token_type, char *error_msg);
 
-void return_def(Parser *parser);
+void return_def(Parser *parser, SymtableItem *item);
 
 void func_params_n(Parser *parser, SymtableItem *item);
 

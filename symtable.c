@@ -47,11 +47,13 @@ unsigned int hash_function(const char *key, const unsigned int capacity)
  * @param capacity Initial capacity of the symtable
  *
  */
-bool symtable_init(Symtable *table, unsigned int capacity)
+Symtable *symtable_init(unsigned int capacity)
 {
+	Symtable *table = malloc(sizeof(Symtable));
+
 	if (table == NULL)
 	{
-		return false;
+		return NULL;
 	}
 
 	table->items = calloc(capacity, sizeof(SymtableItem *));
@@ -59,13 +61,18 @@ bool symtable_init(Symtable *table, unsigned int capacity)
 	if (table->items == NULL)
 	{
 		table->errorCode = SYMTABLE_INIT_ERROR;
-		return false;
+		return NULL;
+	}
+
+	for (unsigned int i = 0; i < capacity; i++)
+	{
+		table->items[i] = NULL;
 	}
 
 	table->capacity = capacity;
 	table->errorCode = 0;
 
-	return true;
+	return table;
 }
 
 /**
@@ -76,12 +83,11 @@ bool symtable_init(Symtable *table, unsigned int capacity)
  * @returns true if the item was found, false otherwise
  *
  */
-SymtableItem *symtable_search(Symtable *table, const char *key)
+SymtableItem *symtable_get(const Symtable *table, const char *key)
 {
 	if (table == NULL)
 	{
-		table->errorCode = SYMTABLE_SEARCH_ERROR;
-		return false;
+		return NULL;
 	}
 
 	unsigned int hash = hash_function(key, table->capacity);
@@ -93,12 +99,12 @@ SymtableItem *symtable_search(Symtable *table, const char *key)
 		return NULL;
 	}
 
-	while (current->key != key && current->next != NULL)
+	while (strcmp(current->key, key) != 0 && current->next != NULL)
 	{
 		current = current->next;
 	}
 
-	if (current->key == key)
+	if (strcmp(current->key, key) == 0)
 	{
 		return current;
 	}
@@ -158,15 +164,17 @@ void symtable_delete(Symtable *table, const char *key)
 /**
  *
  * @param table Pointer to the symtable structure
- * @param key Key of the item to be found
+ * @param key Key of the item to be searched
  *
- * @returns Pointer to the data of the item if found, NULL otherwise
+ * @returns true if the item was found, false otherwise
+ *
  */
-SymtableItem *symtable_get(const Symtable *table, const char *key)
+bool symtable_search(Symtable *table, const char *key)
 {
 	if (table == NULL)
 	{
-		return NULL;
+		table->errorCode = SYMTABLE_SEARCH_ERROR;
+		return false;
 	}
 
 	unsigned int hash = hash_function(key, table->capacity);
@@ -175,21 +183,21 @@ SymtableItem *symtable_get(const Symtable *table, const char *key)
 
 	if (current == NULL)
 	{
-		return NULL;
+		return false;
 	}
 
-	while (current->key != key && current->next != NULL)
+	while (strcmp(current->key, key) != 0 && current->next != NULL)
 	{
 		current = current->next;
 	}
 
-	if (current->key == key)
+	if (strcmp(current->key, key) == 0)
 	{
-		return current;
+		return true;
 	}
 	else
 	{
-		return NULL;
+		return false;
 	}
 }
 
@@ -232,24 +240,39 @@ void symtable_dispose(Symtable *table)
 
 SymtableItem *symtable_insert(Symtable *table, char *key, SymtableValueType type, bool defined)
 {
-	SymtableItem *item = symtable_search(table, key);
+	SymtableItem *item = symtable_get(table, key);
 
 	// Item already exists
 	if (item != NULL)
 	{
 		// Function is already defined -> error
-		if (type == SYMTABLE_FUNCTION && item->data.function.defined == true)
+		if (type == SYMTABLE_FUNCTION)
 		{
+			if (item->data.function.defined)
+			{
+
+				exit_with_error(SEMANTIC_ERR_FUNC);
+			}
+			else
+			{
+				item->data.function.defined = defined;
+				return item;
+			}
+		}
+		else
+		{
+			// Variable is already defined -> error
 			exit_with_error(SEMANTIC_ERR_FUNC);
 		}
 	}
 
-	size_t index = hash_function(key, table->capacity) % table->capacity;
+	size_t index = hash_function(key, table->capacity);
 
 	item = calloc(1, sizeof(SymtableItem));
 
 	if (item == NULL)
 	{
+		printf("malloc failed\n");
 		return NULL;
 	}
 
@@ -258,6 +281,7 @@ SymtableItem *symtable_insert(Symtable *table, char *key, SymtableValueType type
 	if (item->key == NULL)
 	{
 		free(item);
+		printf("malloc failed\n");
 		return NULL;
 	}
 
@@ -269,6 +293,7 @@ SymtableItem *symtable_insert(Symtable *table, char *key, SymtableValueType type
 	{
 		free(item->key);
 		free(item);
+		printf("malloc failed\n");
 		return NULL;
 	}
 
@@ -280,34 +305,40 @@ SymtableItem *symtable_insert(Symtable *table, char *key, SymtableValueType type
 	if (item->data.type == SYMTABLE_FUNCTION)
 	{
 		item->data.function.param_count = 0;
-		item->data.function.return_count = 0;
 		item->data.function.defined = defined;
 		item->data.function.params = NULL;
-		item->data.function.returns = NULL;
+		item->data.function._return = NULL;
 	}
 	else
 	{
-		item->data.variable.data_type = UNKNOWN_TYPE;
+		item->data.variable.identifier_type = (SymtableIdentifierType){.data_type = UNKNOWN_TYPE, .nullable = false};
 	}
 
 	return item;
 }
 
-bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_identifier, SymtableDataType data_type)
+bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_identifier, SymtableIdentifierType identifier_type)
 {
+	if (item == NULL)
+	{
+		// Its over Anakin, I have the high ground
+		exit_with_error(INTERNAL_ERROR);
+	}
+
 	SymtableParam *param = malloc(sizeof(SymtableParam));
+
 	if (param == NULL)
 	{
 		return false;
 	}
 
-	param->data_type = data_type;
-
+	param->identifier_type = identifier_type;
 	param->next = NULL;
 
 	if (out_identifier == NULL)
 	{
-		param->out_name = NULL;
+		// TODO: figure out what to do with this
+		// param->out_name = NULL;
 	}
 	else
 	{
@@ -323,7 +354,8 @@ bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_ident
 
 	if (in_identifier == NULL)
 	{
-		param->in_name = NULL;
+		// TODO: figure out what to do with this
+		// param->in_name = NULL;
 	}
 	else
 	{
@@ -348,6 +380,12 @@ bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_ident
 
 		while (current->next != NULL)
 		{
+			// Check for duplicate names
+			if (strcmp(current->in_name, param->in_name) == 0 || strcmp(current->out_name, param->out_name) == 0)
+			{
+				exit_with_error(SEMANTIC_ERR_FUNC);
+			}
+
 			current = current->next;
 		}
 
@@ -355,6 +393,55 @@ bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_ident
 	}
 
 	item->data.function.param_count++;
+
+	return true;
+}
+
+bool symtable_add_return(SymtableItem *item, SymtableIdentifierType type)
+{
+	if (item == NULL)
+	{
+		// Its over Anakin, I have the high ground
+		exit_with_error(INTERNAL_ERROR);
+	}
+
+	if (item->data.function._return == NULL)
+	{
+
+		SymtableReturn *return_type = malloc(sizeof(SymtableReturn));
+
+		if (return_type == NULL)
+		{
+			return false;
+		}
+
+		return_type->data_type = type.data_type;
+		item->data.function._return = return_type;
+	}
+	else
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool check_if_all_functions_defined(Symtable *table)
+{
+	for (unsigned int i = 0; i < table->capacity; i++)
+	{
+		SymtableItem *current = table->items[i];
+
+		while (current != NULL)
+		{
+			if (current->data.type == SYMTABLE_FUNCTION && !current->data.function.defined)
+			{
+				return false;
+			}
+
+			current = current->next;
+		}
+	}
 
 	return true;
 }
