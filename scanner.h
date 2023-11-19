@@ -3,7 +3,8 @@
 
 #include <stdio.h>
 
-typedef enum {
+typedef enum
+{
   NONE,
   KW_IF,
   KW_ELSE,
@@ -23,7 +24,8 @@ typedef enum {
   KW_FUNC,
 } Keyword;
 
-typedef enum {
+typedef enum
+{
   TOKEN_KEYWORD,
   TOKEN_STRING_LITERAL,
   TOKEN_COLON,
@@ -84,7 +86,8 @@ typedef enum {
   TOKEN_INTEGER_LITERAL,
 } TokenType;
 
-typedef struct {
+typedef struct
+{
   TokenType type;
   Keyword keyword;
   char *val;
@@ -93,6 +96,9 @@ typedef struct {
 
 void scanner_init(FILE *file);
 void scanner_destroy();
+void token_destroy(Token *token);
 int get_next_token(Token *token);
+void char_to_token(Token *token, char c);
+void determine_token_type(Token *token);
 
 #endif // __SCANNER_H__

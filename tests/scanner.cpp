@@ -1,6 +1,5 @@
 extern "C" {
 #include "../scanner.h"
-#include "../scanner.c"
 }
 #include "gtest/gtest.h"
 #include <stdlib.h>
@@ -10,7 +9,7 @@ protected:
   FILE *input_file;
   Token token;
   void SetUp() override {
-    input_file = fopen("test.swift", "r");
+    input_file = fopen("../tests/test.swift", "r");
     if (input_file == NULL) {
       printf("Error opening file\n");
       exit(1);
