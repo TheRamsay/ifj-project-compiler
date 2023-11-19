@@ -6,27 +6,85 @@
 #include "stack.h"
 
 const int precedence_table[TABLE_SIZE][TABLE_SIZE] = {
-    //+ i  $  E
-    {R, L, R, E},     //+
-    {R, Err, R, Err}, // i
-    {L, L, Err, L},   //$
-    {E, Err, R, Err}  // E
+    //+ -  *  /  <  <= >  => == != (  )  i  $  E
+    {R, R, L, L, R, R, R, R, R, R, L, R, L, R, E}, //+
+    {R, R, L, L, R, R, R, R, R, R, L, R, L, R, E}, //-
+    {R, R, R, R, R, R, R, R, R, R, L, R, L, R, E}, //*
+    {R, R, R, R, R, R, R, R, R, R, L, R, L, R, E}, // /
+    {L, L, L, L, X, X, X, X, X, X, L, R, L, R, E}, // <
+    {L, L, L, L, X, X, X, X, X, X, L, R, L, R, E}, // <=
+    {L, L, L, L, X, X, X, X, X, X, L, R, L, R, E}, // >
+    {L, L, L, L, X, X, X, X, X, X, L, R, L, R, E}, // =>
+    {L, L, L, L, X, X, X, X, X, X, L, R, L, R, E}, // ==
+    {L, L, L, L, X, X, X, X, X, X, L, R, L, R, E}, // =!
+    {L, L, L, L, L, L, L, L, L, L, L, E, L, R, E}, // (
+    {R, R, R, R, R, R, R, R, R, R, X, R, L, R, X}, // )
+    {R, R, R, R, R, R, R, R, R, R, X, R, L, R, X}, // i
+    {L, L, L, L, L, L, L, L, L, L, L, X, L, X, L}, //$
+    {E, E, E, E, E, E, E, E, E, E, E, R, X, R, X}  // E
 };
 
-Rule_t rules[] = {{TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_PLUS, TOKEN_EXPRESSION}}, {TOKEN_EXPRESSION, 1, {TOKEN_INTEGER_LITERAL}}};
+Rule_t rules[] = {
+    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_PLUS, TOKEN_EXPRESSION}},
+    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_MINUS, TOKEN_EXPRESSION}},
+    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_MULTIPLY, TOKEN_EXPRESSION}},
+    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_DIV, TOKEN_EXPRESSION}},
+    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_EQ, TOKEN_EXPRESSION}},
+    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_GT, TOKEN_EXPRESSION}},
+    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_GE, TOKEN_EXPRESSION}},
+    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_LT, TOKEN_EXPRESSION}},
+    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_LE, TOKEN_EXPRESSION}},
+    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_NEQ, TOKEN_EXPRESSION}},
+    {TOKEN_EXPRESSION, 3, {TOKEN_LPAREN, TOKEN_EXPRESSION, TOKEN_RPAREN}},
+    {TOKEN_EXPRESSION, 1, {TOKEN_INTEGER_LITERAL}},
+    {TOKEN_EXPRESSION, 1, {TOKEN_DECIMAL_LITERAL}},
+    {
+        TOKEN_EXPRESSION,
+        1,
+        {TOKEN_STRING_LITERAL},
+    },
+    {
+        TOKEN_EXPRESSION,
+        1,
+        {TOKEN_IDENTIFIER},
+    },
+};
 
 int get_operator_index(TokenType op) {
   switch (op) {
   case TOKEN_PLUS:
     return 0;
+  case TOKEN_MINUS:
+    return 1;
+  case TOKEN_MULTIPLY:
+    return 2;
+  case TOKEN_DIV:
+    return 3;
+  case TOKEN_LT:
+    return 4;
+  case TOKEN_LE:
+    return 5;
+  case TOKEN_GT:
+    return 6;
+  case TOKEN_GE:
+    return 7;
+  case TOKEN_EQ:
+    return 8;
+  case TOKEN_NEQ:
+    return 9;
+  case TOKEN_LPAREN:
+    return 10;
+  case TOKEN_RPAREN:
+    return 11;
   case TOKEN_IDENTIFIER:
+  case TOKEN_STRING_LITERAL:
   case TOKEN_INTEGER_LITERAL:
   case TOKEN_DECIMAL_LITERAL:
-    return 1;
+    return 12;
   case TOKEN_STACK_BOTTOM:
-    return 2;
+    return 13;
   case TOKEN_EXPRESSION:
-    return 3;
+    return 14;
 
   default:
     return -1; // Operator not found
@@ -38,7 +96,7 @@ Stack_token_t get_precedence(Stack_token_t stack_top, Stack_token_t input) {
   int input_index = get_operator_index(input.token);
 
   if (stack_index == -1 || input_index == -1) {
-    return (Stack_token_t){.precedence = Err}; // Handle invalid operators
+    return (Stack_token_t){.precedence = X}; // Handle invalid operators
   }
 
   return (Stack_token_t){.precedence = precedence_table[stack_index][input_index]};
@@ -67,8 +125,8 @@ Stack_token_t evaluate_rule(Stack_token_t *tokens) {
   return (Stack_token_t){.token = TOKEN_EOF, .precedence = None};
 }
 
-Stack_token_t get_next_token_temp(TokenType array[], int index) {
-  if (index >= 0 && index <= sizeof(array) / sizeof(array[0])) {
+Stack_token_t get_next_token_temp(TokenType array[], int index, int size) {
+  if (index >= 0 && index < size) {
     // Return the character at the specified index
     return (Stack_token_t){.precedence = None, .token = array[index]};
   }
@@ -110,13 +168,13 @@ void handle_equals_case(void_stack_t *stack, Stack_token_t token) {
   stack_push(stack, new_token);
 }
 
-int parse_expression(TokenType *expressionToParse) {
+int parse_expression(TokenType *expressionToParse, int inputSize) {
   int expIndex = 0;
 
   void_stack_t *stack = stack_new(8192);
   stack_push(stack, &(Stack_token_t){.token = TOKEN_STACK_BOTTOM, .precedence = None});
 
-  Stack_token_t token = get_next_token_temp(expressionToParse, expIndex);
+  Stack_token_t token = get_next_token_temp(expressionToParse, expIndex, inputSize);
   expIndex++;
   while (420 == 420) {
     Stack_token_t stackTop = *(Stack_token_t *)stack_top(stack);
@@ -126,14 +184,14 @@ int parse_expression(TokenType *expressionToParse) {
     }
 
     Stack_token_t action = get_precedence(stackTop, token);
-    if (action.precedence == Err) {
+    if (action.precedence == X) {
       return 0;
     }
 
     switch (action.precedence) {
     case L:
       handle_shift_case(stack, token, action);
-      token = get_next_token_temp(expressionToParse, expIndex);
+      token = get_next_token_temp(expressionToParse, expIndex, inputSize);
       expIndex++;
 
       break;
@@ -147,7 +205,7 @@ int parse_expression(TokenType *expressionToParse) {
 
     case E:
       handle_equals_case(stack, token);
-      token = get_next_token_temp(expressionToParse, expIndex);
+      token = get_next_token_temp(expressionToParse, expIndex, inputSize);
       expIndex++;
 
       break;

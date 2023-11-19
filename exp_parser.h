@@ -8,8 +8,8 @@
 #include "scanner.h"
 #include "stack.h"
 
-#define TABLE_SIZE 4
-#define RULES_SIZE 2
+#define TABLE_SIZE 15
+#define RULES_SIZE 15
 #define RULE_MAX_LENGHT 3
 
 const char operators[] = {TOKEN_PLUS, TOKEN_IDENTIFIER, TOKEN_STACK_BOTTOM, TOKEN_EXPRESSION};
@@ -18,7 +18,7 @@ typedef enum {
   L,    // < /SHIFT
   R,    // > /REDUCTION
   E,    // = /REDUCTION PREPARE
-  Err,  // Invalid
+  X,    // Invalid
   None, // Useless but send thank you letters to ramsay
 } Precedence;
 
@@ -33,7 +33,7 @@ typedef struct {
   TokenType token;
 } Stack_token_t;
 
-int parse_expression(TokenType expressionToParse[]);
+int parse_expression(TokenType expressionToParse[], int inputSize);
 
 TokenType *extract_tokens_from_stack(Stack_token_t *stack_tokens, size_t size);
 
