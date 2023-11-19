@@ -375,6 +375,13 @@ int get_next_token(Token *token) {
       while (isalnum(c = fgetc(source_file)) || c == '_') { // Read until the end of the identifier
         char_to_token(token, c);
       }
+
+      if (c == '!') {
+        char_to_token(token, c);
+        token->type = TOKEN_IDENTIFIER_NOT_NULL;
+        break;
+      }
+
       ungetc(c, source_file);
       determine_token_type(token);
       if (token->type == TOKEN_UNKNOWN) {
