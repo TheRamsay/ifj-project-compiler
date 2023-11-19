@@ -5,26 +5,27 @@
 
 typedef enum
 {
-    NONE,
-    KW_IF,
-    KW_ELSE,
-    KW_WHILE,
-    KW_INT,
-    KW_FLOAT,
-    KW_RETURN,
-    KW_VOID,
-    KW_NIL,
-    KW_LET,
-    KW_UNKNOWN,
-    KW_VAR,
-    KW_IN,
-    KW_FOR,
-    KW_DOUBLE,
-    KW_STRING,
-    KW_FUNC,
-} KeywordType;
+  NONE,
+  KW_IF,
+  KW_ELSE,
+  KW_WHILE,
+  KW_INT,
+  KW_FLOAT,
+  KW_RETURN,
+  KW_VOID,
+  KW_NIL,
+  KW_LET,
+  KW_UNKNOWN,
+  KW_VAR,
+  KW_IN,
+  KW_FOR,
+  KW_DOUBLE,
+  KW_STRING,
+  KW_FUNC,
+} Keyword;
 
-typedef enum {
+typedef enum
+{
   TOKEN_KEYWORD,
   TOKEN_STRING_LITERAL,
   TOKEN_COLON,
@@ -87,14 +88,17 @@ typedef enum {
 
 typedef struct
 {
-    TokenType type;
-    KeywordType keyword;
-    char *val;
-    int length;
+  TokenType type;
+  Keyword keyword;
+  char *val;
+  int length;
 } Token;
 
 void scanner_init(FILE *file);
 void scanner_destroy();
+void token_destroy(Token *token);
 int get_next_token(Token *token);
+void char_to_token(Token *token, char c);
+void determine_token_type(Token *token);
 
 #endif // __SCANNER_H__
