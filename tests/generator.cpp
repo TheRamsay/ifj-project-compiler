@@ -414,89 +414,139 @@ TEST(GeneratorTest, BuiltInSubstring) {
   generator_dispose(gen);
 }
 
+TEST(GeneratorTest, WhileLoop) {
+  gen_t *gen = generator_new();
+  generator_header(gen);
+
+  void_stack_t *args = stack_new(20);
+
+  str *str1 = str_new(50);
+  str *str2 = str_new(50);
+
+  str_set_cstr(str1, "var_int");
+  generator_var_create(gen, str1);
+  str_set_cstr(str2, "int@9");
+  generator_var_set(gen, str1, str2);
+
+  stack_push(args, str_new_from_cstr("<"));
+  stack_push(args, str_new_from_cstr("var_int"));
+  stack_push(args, str_new_from_cstr("int@0"));
+
+  generator_loop_start(gen, args);
+
+  stack_push(args, str_new_from_cstr("int@1"));
+  stack_push(args, str_new_from_cstr("var_int"));
+  str_set_cstr(str1, "write");
+  generator_function_call(gen, str1, args, NULL);
+
+  stack_push(args, str_new_from_cstr("var_int"));
+  stack_push(args, str_new_from_cstr("-"));
+  stack_push(args, str_new_from_cstr("int@1"));
+  stack_push(args, str_new_from_cstr("var_int"));
+  generator_expr(gen, args);
+
+  generator_loop_end(gen);
+
+  generator_footer(gen);
+
+  str_dispose(str2);
+  str_dispose(str1);
+
+  stack_dispose(args);
+
+  createTmpFile(gen->out_str);
+  auto [output, returnCode] = run_interpreter("./tmp");
+  deleteTmpFile();
+
+  EXPECT_EQ(strcmp(output, "987654321"), 0);
+
+  generator_dispose(gen);
+}
+
 TEST(GeneratorTest, FunAndGames) {
-  // gen_t *gen = generator_new();
+  gen_t *gen = generator_new();
 
-  // generator_header(gen);
+  generator_header(gen);
 
-  // str *name = str_new_from_cstr("a");
-  // generator_var_create(gen, name);
+  str *name = str_new_from_cstr("a");
+  generator_var_create(gen, name);
 
-  // generator_if_begin(gen, str_new_from_cstr("int@1"), true, str_new_from_cstr("int@1"));
-  // generator_if_else(gen);
-  // generator_var_create(gen, name);
-  // generator_if_end(gen);
+  generator_if_begin(gen, str_new_from_cstr("int@1"), true, str_new_from_cstr("int@1"));
+  generator_if_else(gen);
+  generator_var_create(gen, name);
+  generator_if_end(gen);
 
-  // generator_function_begin(gen, str_new_from_cstr("test1"), NULL);
-  // generator_var_create(gen, name);
-  // generator_var_set(gen, name, str_new_from_cstr("int@1"));
-  // generator_if_begin(gen, str_new_from_cstr("a"), true, str_new_from_cstr("int@1"));
-  // generator_var_create(gen, name);
-  // generator_var_set(gen, name, str_new_from_cstr("int@1"));
-  // generator_if_else(gen);
-  // generator_var_create(gen, name);
-  // generator_if_end(gen);
-  // generator_if_begin(gen, str_new_from_cstr("a"), true, str_new_from_cstr("int@1"));
-  // generator_if_else(gen);
-  // generator_if_end(gen);
-  // generator_function_end(gen, NULL);
+  generator_function_begin(gen, str_new_from_cstr("test1"), NULL);
+  generator_var_create(gen, name);
+  generator_var_set(gen, name, str_new_from_cstr("int@1"));
+  generator_if_begin(gen, str_new_from_cstr("a"), true, str_new_from_cstr("int@1"));
+  generator_var_create(gen, name);
+  generator_var_set(gen, name, str_new_from_cstr("int@1"));
+  generator_if_else(gen);
+  generator_var_create(gen, name);
+  generator_if_end(gen);
+  generator_if_begin(gen, str_new_from_cstr("a"), true, str_new_from_cstr("int@1"));
+  generator_if_else(gen);
+  generator_if_end(gen);
+  generator_function_end(gen, NULL);
 
-  // void_stack_t *args = stack_new(20);
-  // stack_push(args, str_new_from_cstr("arg3"));
-  // stack_push(args, str_new_from_cstr("arg2"));
-  // stack_push(args, str_new_from_cstr("arg1"));
+  void_stack_t *args = stack_new(20);
+  stack_push(args, str_new_from_cstr("arg3"));
+  stack_push(args, str_new_from_cstr("arg2"));
+  stack_push(args, str_new_from_cstr("arg1"));
 
-  // generator_function_begin(gen, str_new_from_cstr("test4s"), args);
-  // generator_var_set(gen, str_new_from_cstr("a"), str_new_from_cstr("int@1"));
-  // generator_var_set(gen, str_new_from_cstr("arg1"), str_new_from_cstr("int@1"));
-  // stack_push(args, str_new_from_cstr("arg1"));
-  // generator_function_call(gen, str_new_from_cstr("test4s"), args, NULL);
-  // generator_function_end(gen, NULL);
+  generator_function_begin(gen, str_new_from_cstr("test4s"), args);
+  generator_var_set(gen, str_new_from_cstr("a"), str_new_from_cstr("int@1"));
+  generator_var_set(gen, str_new_from_cstr("arg1"), str_new_from_cstr("int@1"));
+  stack_push(args, str_new_from_cstr("arg1"));
+  generator_function_call(gen, str_new_from_cstr("test4s"), args, NULL);
+  generator_function_end(gen, NULL);
 
-  // generator_var_create(gen, str_new_from_cstr("arg1"));
-  // generator_var_set(gen, str_new_from_cstr("arg1"), str_new_from_cstr("int@1"));
+  generator_var_create(gen, str_new_from_cstr("arg1"));
+  generator_var_set(gen, str_new_from_cstr("arg1"), str_new_from_cstr("int@1"));
 
-  // generator_function_call(gen, str_new_from_cstr("test1"), NULL, NULL);
+  generator_function_call(gen, str_new_from_cstr("test1"), NULL, NULL);
 
-  // stack_push(args, str_new_from_cstr("arg1"));
-  // generator_function_begin(gen, str_new_from_cstr("test-return"), args);
-  // generator_if_begin(gen, str_new_from_cstr("arg1"), false, str_new_from_cstr("int@1"));
-  // generator_function_return(gen, str_new_from_cstr("arg1"));
-  // generator_if_else(gen);
-  // generator_function_return(gen, str_new_from_cstr("int@0"));
-  // generator_if_end(gen);
-  // generator_function_end(gen, str_new_from_cstr("arg1"));
+  stack_push(args, str_new_from_cstr("arg1"));
+  generator_function_begin(gen, str_new_from_cstr("test-return"), args);
+  generator_if_begin(gen, str_new_from_cstr("arg1"), false, str_new_from_cstr("int@1"));
+  generator_function_return(gen, str_new_from_cstr("arg1"));
+  generator_if_else(gen);
+  generator_function_return(gen, str_new_from_cstr("int@0"));
+  generator_if_end(gen);
+  generator_function_end(gen, str_new_from_cstr("arg1"));
 
-  // generator_var_create(gen, str_new_from_cstr("returnvar"));
-  // stack_push(args, str_new_from_cstr("arg1"));
-  // generator_function_call(gen, str_new_from_cstr("test-return"), args,
-  // str_new_from_cstr("returnvar"));
+  generator_var_create(gen, str_new_from_cstr("returnvar"));
+  stack_push(args, str_new_from_cstr("arg1"));
+  generator_function_call(gen, str_new_from_cstr("test-return"), args,
+  str_new_from_cstr("returnvar"));
 
-  // generator_var_set(gen, str_new_from_cstr("arg1"), str_new_from_cstr("int@5"));
-  // stack_push(args, str_new_from_cstr("arg1"));
-  // stack_push(args, str_new_from_cstr("+"));
-  // stack_push(args, str_new_from_cstr("*"));
-  // stack_push(args, str_new_from_cstr("arg1"));
-  // stack_push(args, str_new_from_cstr("arg1"));
-  // stack_push(args, str_new_from_cstr("arg1"));
-  // generator_expr(gen, args);
+  generator_var_set(gen, str_new_from_cstr("arg1"), str_new_from_cstr("int@5"));
+  // arg1 = (arg1 * arg1) + arg1
+  stack_push(args, str_new_from_cstr("arg1"));
+  stack_push(args, str_new_from_cstr("+"));
+  stack_push(args, str_new_from_cstr("*"));
+  stack_push(args, str_new_from_cstr("arg1"));
+  stack_push(args, str_new_from_cstr("arg1"));
+  stack_push(args, str_new_from_cstr("arg1"));
+  generator_expr(gen, args);
 
-  // stack_push(args, str_new_from_cstr("<"));
-  // stack_push(args, str_new_from_cstr("int@10"));
-  // stack_push(args, str_new_from_cstr("arg1"));
+  stack_push(args, str_new_from_cstr("<"));
+  stack_push(args, str_new_from_cstr("int@10"));
+  stack_push(args, str_new_from_cstr("arg1"));
 
-  // generator_if_begin_stack(gen, true, args);
-  // generator_if_else(gen);
-  // generator_if_end(gen);
+  generator_if_begin_stack(gen, true, args);
+  generator_if_else(gen);
+  generator_if_end(gen);
 
-  // generator_footer(gen);
+  generator_footer(gen);
 
-  // createTmpFile(gen->out_str);
-  // auto [output, returnCode] = run_interpreter("./tmp");
-  // // deleteTmpFile();
+  createTmpFile(gen->out_str);
+  auto [output, returnCode] = run_interpreter("./tmp");
+  // deleteTmpFile();
 
-  // EXPECT_EQ(returnCode, 0);
-  // EXPECT_STREQ(output, "");
+  EXPECT_EQ(returnCode, 0);
+  EXPECT_STREQ(output, "");
 
-  // generator_dispose(gen);
+  generator_dispose(gen);
 }

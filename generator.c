@@ -619,3 +619,78 @@ void generator_expr(gen_t *gen, void_stack_t *expr_stack) {
     str_dispose(item);
   }
 }
+
+void generator_loop_start(gen_t *gen, void_stack_t *expr_stack) {
+  stack_push(gen->frame_stack, symtable_new(128));
+
+  intptr_t struct_count = (intptr_t)stack_pop(gen->construct_count_stack);
+  stack_push(gen->construct_count_stack, (void *)(struct_count + 1));
+  stack_push(gen->construct_count_stack, (void *)0);
+
+  str *new_sub_label = str_new_from_cstr("while");
+  str_append_int(new_sub_label, struct_count);
+  stack_push(gen->label_stack, new_sub_label);
+
+  str *dest = get_dest(gen);
+  str *item;
+
+  add_indentation(gen);
+  str_append_cstr(dest, "# WHILE START\n");
+
+  add_indentation(gen);
+  str_append_cstr(dest, "LABEL ");
+  str_append_str(dest, get_label(gen, -1));
+  str_append_cstr(dest, "start$\n");
+
+  while (!stack_is_empty(expr_stack)) {
+    item = stack_pop(expr_stack);
+
+    add_indentation(gen);
+
+    str *instruction = get_instruction(item->data[0]);
+    if (instruction != NULL) {
+      str_append_str_dispose(dest, &instruction);
+    } else {
+      str_append_cstr(dest, "PUSHS ");
+      str *path = get_symbol_path(gen, item);
+      str_append_str_dispose(dest, &path);
+      str_append_cstr(dest, "\n");
+    }
+
+    str_dispose(item);
+  }
+
+  add_indentation(gen);
+  str_append_cstr(dest, "PUSHS bool@true\n");
+
+  add_indentation(gen);
+  str_append_cstr(dest, "JUMPIFNEQS ");
+  str_append_str(dest, get_label(gen, -1));
+  str_append_cstr(dest, "end$\n");
+
+  gen->indent_depth++;
+
+  add_indentation(gen);
+  str_append_cstr(dest, "# WHILE BODY START\n");
+}
+
+void generator_loop_end(gen_t *gen) {
+  symtable_dispose(stack_pop(gen->frame_stack));
+  stack_pop(gen->construct_count_stack);
+
+  str *dest = get_dest(gen);
+
+  gen->indent_depth--;
+
+  add_indentation(gen);
+  str_append_cstr(dest, "JUMP ");
+  str_append_str(dest, get_label(gen, -1));
+  str_append_cstr(dest, "start$\n");
+
+  add_indentation(gen);
+  str_append_cstr(dest, "LABEL ");
+  str_append_str(dest, get_label(gen, -1));
+  str_append_cstr(dest, "end$\n");
+
+  str_dispose(stack_pop(gen->label_stack));
+}
