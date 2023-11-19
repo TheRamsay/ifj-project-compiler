@@ -2,6 +2,7 @@
 #define __PARSER_H__
 
 #include "scanner.h"
+#include "generator.h"
 #include "symtable.h"
 #include <stdbool.h>
 #include <stdlib.h>
@@ -12,6 +13,7 @@ typedef struct
     Symtable *local_table;
     Token *token_buffer;
     bool buffer_active;
+    gen_t *gen;
 } Parser;
 
 bool parser_init(Parser *parser);
@@ -51,10 +53,12 @@ void body(Parser *parser);
 
 void program(Parser *parser);
 
-void parse(Parser *parser);
+Token *parse(Parser *parser);
 void expression(Parser *parser);
 
 void return_t(Parser *parser);
+
+void log_token_parsed(Parser *parser);
 
 Token *current_token(Parser *parser);
 bool match_peek(TokenType token_type);

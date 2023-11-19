@@ -5,6 +5,14 @@
 
 #define TOKEN_BUFFER_LEN 2
 
+#define log_token()               \
+    {                             \
+        log_token_parsed(parser); \
+    }
+
+Token output[1000] = {0};
+int output_index = 0;
+
 bool parser_init(Parser *parser)
 {
     parser->global_table = symtable_new(100);
@@ -13,6 +21,13 @@ bool parser_init(Parser *parser)
     parser->token_buffer = calloc(TOKEN_BUFFER_LEN, sizeof(Token));
 
     if (parser->token_buffer == NULL)
+    {
+        return false;
+    }
+
+    parser->gen = generator_new();
+
+    if (parser->gen == NULL)
     {
         return false;
     }
@@ -79,6 +94,8 @@ void advance(Parser *parser)
     {
         get_next_token(parser->token_buffer);
     }
+
+    log_token();
 }
 
 // Returns true if current token is of the expected type
@@ -440,16 +457,30 @@ void program(Parser *parser)
     program(parser);
 }
 
-void parse(Parser *parser)
+Token *parse(Parser *parser)
 {
     // Get first token
     advance(parser);
     // prog rule
     program(parser);
+
+    // for (int i = 0; i < output_index; i++)
+    // {
+    //     printf("%s | %d\n", output[i].val, output[i].type);
+    // }
+
+    return output;
 }
 
 void expression(Parser *parser)
 {
     consume(parser, TOKEN_COMMA, "Expected an expression");
     return;
+}
+
+void log_token_parsed(Parser *parser)
+{
+    Token *token = current_token(parser);
+    // printf("Parsed token: %s\n", token->val);
+    output[output_index++] = *token;
 }
