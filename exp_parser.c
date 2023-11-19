@@ -5,8 +5,6 @@
 #include "exp_parser.h"
 #include "stack.h"
 
-#define TABLE_SIZE 4
-
 const int precedence_table[TABLE_SIZE][TABLE_SIZE] = {
     //+ i  $  E
     {R, L, R, E},     //+
@@ -15,7 +13,7 @@ const int precedence_table[TABLE_SIZE][TABLE_SIZE] = {
     {E, Err, R, Err}  // E
 };
 
-Rule_t rules[] = {{TOKEN_EXPRESSION, {TOKEN_EXPRESSION, TOKEN_PLUS, TOKEN_EXPRESSION}}, {TOKEN_EXPRESSION, {TOKEN_INTEGER_LITERAL}}};
+Rule_t rules[] = {{TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_PLUS, TOKEN_EXPRESSION}}, {TOKEN_EXPRESSION, 1, {TOKEN_INTEGER_LITERAL}}};
 
 int get_operator_index(TokenType op) {
   switch (op) {
@@ -48,9 +46,20 @@ Stack_token_t get_precedence(Stack_token_t stack_top, Stack_token_t input) {
 
 Stack_token_t evaluate_rule(Stack_token_t *tokens) {
   TokenType *rightSide = extract_tokens_from_stack(tokens, sizeof(tokens) / sizeof(tokens[0]));
+
   // Check each rule
-  for (int i = 0; i < sizeof(rules) / sizeof(rules[0]); ++i) {
-    if (strcmp(rightSide, rules[i].rule) == 0) {
+  for (int i = 0; i < RULES_SIZE; ++i) {
+    int ruleMatch = 1; // Assume a match until proven otherwise
+
+    // Check each TokenType in the rule
+    for (int j = 0; j < rules[i].lenght; ++j) {
+      if (rightSide[j] != rules[i].rule[j]) {
+        ruleMatch = 0; // Not a match
+        break;
+      }
+    }
+
+    if (ruleMatch) {
       return (Stack_token_t){.token = rules[i].result, .precedence = None};
     }
   }
@@ -59,30 +68,62 @@ Stack_token_t evaluate_rule(Stack_token_t *tokens) {
 }
 
 Stack_token_t get_next_token_temp(TokenType array[], int index) {
-  if (index >= 0 && index <= strlen(array)) {
+  if (index >= 0 && index <= sizeof(array) / sizeof(array[0])) {
     // Return the character at the specified index
     return (Stack_token_t){.precedence = None, .token = array[index]};
   }
   return (Stack_token_t){.token = TOKEN_STACK_BOTTOM, .precedence = None};
 }
 
-int parse_expresion(TokenType *expressionToParse) {
+void handle_shift_case(void_stack_t *stack, Stack_token_t token, Stack_token_t action) {
+  Stack_token_t *new_token = malloc(sizeof(Stack_token_t));
+  Stack_token_t *new_action = malloc(sizeof(Stack_token_t));
+  *new_token = token;
+  *new_action = action;
 
+  stack_push(stack, new_action);
+  stack_push(stack, new_token);
+}
+
+int handle_reduce_case(void_stack_t *stack, Stack_token_t token) {
+  Stack_token_t *result = arrayFromStack(stack);
+  Stack_token_t *ruleProduct = malloc(sizeof(Stack_token_t));
+
+  *ruleProduct = evaluate_rule(result);
+
+  if (ruleProduct->token == TOKEN_EOF) {
+    return -1;
+  }
+
+  Stack_token_t stackTop = *(Stack_token_t *)stack_top(stack);
+  Stack_token_t *action = malloc(sizeof(Stack_token_t));
+  *action = get_precedence(stackTop, token);
+
+  stack_push(stack, action);
+  stack_push(stack, ruleProduct);
+  return 0;
+}
+
+void handle_equals_case(void_stack_t *stack, Stack_token_t token) {
+  Stack_token_t *new_token = malloc(sizeof(Stack_token_t));
+  *new_token = token;
+  stack_push(stack, new_token);
+}
+
+int parse_expression(TokenType *expressionToParse) {
   int expIndex = 0;
 
   void_stack_t *stack = stack_new(8192);
-  stack_push(stack, (void *)&(Stack_token_t){.token = TOKEN_STACK_BOTTOM, .precedence = None});
+  stack_push(stack, &(Stack_token_t){.token = TOKEN_STACK_BOTTOM, .precedence = None});
 
-  // TODO
-  // token = next_token();
   Stack_token_t token = get_next_token_temp(expressionToParse, expIndex);
   expIndex++;
-  if (token.token == TOKEN_STACK_BOTTOM) {
-    return 0;
-  }
-
   while (420 == 420) {
     Stack_token_t stackTop = *(Stack_token_t *)stack_top(stack);
+
+    if (token.token == TOKEN_STACK_BOTTOM && stackTop.token == TOKEN_EXPRESSION) {
+      break;
+    }
 
     Stack_token_t action = get_precedence(stackTop, token);
     if (action.precedence == Err) {
@@ -90,43 +131,26 @@ int parse_expresion(TokenType *expressionToParse) {
     }
 
     switch (action.precedence) {
-    case R:
-      // Get value to be reduced
-      Stack_token_t *result = arrayFromStack(stack);
-
-      Stack_token_t ruleProduct = evaluate_rule(result);
-
-      if (ruleProduct.token == TOKEN_EOF) {
-        if (result[0].token == TOKEN_EXPRESSION) {
-          return 1;
-        }
-        return 0;
-      }
-
-      stackTop = *(Stack_token_t *)stack_top(stack);
-      action = get_precedence(stackTop, token);
-      stack_push(stack, &action);
-      stack_push(stack, &ruleProduct);
-
-      break;
-    case E:
-      stack_push(stack, &token);
-      token = get_next_token_temp(expressionToParse, expIndex);
-      expIndex++;
-      if (token.token == TOKEN_STACK_BOTTOM) {
-        return 0;
-      }
-      break;
-
     case L:
-      stack_push(stack, &action);
-      stack_push(stack, &token);
+      handle_shift_case(stack, token, action);
       token = get_next_token_temp(expressionToParse, expIndex);
       expIndex++;
 
-      // if (token == TOKEN_STACK_BOTTOM) {
-      //   return 0;
-      // }
+      break;
+
+    case R:
+      // If there is no rule, expression is not valid
+      if (handle_reduce_case(stack, token) == -1) {
+        return 0;
+      }
+      break;
+
+    case E:
+      handle_equals_case(stack, token);
+      token = get_next_token_temp(expressionToParse, expIndex);
+      expIndex++;
+
+      break;
     }
   }
 
@@ -151,8 +175,12 @@ Stack_token_t *arrayFromStack(void_stack_t *stack) {
   }
 
   int currentIndex = 0;
-  while ((*(Stack_token_t *)stack_top(stack)).precedence != L && stack->top_index >= 0) {
-    resultArray[currentIndex++] = *(Stack_token_t *)stack_pop(stack);
+  Stack_token_t stackTop = *(Stack_token_t *)stack_top(stack);
+
+  while (stackTop.precedence != L && stack->top_index >= 0) {
+    resultArray[currentIndex++] = stackTop;
+    stack_pop(stack);
+    stackTop = *(Stack_token_t *)stack_top(stack);
   }
   // Get rid of the L
   stack_pop(stack);
