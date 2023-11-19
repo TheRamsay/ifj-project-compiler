@@ -431,14 +431,3 @@ int get_next_token(Token *token) {
   printf("Token Type: %d, Token Value: %s\n", token->type, token->val);
   return token->type;
 }
-int main() {
-  FILE *input_file = stdin;
-  Token token;
-  scanner_init(input_file);
-  while (get_next_token(&token) != TOKEN_EOF)
-    ;
-
-  scanner_destroy();
-
-  return 0;
-}
