@@ -59,4 +59,8 @@ void generator_if_end(gen_t *gen);
 
 void generator_expr(gen_t *gen, void_stack_t *expr_stack);
 
+void generator_loop_start(gen_t *gen, void_stack_t *expr_stack);
+
+void generator_loop_end(gen_t *gen);
+
 #endif
