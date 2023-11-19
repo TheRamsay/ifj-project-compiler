@@ -1,7 +1,4 @@
-#include "scanner.h"
 #include "parser.h"
-#include "error.h"
-#include "symtable.h"
 
 #define TOKEN_BUFFER_LEN 2
 
@@ -13,7 +10,11 @@
 Token output[1000] = {0};
 int output_index = 0;
 
+#ifndef PARSER_DEBUG
 bool parser_init(Parser *parser)
+#else
+bool parser_init(Parser *parser, Token *input + tokens)
+#endif
 {
     parser->global_table = symtable_new(100);
     parser->local_table = symtable_new(100);
@@ -25,7 +26,12 @@ bool parser_init(Parser *parser)
         return false;
     }
 
+#ifndef PARSER_DEBUG
     parser->gen = generator_new();
+#else
+    parser->input_tokens = malloc(sizeof(Token) * 1000);
+    parser->input_index = 0;
+#endif
 
     if (parser->gen == NULL)
     {
@@ -92,10 +98,16 @@ void advance(Parser *parser)
     }
     else
     {
+#ifndef PARSER_DEBUG
         get_next_token(parser->token_buffer);
+#else
+        parser->token_buffer = parser->input_tokens[parser->input_index++];
+#endif
     }
 
+#ifdef PARSER_DEBUG
     log_token();
+#endif
 }
 
 // Returns true if current token is of the expected type

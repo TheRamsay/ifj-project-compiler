@@ -1,11 +1,17 @@
 #ifndef __PARSER_H__
 #define __PARSER_H__
 
-#include "scanner.h"
-#include "generator.h"
+#include "error.h"
 #include "symtable.h"
 #include <stdbool.h>
+
 #include <stdlib.h>
+
+// Only include scanner and generator if not in debug mode, otherwise mock them
+#ifndef PARSER_DEBUG
+#include "scanner.h"
+#include "generator.h"
+#endif
 
 typedef struct
 {
@@ -13,10 +19,19 @@ typedef struct
     Symtable *local_table;
     Token *token_buffer;
     bool buffer_active;
+#ifndef PARSER_DEBUG
     gen_t *gen;
+#else
+    Token *input_tokens;
+    int input_index;
+#endif
 } Parser;
 
+#ifndef PARSER_DEBUG
 bool parser_init(Parser *parser);
+#else
+bool parser_init(Parser *parser, Token *input_tokens);
+#endif
 
 // Check if current token is of the expected type and advance if it is
 bool match(Parser *parser, TokenType token_type);

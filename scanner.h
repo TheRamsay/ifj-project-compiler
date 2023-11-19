@@ -22,7 +22,7 @@ typedef enum
   KW_DOUBLE,
   KW_STRING,
   KW_FUNC,
-} Keyword;
+} KeywordType;
 
 typedef enum
 {
@@ -89,7 +89,7 @@ typedef enum
 typedef struct
 {
   TokenType type;
-  Keyword keyword;
+  KeywordType keyword;
   char *val;
   int length;
 } Token;
