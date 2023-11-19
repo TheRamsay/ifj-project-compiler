@@ -10,65 +10,64 @@ extern "C"{
 
 
 //Basic tests
-TEST(ExpParserTest, BasicTests) {
+TEST(ExpParserTest, BasicTests) { 
     //Should return true
-    TokenType expresion[] = {TOKEN_DECIMAL_LITERAL,TOKEN_PLUS , TOKEN_DECIMAL_LITERAL, TOKEN_STACK_BOTTOM};
-    ASSERT_TRUE(parse_expresion(expresion));
+    TokenType expresion[] = {TOKEN_INTEGER_LITERAL, TOKEN_STACK_BOTTOM};
+    ASSERT_TRUE(parse_expression(expresion));
 
+    TokenType expresion2[] = {TOKEN_INTEGER_LITERAL, TOKEN_PLUS , TOKEN_INTEGER_LITERAL, TOKEN_STACK_BOTTOM};
+    ASSERT_TRUE(parse_expression(expresion2));
+
+    TokenType expresion3[] = {TOKEN_INTEGER_LITERAL,TOKEN_PLUS , TOKEN_STACK_BOTTOM};
+    ASSERT_FALSE(parse_expression(expresion3));
+
+     TokenType expresion4[] = { TOKEN_STACK_BOTTOM};
+    ASSERT_FALSE(parse_expression(expresion4));
 }
 
-// //Add tests
-// TEST(ExpParserTest, AddTests) {
-//     //Should return true
-//     ASSERT_TRUE(ParseExpression("i+i$"));
 
-//     //Should return false
-//     ASSERT_FALSE(ParseExpression("i+$"));
-// }
+//Minus tests
+TEST(ExpParserTest, MinusTests) {
+    TokenType expresion1[] = {TOKEN_INTEGER_LITERAL, TOKEN_MINUS , TOKEN_INTEGER_LITERAL, TOKEN_STACK_BOTTOM};
+    ASSERT_TRUE(parse_expression(expresion1));
 
-// //Minus tests
-// TEST(ExpParserTest, MinusTests) {
-//     //Should return true
-//     ASSERT_TRUE(ParseExpression("i-i$"));
+    TokenType expresion2[] = {TOKEN_INTEGER_LITERAL,TOKEN_MINUS , TOKEN_STACK_BOTTOM};
+    ASSERT_FALSE(parse_expression(expresion2));
+}
 
-//     //Should return false
-//     ASSERT_FALSE(ParseExpression("i-$"));
-// }
+//Equals tests
+TEST(ExpParserTest, EqualsTests) {
+    TokenType expresion1[] = {TOKEN_INTEGER_LITERAL, TOKEN_EQ , TOKEN_INTEGER_LITERAL, TOKEN_STACK_BOTTOM};
+    ASSERT_TRUE(parse_expression(expresion1));
 
-// //Equals tests
-// TEST(ExpParserTest, EqualsTests) {
-//     //Should return true
-//     ASSERT_TRUE(ParseExpression("i=i$"));
-//     ASSERT_TRUE(ParseExpression("i+i=i$"));
+    TokenType expresion2[] = {TOKEN_INTEGER_LITERAL,TOKEN_EQ , TOKEN_STACK_BOTTOM};
+    ASSERT_FALSE(parse_expression(expresion2));
+}
 
-//     //Should return false
-//     ASSERT_FALSE(ParseExpression("i=$"));
-// }
+//Lower tests
+TEST(ExpParserTest, LowerTests) {
+    TokenType expresion1[] = {TOKEN_INTEGER_LITERAL, TOKEN_LE , TOKEN_INTEGER_LITERAL, TOKEN_STACK_BOTTOM};
+    ASSERT_TRUE(parse_expression(expresion1));
 
-// //Lower tests
-// TEST(ExpParserTest, LowerTests) {
-//     //Should return true
-//     ASSERT_TRUE(ParseExpression("i<i$"));
+    TokenType expresion2[] = {TOKEN_INTEGER_LITERAL,TOKEN_LE , TOKEN_STACK_BOTTOM};
+    ASSERT_FALSE(parse_expression(expresion2));
+}
 
-//     //Should return false
-//     ASSERT_FALSE(ParseExpression("i<$"));
-// }
-
-// //Lower tests
+//Lower tests
 // TEST(ExpParserTest, LowerOrEqualsTests) {
-//     //Should return true
-//     ASSERT_TRUE(ParseExpression("i=<i$"));
+//     TokenType expresion1[] = {TOKEN_INTEGER_LITERAL, TOKEN_GE , TOKEN_INTEGER_LITERAL, TOKEN_STACK_BOTTOM};
+//     ASSERT_TRUE(parse_expression(expresion1));
 
-//     //Should return false
-//     ASSERT_FALSE(ParseExpression("i=<$"));
+//     TokenType expresion2[] = {TOKEN_INTEGER_LITERAL,TOKEN_GE , TOKEN_STACK_BOTTOM};
+//     ASSERT_FALSE(parse_expression(expresion2));
 // }
 
 
-// //Higher tests
-// TEST(ExpParserTest, HigherTests) {
-//     //Should return true
-//     ASSERT_TRUE(ParseExpression("i>i$"));
+//Higher tests
+TEST(ExpParserTest, HigherTests) {
+    TokenType expresion1[] = {TOKEN_INTEGER_LITERAL, TOKEN_GE , TOKEN_INTEGER_LITERAL, TOKEN_STACK_BOTTOM};
+    ASSERT_TRUE(parse_expression(expresion1));
 
-//     //Should return false
-//     ASSERT_FALSE(ParseExpression("i>$"));
-// }
+    TokenType expresion2[] = {TOKEN_INTEGER_LITERAL,TOKEN_GE , TOKEN_STACK_BOTTOM};
+    ASSERT_FALSE(parse_expression(expresion2));
+}
