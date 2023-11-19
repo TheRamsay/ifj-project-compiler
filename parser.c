@@ -7,8 +7,8 @@
 
 bool parser_init(Parser *parser)
 {
-    parser->global_table = symtable_init(100);
-    parser->local_table = symtable_init(100);
+    parser->global_table = symtable_new(100);
+    parser->local_table = symtable_new(100);
     parser->buffer_active = false;
     parser->token_buffer = calloc(TOKEN_BUFFER_LEN, sizeof(Token));
 
@@ -228,7 +228,7 @@ void func_params(Parser *parser, SymtableItem *item)
 void func_def(Parser *parser)
 {
     char *key = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
-    SymtableItem *item = symtable_insert(parser->global_table, key, SYMTABLE_FUNCTION, true);
+    SymtableItem *item = symtable_add_symbol(parser->global_table, key, SYMTABLE_FUNCTION, true);
 
     consume(parser, TOKEN_LPAREN, "Expected '('");
     func_params(parser, item);

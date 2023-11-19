@@ -92,7 +92,7 @@ struct SymtableItem
 	char *key;
 	/** The data of the item */
 	// void *data; // TODO: Change to whatever we're gonna need
-	SymtableData data;
+	SymtableData *data;
 	/** Pointer to the next item with the same hash */
 	SymtableItem *next;
 };
@@ -107,17 +107,18 @@ typedef struct
 	SymtableItem **items;
 } Symtable;
 
-Symtable *symtable_init(unsigned int capacity);
+Symtable *symtable_new(unsigned int capacity);
 
-bool symtable_search(symtable_t *table, const char *key);
+bool symtable_search(Symtable *table, const char *key);
 
-void symtable_delete(symtable_t *table, const char *key);
+void symtable_delete(Symtable *table, const char *key);
 
 SymtableItem *symtable_get(const Symtable *table, const char *key);
 
-void symtable_dispose(symtable_t *table);
+void symtable_dispose(Symtable *table);
 
-SymtableItem *symtable_insert(Symtable *table, char *key, SymtableValueType type, bool defined);
+SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType type, bool defined);
+SymtableItem *symtable_insert(Symtable *table, char *key, SymtableData *data);
 
 bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_identifier, SymtableIdentifierType identifier_type);
 
