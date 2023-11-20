@@ -49,7 +49,7 @@ void determine_token_type(Token *token) {
   } else if (strcmp(token->val, "while") == 0) {
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_WHILE;
-  } else if (strcmp(token->val, "Func") == 0) {
+  } else if (strcmp(token->val, "func") == 0) {
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_FUNC;
   } else if (strcmp(token->val, "Int") == 0) {
@@ -535,18 +535,6 @@ int get_next_token(Token *token) {
     fprintf(stderr, "Unknown token: %s\n", token->val);
     exit(1);
   }
-  printf("Token Type: %d, Token Value: %s, Token new line: %d\n", token->type, token->val, token->after_newline);
   return token->type;
 }
 
-int main() {
-  FILE *input_file = stdin;
-  Token token;
-  scanner_init(input_file);
-  while (get_next_token(&token) != TOKEN_EOF)
-    ;
-
-  scanner_destroy();
-
-  return 0;
-}
