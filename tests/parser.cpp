@@ -14,14 +14,14 @@ class ParserTest : public testing::Test
 protected:
     void SetUp() override
     {
-        init_sucess_ = parser_init(&parser_);
+        init_success_ = parser_init(&parser_);
     }
 
     // void TearDown() override {}
 
     Parser parser_;
     Token *input_tokens_;
-    bool init_sucess_;
+    bool init_success_;
 };
 
 void check_tokens(Token *input_tokens, Token *output_tokens, int length)
@@ -40,13 +40,13 @@ void check_tokens(Token *input_tokens, Token *output_tokens, int length)
 
 TEST_F(ParserTest, Init)
 {
-    if (!init_sucess_)
+    if (!init_success_)
     {
         return;
     }
 
     Token tokens[] = {{TOKEN_EOF, KW_UNKNOWN, "", 0}};
-    Token *outpout = parse(&parser_, tokens);
+    Token *output = parse(&parser_, tokens);
 
     EXPECT_EQ(parser_.input_tokens, tokens);
     EXPECT_EQ(parser_.input_index, 1);
@@ -57,10 +57,10 @@ TEST_F(ParserTest, Init)
 
     for (int i = 0; i < 1; i++)
     {
-        EXPECT_EQ(outpout[i].type, tokens[i].type);
-        EXPECT_EQ(outpout[i].keyword, tokens[i].keyword);
-        EXPECT_TRUE(strcmp(outpout[i].val, tokens[i].val) == 0);
-        EXPECT_EQ(outpout[i].length, tokens[i].length);
+        EXPECT_EQ(output[i].type, tokens[i].type);
+        EXPECT_EQ(output[i].keyword, tokens[i].keyword);
+        EXPECT_TRUE(strcmp(output[i].val, tokens[i].val) == 0);
+        EXPECT_EQ(output[i].length, tokens[i].length);
     }
 }
 
