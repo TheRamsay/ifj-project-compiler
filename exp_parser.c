@@ -7,20 +7,20 @@
 
 const int precedence_table[TABLE_SIZE][TABLE_SIZE] = {
     //+ -  *  /  <  <= >  => == != (  )  i  $  E
-    {R, R, L, L, R, R, R, R, R, R, L, R, L, R, E}, //+
-    {R, R, L, L, R, R, R, R, R, R, L, R, L, R, E}, //-
-    {R, R, R, R, R, R, R, R, R, R, L, R, L, R, E}, //*
+    {R, R, L, L, R, R, R, R, R, R, L, R, L, R, E}, // +
+    {R, R, L, L, R, R, R, R, R, R, L, R, L, R, E}, // -
+    {R, R, R, R, R, R, R, R, R, R, L, R, L, R, E}, // *
     {R, R, R, R, R, R, R, R, R, R, L, R, L, R, E}, // /
     {L, L, L, L, X, X, X, X, X, X, L, R, L, R, E}, // <
     {L, L, L, L, X, X, X, X, X, X, L, R, L, R, E}, // <=
     {L, L, L, L, X, X, X, X, X, X, L, R, L, R, E}, // >
-    {L, L, L, L, X, X, X, X, X, X, L, R, L, R, E}, // =>
+    {L, L, L, L, X, X, X, X, X, X, L, R, L, R, E}, // >=
     {L, L, L, L, X, X, X, X, X, X, L, R, L, R, E}, // ==
-    {L, L, L, L, X, X, X, X, X, X, L, R, L, R, E}, // =!
+    {L, L, L, L, X, X, X, X, X, X, L, R, L, R, E}, // !=
     {L, L, L, L, L, L, L, L, L, L, L, E, L, R, E}, // (
     {R, R, R, R, R, R, R, R, R, R, X, R, L, R, X}, // )
     {R, R, R, R, R, R, R, R, R, R, X, R, L, R, X}, // i
-    {L, L, L, L, L, L, L, L, L, L, L, X, L, X, L}, //$
+    {L, L, L, L, L, L, L, L, L, L, L, X, L, X, L}, // $
     {E, E, E, E, E, E, E, E, E, E, E, R, X, R, X}  // E
 };
 
