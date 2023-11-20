@@ -20,7 +20,7 @@ typedef enum
     INTERNAL_ERROR
 } ReturnCode;
 
-void exit_with_error(ReturnCode return_code);
+void exit_with_error(ReturnCode return_code, char *error_mesage_fmt, ...);
 void exit_custom(ReturnCode return_code, const char *fmt, ...);
 
 #endif

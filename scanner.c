@@ -428,6 +428,6 @@ int get_next_token(Token *token) {
     fprintf(stderr, "Unknown token: %s\n", token->val);
     exit(1);
   }
-  printf("Token Type: %d, Token Value: %s\n", token->type, token->val);
+  // printf("Token Type: %d, Token Value: %s\n", token->type, token->val);
   return token->type;
 }

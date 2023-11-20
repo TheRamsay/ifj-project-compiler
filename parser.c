@@ -121,7 +121,11 @@ Token consume(Parser *parser, TokenType token_type, char *error_msg)
     if (!check_type(parser, token_type))
     {
 
-        exit_custom(SYNTAX_ERR, "current_token %d (value: %s) | next token %d (value: %s) | error message: %s\n", current_token(parser)->keyword, current_token(parser)->val, peek(parser)->type, peek(parser)->val, error_msg);
+#ifdef PARSER_TEST
+        exit_with_error(SYNTAX_ERR, "current_token %d (value: %s) | next token %d (value: %s) | %s\n", current_token(parser)->keyword, current_token(parser)->val, peek(parser)->type, peek(parser)->val, error_msg);
+#else
+        exit_with_error(SYNTAX_ERR, "%s\n", error_msg);
+#endif
     }
 
     Token token = *current_token(parser);
@@ -402,15 +406,25 @@ void statement(Parser *parser)
     // statement -> <var_definition_kw> <identifier> <var_definition_value>
     else if (match_keyword(parser, KW_LET) || match_keyword(parser, KW_VAR))
     {
-        consume(parser, TOKEN_IDENTIFIER, "Expected identifier");
+        Token data_type = (Token){.type = TOKEN_UNKNOWN, .keyword = KW_UNKNOWN};
+
+        char *variable_id = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
+        SymtableItem *item = symtable_add_symbol(parser->local_table, variable_id, SYMTABLE_VARIABLE, true);
+
         // Variable type definition
         if (match(parser, TOKEN_COLON))
         {
             // TODO: Check if type is valid
             if (!is_datatype(parser))
             {
-                exit_custom(SYNTAX_ERR, "Expected datatype after ':'\n");
+                exit_with_error(SYNTAX_ERR, "Expected datatype after ':'");
             }
+            else
+            {
+                // Save data type token for later
+                data_type = *current_token(parser);
+            }
+
             advance(parser);
         }
 
@@ -418,6 +432,18 @@ void statement(Parser *parser)
         if (match(parser, TOKEN_ASSIGN))
         {
             expression(parser);
+        }
+        else
+        {
+            // Type was not defined
+            if (data_type.type == TOKEN_UNKNOWN)
+            {
+                exit_with_error(SEMANTIC_ERR_INFER, "Cannot infer type of variable '%s'", variable_id);
+            }
+            else
+            {
+                item->data->variable.identifier_type = keyword_to_datatype(parser, data_type.keyword);
+            }
         }
     }
     else if (check_type(parser, TOKEN_IDENTIFIER))
@@ -429,7 +455,7 @@ void statement(Parser *parser)
             consume(parser, TOKEN_ASSIGN, "Expected '='");
             expression(parser);
         }
-        // statemenet -> expression that starts with identifier
+        // statement -> expression that starts with identifier
         else
         {
             expression(parser);
@@ -500,7 +526,6 @@ void expression(Parser *parser)
 void log_token_parsed(Parser *parser)
 {
     Token *token = current_token(parser);
-    // printf("Parsed token: %d %s\n", token->type, token->val);
     parser->output_tokens[parser->output_index++] = *token;
 }
 #endif

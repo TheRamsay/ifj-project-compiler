@@ -102,7 +102,7 @@ typedef struct
 	/** Current table capacity. */
 	unsigned int capacity;
 	/** Error code. */
-	int errorCode;
+	int error_code;
 	/** Pointer to the first item of the table. */
 	SymtableItem **items;
 } Symtable;

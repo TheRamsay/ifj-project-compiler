@@ -55,7 +55,7 @@ TEST(SymtableTest, New)
 //     ]
 //   */
 
-//   ASSERT_EQ(symtable->errorCode, 0);
+//   ASSERT_EQ(symtable->error_code, 0);
 
 //   ASSERT_TRUE(symtable_search(symtable, key1));
 //   ASSERT_TRUE(symtable_search(symtable, key2));

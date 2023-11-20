@@ -53,15 +53,15 @@ Symtable *symtable_new(unsigned int capacity)
 
 	if (table == NULL)
 	{
-		return NULL;
+		exit_with_error(INTERNAL_ERROR, "Allocating memory for symtable failed");
 	}
 
 	table->items = calloc(capacity, sizeof(SymtableItem *));
 
 	if (table->items == NULL)
 	{
-		table->errorCode = SYMTABLE_INIT_ERROR;
-		return NULL;
+		table->error_code = SYMTABLE_INIT_ERROR;
+		exit_with_error(INTERNAL_ERROR, "Allocating memory for symtable failed");
 	}
 
 	for (unsigned int i = 0; i < capacity; i++)
@@ -70,7 +70,7 @@ Symtable *symtable_new(unsigned int capacity)
 	}
 
 	table->capacity = capacity;
-	table->errorCode = 0;
+	table->error_code = 0;
 
 	return table;
 }
@@ -87,7 +87,7 @@ SymtableItem *symtable_get(const Symtable *table, const char *key)
 {
 	if (table == NULL)
 	{
-		return NULL;
+		exit_with_error(INTERNAL_ERROR, "Symtable is NULL");
 	}
 
 	unsigned int hash = hash_function(key, table->capacity);
@@ -124,8 +124,8 @@ void symtable_delete(Symtable *table, const char *key)
 {
 	if (table == NULL)
 	{
-		table->errorCode = SYMTABLE_SEARCH_ERROR;
-		return;
+		table->error_code = SYMTABLE_SEARCH_ERROR;
+		exit_with_error(INTERNAL_ERROR, "Symtable is NULL");
 	}
 
 	unsigned int hash = hash_function(key, table->capacity);
@@ -157,7 +157,7 @@ void symtable_delete(Symtable *table, const char *key)
 	}
 	else
 	{
-		table->errorCode = SYMTABLE_SEARCH_ERROR;
+		table->error_code = SYMTABLE_SEARCH_ERROR;
 	}
 }
 
@@ -173,7 +173,7 @@ bool symtable_search(Symtable *table, const char *key)
 {
 	if (table == NULL)
 	{
-		table->errorCode = SYMTABLE_SEARCH_ERROR;
+		table->error_code = SYMTABLE_SEARCH_ERROR;
 		return false;
 	}
 
@@ -235,13 +235,12 @@ void symtable_dispose(Symtable *table)
 	free(table->items);
 	table->items = NULL;
 	table->capacity = 0;
-	table->errorCode = 0;
+	table->error_code = 0;
 }
 
 SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType type, bool defined)
 {
 	SymtableItem *item = symtable_get(table, key);
-
 	// Item already exists
 	if (item != NULL)
 	{
@@ -251,7 +250,7 @@ SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType 
 			if (item->data->function.defined)
 			{
 
-				exit_with_error(SEMANTIC_ERR_FUNC);
+				exit_with_error(SEMANTIC_ERR_FUNC, "Function %s already defined", key);
 			}
 			else
 			{
@@ -262,7 +261,7 @@ SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType 
 		else
 		{
 			// Variable is already defined -> error
-			exit_with_error(SEMANTIC_ERR_FUNC);
+			exit_with_error(SEMANTIC_ERR_FUNC, "Variable %s already defined", key);
 		}
 	}
 
@@ -272,17 +271,15 @@ SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType 
 
 	if (item == NULL)
 	{
-		printf("malloc failed\n");
-		return NULL;
+		exit_with_error(INTERNAL_ERROR, "Allocating memory for symtable failed");
 	}
 
 	item->data = calloc(1, sizeof(SymtableData));
 
 	if (item == NULL || item->data == NULL)
 	{
-		printf("malloc failed\n");
 		free(item);
-		return NULL;
+		exit_with_error(INTERNAL_ERROR, "Allocating memory for symtable failed");
 	}
 
 	item->key = malloc(sizeof(char) * (strlen(key) + 1));
@@ -291,8 +288,7 @@ SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType 
 	{
 		free(item->data);
 		free(item);
-		printf("malloc failed\n");
-		return NULL;
+		exit_with_error(INTERNAL_ERROR, "Allocating memory for symtable failed");
 	}
 
 	strcpy(item->key, key);
@@ -304,8 +300,7 @@ SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType 
 		free(item->data);
 		free(item->key);
 		free(item);
-		printf("malloc failed\n");
-		return NULL;
+		exit_with_error(INTERNAL_ERROR, "Allocating memory for symtable failed");
 	}
 
 	strcpy(item->data->identifier, key);
@@ -333,14 +328,14 @@ bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_ident
 	if (item == NULL)
 	{
 		// Its over Anakin, I have the high ground
-		exit_with_error(INTERNAL_ERROR);
+		exit_with_error(INTERNAL_ERROR, "Symtable item is NULL");
 	}
 
 	SymtableParam *param = malloc(sizeof(SymtableParam));
 
 	if (param == NULL)
 	{
-		return false;
+		exit_with_error(INTERNAL_ERROR, "Allocating memory for symtable failed");
 	}
 
 	param->identifier_type = identifier_type;
@@ -357,7 +352,7 @@ bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_ident
 		if (param->out_name == NULL)
 		{
 			free(param);
-			return false;
+			exit_with_error(INTERNAL_ERROR, "Allocating memory for symtable failed");
 		}
 
 		strcpy(param->out_name, out_identifier);
@@ -375,7 +370,7 @@ bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_ident
 		{
 			free(param->out_name);
 			free(param);
-			return false;
+			exit_with_error(INTERNAL_ERROR, "Allocating memory for symtable failed");
 		}
 
 		strcpy(param->in_name, in_identifier);
@@ -394,7 +389,7 @@ bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_ident
 			// Check for duplicate names
 			if (strcmp(current->in_name, param->in_name) == 0 || strcmp(current->out_name, param->out_name) == 0)
 			{
-				exit_with_error(SEMANTIC_ERR_FUNC);
+				exit_with_error(SEMANTIC_ERR_FUNC, "Duplicate parameter name");
 			}
 
 			current = current->next;
@@ -413,7 +408,7 @@ bool symtable_add_return(SymtableItem *item, SymtableIdentifierType type)
 	if (item == NULL)
 	{
 		// Its over Anakin, I have the high ground
-		exit_with_error(INTERNAL_ERROR);
+		exit_with_error(INTERNAL_ERROR, "Symtable item is NULL");
 	}
 
 	if (item->data->function._return == NULL)
@@ -423,7 +418,7 @@ bool symtable_add_return(SymtableItem *item, SymtableIdentifierType type)
 
 		if (return_type == NULL)
 		{
-			return false;
+			exit_with_error(INTERNAL_ERROR, "Allocating memory for symtable failed");
 		}
 
 		return_type->data_type = type.data_type;
@@ -461,16 +456,16 @@ SymtableItem *symtable_insert(Symtable *table, char *key, SymtableData *data)
 {
 	if (table == NULL)
 	{
-		table->errorCode = SYMTABLE_INSERT_ERROR;
-		return NULL;
+		table->error_code = SYMTABLE_INSERT_ERROR;
+		exit_with_error(INTERNAL_ERROR, "Allocating memory for symtable failed");
 	}
 
 	SymtableItem *item = malloc(sizeof(SymtableItem));
 
 	if (item == NULL)
 	{
-		table->errorCode = SYMTABLE_INSERT_ERROR;
-		return NULL;
+		table->error_code = SYMTABLE_INSERT_ERROR;
+		exit_with_error(INTERNAL_ERROR, "Allocating memory for symtable failed");
 	}
 
 	item->key = key;

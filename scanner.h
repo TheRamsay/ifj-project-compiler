@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-typedef enum
+typedef enum keyword_t
 {
   NONE,
   KW_IF,
@@ -24,7 +24,7 @@ typedef enum
   KW_FUNC,
 } KeywordType;
 
-typedef enum
+typedef enum token_t 
 {
   TOKEN_KEYWORD,
   TOKEN_STRING_LITERAL,

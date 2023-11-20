@@ -13,9 +13,22 @@ const char *error_msgs[] = {
     [SEMANTIC_ERR] = "Semantic error",
     [INTERNAL_ERROR] = "Internal error: memory allocation error"};
 
-void exit_with_error(ReturnCode return_code)
+void exit_with_error(ReturnCode return_code, char *error_mesage_fmt, ...)
 {
-    fprintf(stderr, "%s\n", error_msgs[return_code]);
+    if (error_mesage_fmt == NULL)
+    {
+        fprintf(stderr, "%s\n", error_msgs[return_code]);
+    }
+    else
+    {
+        va_list args;
+        va_start(args, error_mesage_fmt);
+        fprintf(stderr, "%s (Error message: ", error_msgs[return_code]);
+        vfprintf(stderr, error_mesage_fmt, args);
+        fprintf(stderr, ")\n");
+        va_end(args);
+    }
+
     exit(return_code);
 }
 
