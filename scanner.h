@@ -32,6 +32,7 @@ typedef enum token_t
   TOKEN_COLON,
   TOKEN_ARROW,
   TOKEN_IDENTIFIER,
+  TOKEN_IDENTIFIER_NOT_NULL,
   TOKEN_LPAREN,
   TOKEN_RPAREN,
   TOKEN_LBRACE,
@@ -92,8 +93,9 @@ typedef struct
   TokenType type;
   KeywordType keyword;
   char *val;
+  bool is_nullable;
   int length;
-  bool on_new_line;
+  bool after_newline;
 } Token;
 
 void scanner_init(FILE *file);

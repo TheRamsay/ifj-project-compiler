@@ -1,1 +1,1 @@
-if else while Int 
+let kokot: Int? = 10

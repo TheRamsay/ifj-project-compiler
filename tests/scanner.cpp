@@ -10,11 +10,9 @@ class ScannerTest : public testing::Test
 protected:
   FILE *input_file;
   Token token;
-  void SetUp() override
-  {
-    input_file = fopen("test.swift", "r");
-    if (input_file == NULL)
-    {
+  void SetUp() override {
+    input_file = fopen("../tests/test.swift", "r");
+    if (input_file == NULL) {
       printf("Error opening file\n");
       exit(1);
     }
