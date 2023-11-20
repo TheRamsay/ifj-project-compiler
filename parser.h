@@ -4,12 +4,11 @@
 #include "error.h"
 #include "symtable.h"
 #include <stdbool.h>
-
+#include "scanner.h"
 #include <stdlib.h>
 
 // Only include scanner and generator if not in debug mode, otherwise mock them
-#ifndef PARSER_DEBUG
-#include "scanner.h"
+#ifndef PARSER_TEST
 #include "generator.h"
 #endif
 
@@ -19,19 +18,17 @@ typedef struct
     Symtable *local_table;
     Token *token_buffer;
     bool buffer_active;
-#ifndef PARSER_DEBUG
+#ifndef PARSER_TEST
     gen_t *gen;
 #else
     Token *input_tokens;
     int input_index;
+    Token *output_tokens;
+    int output_index;
 #endif
 } Parser;
 
-#ifndef PARSER_DEBUG
 bool parser_init(Parser *parser);
-#else
-bool parser_init(Parser *parser, Token *input_tokens);
-#endif
 
 // Check if current token is of the expected type and advance if it is
 bool match(Parser *parser, TokenType token_type);
@@ -68,7 +65,12 @@ void body(Parser *parser);
 
 void program(Parser *parser);
 
-Token *parse(Parser *parser);
+#ifndef PARSER_TEST
+void parse(Parser *parser);
+#else
+Token *parse(Parser *parser, Token *input_tokens);
+#endif
+
 void expression(Parser *parser);
 
 void return_t(Parser *parser);

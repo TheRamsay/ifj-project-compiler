@@ -2,6 +2,7 @@
 #include "parser.h"
 #include "stdio.h"
 
+#ifndef PARSER_TEST
 int main()
 {
   // FILE *input_file = stdin;
@@ -22,3 +23,9 @@ int main()
 
   return 0;
 }
+#else
+int main()
+{
+  return 0;
+}
+#endif

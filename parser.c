@@ -7,14 +7,7 @@
         log_token_parsed(parser); \
     }
 
-Token output[1000] = {0};
-int output_index = 0;
-
-#ifndef PARSER_DEBUG
 bool parser_init(Parser *parser)
-#else
-bool parser_init(Parser *parser, Token *input + tokens)
-#endif
 {
     parser->global_table = symtable_new(100);
     parser->local_table = symtable_new(100);
@@ -26,17 +19,26 @@ bool parser_init(Parser *parser, Token *input + tokens)
         return false;
     }
 
-#ifndef PARSER_DEBUG
+#ifndef PARSER_TEST
     parser->gen = generator_new();
-#else
-    parser->input_tokens = malloc(sizeof(Token) * 1000);
-    parser->input_index = 0;
-#endif
 
     if (parser->gen == NULL)
     {
         return false;
     }
+
+#else
+    parser->input_tokens = NULL;
+    parser->input_index = 0;
+    parser->output_tokens = calloc(1000, sizeof(Token));
+
+    if (parser->output_tokens == NULL)
+    {
+        return false;
+    }
+
+    parser->output_index = 0;
+#endif
 
     return true;
 }
@@ -98,16 +100,13 @@ void advance(Parser *parser)
     }
     else
     {
-#ifndef PARSER_DEBUG
+#ifndef PARSER_TEST
         get_next_token(parser->token_buffer);
 #else
-        parser->token_buffer = parser->input_tokens[parser->input_index++];
+        *(parser->token_buffer) = parser->input_tokens[parser->input_index++];
+        log_token();
 #endif
     }
-
-#ifdef PARSER_DEBUG
-    log_token();
-#endif
 }
 
 // Returns true if current token is of the expected type
@@ -469,19 +468,26 @@ void program(Parser *parser)
     program(parser);
 }
 
-Token *parse(Parser *parser)
+#ifndef PARSER_TEST
+void parse(Parser *parser)
+#else
+Token *parse(Parser *parser, Token *input_tokens)
+#endif
 {
+
+#ifdef PARSER_TEST
+    parser->input_tokens = input_tokens;
+#endif
+
     // Get first token
     advance(parser);
     // prog rule
     program(parser);
 
-    // for (int i = 0; i < output_index; i++)
-    // {
-    //     printf("%s | %d\n", output[i].val, output[i].type);
-    // }
-
-    return output;
+#ifdef PARSER_TEST
+    parser->output_tokens[parser->output_index] = (Token){.type = TOKEN_EOF};
+    return parser->output_tokens;
+#endif
 }
 
 void expression(Parser *parser)
@@ -490,9 +496,11 @@ void expression(Parser *parser)
     return;
 }
 
+#ifdef PARSER_TEST
 void log_token_parsed(Parser *parser)
 {
     Token *token = current_token(parser);
-    // printf("Parsed token: %s\n", token->val);
-    output[output_index++] = *token;
+    // printf("Parsed token: %d %s\n", token->type, token->val);
+    parser->output_tokens[parser->output_index++] = *token;
 }
+#endif

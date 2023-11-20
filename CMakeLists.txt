@@ -79,6 +79,7 @@ add_test(str Test_str)
 # ----------------------------------------------------------------
 
 # ------- Parser -------
+add_definitions(-DPARSER_TEST)
 add_executable(Test_parser
         parser.h parser.c
         symtable.h symtable.c
@@ -96,6 +97,7 @@ add_test(parser Test_parser)
 add_executable(Test_generator
         generator.h generator.c
         str.h str.c
+        error.h error.c
         stack.h stack.c
         symtable.h symtable.c
         tests/generator.cpp)
