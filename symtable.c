@@ -320,6 +320,7 @@ SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType 
 		item->data->variable.identifier_type = (SymtableIdentifierType){.data_type = UNKNOWN_TYPE, .nullable = false};
 	}
 
+	table->items[index] = item;
 	return item;
 }
 
