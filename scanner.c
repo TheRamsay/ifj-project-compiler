@@ -36,7 +36,7 @@ void determine_token_type(Token *token)
   int character; // The current character being read
   token->is_nullable = false;
   token->type = TOKEN_UNKNOWN;
-  token->on_new_line = true;
+  token->after_newline = true;
   token->keyword = KW_UNKNOWN;
   if (strcmp(token->val, "if") == 0)
   {

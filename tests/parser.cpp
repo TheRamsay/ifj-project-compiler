@@ -42,7 +42,7 @@ void check_tokens(std::vector<Token> input_tokens, Token *output_tokens)
 
 // TEST_F(ParserTest, Init)
 // {
-//     if (!init_success_)
+//     if (!init_sucess_)
 //     {
 //         return;
 //     }
@@ -61,9 +61,9 @@ void check_tokens(std::vector<Token> input_tokens, Token *output_tokens)
 //     for (int i = 0; i < tokens.size(); i++)
 //     {
 //         EXPECT_EQ(output[i].type, tokens[i].type);
-//         EXPECT_EQ(output[i].keyword, tokens[i].keyword);
-//         EXPECT_TRUE(strcmp(output[i].val, tokens[i].val) == 0);
-//         EXPECT_EQ(output[i].length, tokens[i].length);
+//         EXPECT_EQ(outpout[i].keyword, tokens[i].keyword);
+//         EXPECT_TRUE(strcmp(outpout[i].val, tokens[i].val) == 0);
+//         EXPECT_EQ(outpout[i].length, tokens[i].length);
 //     }
 // }
 
@@ -355,15 +355,15 @@ void check_tokens(std::vector<Token> input_tokens, Token *output_tokens)
 TEST_F(ParserTest, TwoStatementsTwoLines)
 {
     std::vector<Token> tokens{
-        {TOKEN_KEYWORD, KW_LET, "let", 3, 1},
-        {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
-        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-        {TOKEN_KEYWORD, KW_LET, "var", 3, 1},
-        {TOKEN_IDENTIFIER, KW_UNKNOWN, "pepa", 4},
-        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-        {TOKEN_EOF, KW_UNKNOWN, "", 0, 0},
+        {TOKEN_KEYWORD, KW_LET, "let", 0, 3, 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 0, 4},
+        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 0, 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 0, 1},
+        {TOKEN_KEYWORD, KW_LET, "var", 0, 3, 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "pepa", 0, 4},
+        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 0, 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 0, 1},
+        {TOKEN_EOF, KW_UNKNOWN, "", 0, 0, 0},
     };
 
     check_tokens(tokens, parse(&parser_, tokens.data()));
@@ -372,15 +372,15 @@ TEST_F(ParserTest, TwoStatementsTwoLines)
 TEST_F(ParserTest, TwoStatementsOnSameLine)
 {
     std::vector<Token> tokens{
-        {TOKEN_KEYWORD, KW_LET, "let", 3, 1},
-        {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
-        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-        {TOKEN_KEYWORD, KW_LET, "var", 3, 0},
-        {TOKEN_IDENTIFIER, KW_UNKNOWN, "pepa", 4},
-        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-        {TOKEN_EOF, KW_UNKNOWN, "", 0, 0},
+        {TOKEN_KEYWORD, KW_LET, "let", 0, 3, 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 0, 4},
+        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 0, 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 0, 1},
+        {TOKEN_KEYWORD, KW_LET, "var", 0, 3, 0},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "pepa", 0, 4},
+        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 0, 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 0, 1},
+        {TOKEN_EOF, KW_UNKNOWN, "", 0, 0, 0},
     };
 
     EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR), "Syntax error.*");

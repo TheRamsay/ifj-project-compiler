@@ -46,7 +46,7 @@ bool parser_init(Parser *parser)
 // Checks if current statement stars on new line
 void is_valid_statement(Parser *parser)
 {
-    if (current_token(parser)->on_new_line)
+    if (current_token(parser)->after_newline)
     {
         return;
     }
@@ -77,7 +77,7 @@ bool match(Parser *parser, TokenType token_type, bool check_new_line)
 {
     if (check_type(parser, token_type))
     {
-        if (check_new_line && !current_token(parser)->on_new_line)
+        if (check_new_line && !current_token(parser)->after_newline)
         {
             exit_with_error(SYNTAX_ERR, "Multiple statements must be on separate lines");
         }
@@ -93,7 +93,7 @@ bool match_keyword(Parser *parser, KeywordType keyword, bool check_new_line)
 {
     if (check_keyword(parser, keyword))
     {
-        if (check_new_line && !current_token(parser)->on_new_line)
+        if (check_new_line && !current_token(parser)->after_newline)
         {
             exit_with_error(SYNTAX_ERR, "Multiple statements must be on separate lines");
         }
