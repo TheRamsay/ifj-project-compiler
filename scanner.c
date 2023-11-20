@@ -67,9 +67,7 @@ void determine_token_type(Token *token)
   {
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_WHILE;
-  }
-  else if (strcmp(token->val, "func") == 0)
-  {
+  } else if (strcmp(token->val, "func") == 0) {
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_FUNC;
   }
@@ -575,29 +573,35 @@ int get_next_token(Token *token)
         else if (k == 'u')
         {
           j = fgetc(source_file);
-          if (j != '{')
-          {
-            fprintf(stderr, "Invalid unicode escape sequence\n");
+          if (j != '{') {
             exit(1);
           }
           char *unicode = (char *)malloc(8 * sizeof(char));
-          if (unicode == NULL)
-          {
-            fprintf(stderr, "Error allocating memory for unicode escape sequence\n");
+          if (unicode == NULL) {
             exit(99);
           }
           for (int i = 0; i < 8; i++)
           {
             unicode[i] = fgetc(source_file);
-            if (unicode[i] == '}')
-            {
+            if (!isxdigit(unicode[i])) {
+              exit(1);
+            }
+
+            if (unicode[i] == '}') {
               unicode[i] = '\0';
+              ungetc('}', source_file);
               break;
             }
           }
-        }
-        else
-        {
+          k = strtol(unicode, NULL, 16);
+          char_to_token(token, k);
+
+          k = fgetc(source_file);
+          if (k != '}') {
+            exit(1);
+          }
+
+        } else {
           exit(1);
         }
       }
@@ -714,6 +718,5 @@ int get_next_token(Token *token)
     fprintf(stderr, "Unknown token: %s\n", token->val);
     exit(1);
   }
-  printf("Token Type: %d, Token Value: %s, Token new line: %d\n", token->type, token->val, token->after_newline);
   return token->type;
 }
