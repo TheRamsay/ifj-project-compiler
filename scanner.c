@@ -27,6 +27,7 @@ void token_destroy(Token *token) {
 
 void determine_token_type(Token *token) {
   int character; // The current character being read
+  token->is_nullable = false;
   token->type = TOKEN_UNKNOWN;
   token->keyword = KW_UNKNOWN;
   if (strcmp(token->val, "if") == 0) {
@@ -35,6 +36,13 @@ void determine_token_type(Token *token) {
   } else if (strcmp(token->val, "Double") == 0) {
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_DOUBLE;
+    char c = fgetc(source_file);
+    if (c == '?') {
+      token->is_nullable = true;
+      token->val[strlen(token->val)] = c;
+    } else {
+      ungetc(c, source_file);
+    }
   } else if (strcmp(token->val, "else") == 0) {
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_ELSE;
@@ -47,6 +55,13 @@ void determine_token_type(Token *token) {
   } else if (strcmp(token->val, "Int") == 0) {
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_INT;
+    char c = fgetc(source_file);
+    if (c == '?') {
+      token->is_nullable = true;
+      token->val[strlen(token->val)] = c;
+    } else {
+      ungetc(c, source_file);
+    }
   } else if (strcmp(token->val, "nil") == 0) {
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_NIL;
@@ -56,9 +71,23 @@ void determine_token_type(Token *token) {
   } else if (strcmp(token->val, "float") == 0) {
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_FLOAT;
+    char c = fgetc(source_file);
+    if (c == '?') {
+      token->is_nullable = true;
+      token->val[strlen(token->val)] = c;
+    } else {
+      ungetc(c, source_file);
+    }
   } else if (strcmp(token->val, "String") == 0) {
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_STRING;
+    char c = fgetc(source_file);
+    if (c == '?') {
+      token->is_nullable = true;
+      token->val[strlen(token->val)] = c;
+    } else {
+      ungetc(c, source_file);
+    }
   } else if (strcmp(token->val, "return") == 0) {
     token->keyword = KW_RETURN;
     token->type = TOKEN_KEYWORD;
@@ -321,11 +350,22 @@ int get_next_token(Token *token) {
   token->val = NULL;
   char c;
   bool inString = false;
+  bool newline = false;
 
   while (true) {
     c = fgetc(source_file); // Get the next character from the source file
     if (c == EOF) {
       break;
+    }
+    if (newline) {
+      token->after_newline = true;
+      newline = false;
+    } else {
+      token->after_newline = false;
+    }
+    if (c == '\n') {
+      newline = true;
+      continue;
     }
 
     if (isdigit(c)) {                           // Integer or decimal literal
@@ -358,6 +398,7 @@ int get_next_token(Token *token) {
       }
       break;
     }
+
     if (inString) {   // String literal
       if (c == '"') { // End of string literal
         inString = false;
@@ -384,14 +425,15 @@ int get_next_token(Token *token) {
 
       ungetc(c, source_file);
       determine_token_type(token);
+
       if (token->type == TOKEN_UNKNOWN) {
         token->type = TOKEN_IDENTIFIER;
       }
       break;
-    } else if (c == '\n' || c == '\t' || c == ' ' || c == '\r') { // Whitespace
-      continue;                                                   // Skip the whitespace
-    } else if (c == '/') {                                        // Comment
-      c = fgetc(source_file);                                     // Get the next character
+    } else if (c == '\t' || c == ' ' || c == '\r') { // Whitespace
+      continue;                                      // Skip the whitespace
+    } else if (c == '/') {                           // Comment
+      c = fgetc(source_file);                        // Get the next character
       if (c == '/') {
         c = fgetc(source_file);
         while (c != '\n' && c != EOF) {
@@ -435,6 +477,18 @@ int get_next_token(Token *token) {
     fprintf(stderr, "Unknown token: %s\n", token->val);
     exit(1);
   }
-  printf("Token Type: %d, Token Value: %s\n", token->type, token->val);
+  printf("Token Type: %d, Token Value: %s, Token new line: %d\n", token->type, token->val, token->after_newline);
   return token->type;
+}
+
+int main() {
+  FILE *input_file = stdin;
+  Token token;
+  scanner_init(input_file);
+  while (get_next_token(&token) != TOKEN_EOF)
+    ;
+
+  scanner_destroy();
+
+  return 0;
 }
