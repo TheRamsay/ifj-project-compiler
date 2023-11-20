@@ -28,6 +28,7 @@ void token_destroy(Token *token) {
 void determine_token_type(Token *token) {
   int character; // The current character being read
   token->type = TOKEN_UNKNOWN;
+  token->on_new_line = true;
   token->keyword = KW_UNKNOWN;
   if (strcmp(token->val, "if") == 0) {
     token->type = TOKEN_KEYWORD;
@@ -428,6 +429,6 @@ int get_next_token(Token *token) {
     fprintf(stderr, "Unknown token: %s\n", token->val);
     exit(1);
   }
-  // printf("Token Type: %d, Token Value: %s\n", token->type, token->val);
+  printf("Token Type: %d, Token Value: %s\n", token->type, token->val);
   return token->type;
 }

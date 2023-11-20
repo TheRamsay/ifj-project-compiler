@@ -30,8 +30,10 @@ typedef struct
 
 bool parser_init(Parser *parser);
 
+void is_valid_statement(Parser *parser);
+
 // Check if current token is of the expected type and advance if it is
-bool match(Parser *parser, TokenType token_type);
+bool match(Parser *parser, TokenType token_type, bool check_new_line);
 
 // Check if value of keyword is equal to the expected keyword
 bool check_keyword(Parser *parser, KeywordType keyword);

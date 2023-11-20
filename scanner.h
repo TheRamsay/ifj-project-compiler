@@ -2,6 +2,7 @@
 #define __SCANNER_H__
 
 #include <stdio.h>
+#include <stdbool.h>
 
 typedef enum keyword_t
 {
@@ -24,7 +25,7 @@ typedef enum keyword_t
   KW_FUNC,
 } KeywordType;
 
-typedef enum token_t 
+typedef enum token_t
 {
   TOKEN_KEYWORD,
   TOKEN_STRING_LITERAL,
@@ -92,6 +93,7 @@ typedef struct
   KeywordType keyword;
   char *val;
   int length;
+  bool on_new_line;
 } Token;
 
 void scanner_init(FILE *file);

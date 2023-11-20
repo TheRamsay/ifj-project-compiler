@@ -332,6 +332,11 @@ bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_ident
 		exit_with_error(INTERNAL_ERROR, "Symtable item is NULL");
 	}
 
+	if (strcmp(in_identifier, out_identifier) == 0)
+	{
+		exit_with_error(SEMANTIC_ERR_FUNC, "Parameter name cannot be the same as the function name");
+	}
+
 	SymtableParam *param = malloc(sizeof(SymtableParam));
 
 	if (param == NULL)

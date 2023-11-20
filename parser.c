@@ -43,6 +43,17 @@ bool parser_init(Parser *parser)
     return true;
 }
 
+// Checks if current statement stars on new line
+void is_valid_statement(Parser *parser)
+{
+    if (current_token(parser)->on_new_line)
+    {
+        return;
+    }
+
+    exit_with_error(SYNTAX_ERR, "Multiple statements must be on separate lines");
+}
+
 // Returns current token
 Token *current_token(Parser *parser)
 {
@@ -62,10 +73,15 @@ Token *peek(Parser *parser)
 }
 
 // Check if current token is of the expected type and advance if it is
-bool match(Parser *parser, TokenType token_type)
+bool match(Parser *parser, TokenType token_type, bool check_new_line)
 {
     if (check_type(parser, token_type))
     {
+        if (check_new_line && !current_token(parser)->on_new_line)
+        {
+            exit_with_error(SYNTAX_ERR, "Multiple statements must be on separate lines");
+        }
+
         advance(parser);
         return true;
     }
@@ -73,10 +89,15 @@ bool match(Parser *parser, TokenType token_type)
     return false;
 }
 
-bool match_keyword(Parser *parser, KeywordType keyword)
+bool match_keyword(Parser *parser, KeywordType keyword, bool check_new_line)
 {
     if (check_keyword(parser, keyword))
     {
+        if (check_new_line && !current_token(parser)->on_new_line)
+        {
+            exit_with_error(SYNTAX_ERR, "Multiple statements must be on separate lines");
+        }
+
         advance(parser);
         return true;
     }
@@ -122,9 +143,9 @@ Token consume(Parser *parser, TokenType token_type, char *error_msg)
     {
 
 #ifdef PARSER_TEST
-        exit_with_error(SYNTAX_ERR, "current_token %d (value: %s) | next token %d (value: %s) | %s\n", current_token(parser)->keyword, current_token(parser)->val, peek(parser)->type, peek(parser)->val, error_msg);
+        exit_with_error(SYNTAX_ERR, "current_token %d (value: %s) | next token %d (value: %s) | %s", current_token(parser)->keyword, current_token(parser)->val, peek(parser)->type, peek(parser)->val, error_msg);
 #else
-        exit_with_error(SYNTAX_ERR, "%s\n", error_msg);
+        exit_with_error(SYNTAX_ERR, "%s", error_msg);
 #endif
     }
 
@@ -163,7 +184,7 @@ SymtableIdentifierType keyword_to_datatype(Parser *parser, KeywordType keyword)
         break;
     }
 
-    bool nullable = match(parser, TOKEN_OPTIONAL_TYPE);
+    bool nullable = match(parser, TOKEN_OPTIONAL_TYPE, false);
 
     return (SymtableIdentifierType){.data_type = type, .nullable = nullable};
 }
@@ -184,15 +205,15 @@ void return_def(Parser *parser, SymtableItem *item)
         return;
     }
 
-    if (!match(parser, TOKEN_ARROW))
+    if (!match(parser, TOKEN_ARROW, false))
     {
-        exit_custom(SYNTAX_ERR, "missing '->' in function definition\n");
+        exit_with_error(SYNTAX_ERR, "missing '->' in function definition");
     }
 
     // Check if return type is valid datatype
     if (!is_datatype(parser))
     {
-        exit_custom(SYNTAX_ERR, "expected datatype after '->'\n");
+        exit_with_error(SYNTAX_ERR, "expected datatype after '->'");
     }
 
     KeywordType return_type = current_token(parser)->keyword;
@@ -204,7 +225,7 @@ void return_def(Parser *parser, SymtableItem *item)
 
 void func_params_n(Parser *parser, SymtableItem *item)
 {
-    if (!match(parser, TOKEN_COMMA))
+    if (!match(parser, TOKEN_COMMA, false))
     {
         return;
     }
@@ -217,7 +238,7 @@ void func_params_n(Parser *parser, SymtableItem *item)
 
     if (!is_datatype(parser))
     {
-        exit_custom(SYNTAX_ERR, "Expected datatype after ':'\n");
+        exit_with_error(SYNTAX_ERR, "Expected datatype after ':'");
     }
 
     KeywordType param_type = current_token(parser)->keyword;
@@ -246,7 +267,7 @@ void func_params(Parser *parser, SymtableItem *item)
     // Just consume type, idk what to do with it yet
     if (!is_datatype(parser))
     {
-        exit_custom(SYNTAX_ERR, "Expected datatype after ':'\n");
+        exit_with_error(SYNTAX_ERR, "Expected datatype after ':'");
     }
     KeywordType param_type = current_token(parser)->keyword;
     symtable_add_param(item, out_param_id, in_param_id, keyword_to_datatype(parser, param_type));
@@ -280,7 +301,7 @@ void call_params_n(Parser *parser)
     }
 
     consume(parser, TOKEN_COMMA, "Expected ','");
-    if (match(parser, TOKEN_IDENTIFIER))
+    if (match(parser, TOKEN_IDENTIFIER, false))
     {
         consume(parser, TOKEN_COLON, "Expected ':'");
     }
@@ -297,7 +318,7 @@ void call_params(Parser *parser)
         return;
     }
 
-    if (match(parser, TOKEN_IDENTIFIER))
+    if (match(parser, TOKEN_IDENTIFIER, false))
     {
         consume(parser, TOKEN_COLON, "Expected ':'");
     }
@@ -309,7 +330,7 @@ void call_params(Parser *parser)
     }
     else
     {
-        exit_custom(SYNTAX_ERR, "Expected term in function call parameter\n");
+        exit_with_error(SYNTAX_ERR, "Expected term in function call parameter");
     }
 
     call_params_n(parser);
@@ -348,7 +369,7 @@ void if_statement(Parser *parser)
 {
     // if_cond -> <expr> | VAR_DEFINITION_KW IDENTIFIER '=' <expr>
 
-    if (match_keyword(parser, KW_LET) || match_keyword(parser, KW_VAR))
+    if (match_keyword(parser, KW_LET, true) || match_keyword(parser, KW_VAR, true))
     {
         consume(parser, TOKEN_IDENTIFIER, "Expected identifier");
         consume(parser, TOKEN_ASSIGN, "Expected '='");
@@ -358,53 +379,53 @@ void if_statement(Parser *parser)
     consume(parser, TOKEN_LBRACE, "Expected '{'");
     body(parser);
 
-    if (!match(parser, TOKEN_RBRACE))
+    if (!match(parser, TOKEN_RBRACE, false))
     {
-        exit_custom(SYNTAX_ERR, "Expected '}'\n");
+        exit_with_error(SYNTAX_ERR, "Expected '}'");
     }
 
-    if (!match_keyword(parser, KW_ELSE))
+    if (!match_keyword(parser, KW_ELSE, false))
     {
-        exit_custom(SYNTAX_ERR, "Expected 'else'\n");
+        exit_with_error(SYNTAX_ERR, "Expected 'else'");
     }
 
     consume(parser, TOKEN_LBRACE, "Expected '{'");
     body(parser);
 
-    if (!match(parser, TOKEN_RBRACE))
+    if (!match(parser, TOKEN_RBRACE, false))
     {
-        exit_custom(SYNTAX_ERR, "Expected '}'\n");
+        exit_with_error(SYNTAX_ERR, "Expected '}'");
     }
 }
 
 void statement(Parser *parser)
 {
     // statement -> if <expression> { <statement_list> } else { <statement_list> } rule
-    if (match_keyword(parser, KW_IF))
+    if (match_keyword(parser, KW_IF, true))
     {
         if_statement(parser);
     }
     // statement -> while <expression> { <statement_list> } else { <statement_list> } rule
-    else if (match_keyword(parser, KW_WHILE))
+    else if (match_keyword(parser, KW_WHILE, true))
     {
         expression(parser);
         consume(parser, TOKEN_LBRACE, "Expected '{'");
         // TODO: zmrd
         body(parser);
 
-        if (!match(parser, TOKEN_RBRACE))
+        if (!match(parser, TOKEN_RBRACE, false))
         {
-            exit_custom(SYNTAX_ERR, "Expected '}'\n");
+            exit_with_error(SYNTAX_ERR, "Expected '}'");
         }
     }
     // statement -> return <return_t>
-    else if (match_keyword(parser, KW_RETURN))
+    else if (match_keyword(parser, KW_RETURN, true))
     {
         // TODO: idk
         return_t(parser);
     }
     // statement -> <var_definition_kw> <identifier> <var_definition_value>
-    else if (match_keyword(parser, KW_LET) || match_keyword(parser, KW_VAR))
+    else if (match_keyword(parser, KW_LET, true) || match_keyword(parser, KW_VAR, true))
     {
         Token data_type = (Token){.type = TOKEN_UNKNOWN, .keyword = KW_UNKNOWN};
 
@@ -412,7 +433,7 @@ void statement(Parser *parser)
         SymtableItem *item = symtable_add_symbol(parser->local_table, variable_id, SYMTABLE_VARIABLE, true);
 
         // Variable type definition
-        if (match(parser, TOKEN_COLON))
+        if (match(parser, TOKEN_COLON, false))
         {
             // TODO: Check if type is valid
             if (!is_datatype(parser))
@@ -429,7 +450,7 @@ void statement(Parser *parser)
         }
 
         // Variable initialization
-        if (match(parser, TOKEN_ASSIGN))
+        if (match(parser, TOKEN_ASSIGN, false))
         {
             expression(parser);
         }
@@ -480,7 +501,7 @@ void program(Parser *parser)
     }
     // prog -> 'func' FUNC_ID '(' <func_params> ')' <return_def> '{' <body> '}' rule
     // Func definition
-    else if (match_keyword(parser, KW_FUNC))
+    else if (match_keyword(parser, KW_FUNC, true))
     {
         func_def(parser);
     }
