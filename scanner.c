@@ -348,7 +348,7 @@ int get_next_token(Token *token) {
   token->type = TOKEN_UNKNOWN;
   token->length = 0;
   token->val = NULL;
-  char c;
+  char c, k, j;
   bool inString = false;
   bool newline = false;
 
@@ -401,16 +401,66 @@ int get_next_token(Token *token) {
 
     if (inString) {   // String literal
       if (c == '"') { // End of string literal
+        k = fgetc(source_file);
+        j = fgetc(source_file);
+        if (k == '"' && j == '"') {
+        } else {
+          ungetc(j, source_file);
+          ungetc(k, source_file);
+        }
         inString = false;
-        char_to_token(token, c);
         token->type = TOKEN_STRING_LITERAL;
         break;
+      } else if (c == '\\') {
+        k = fgetc(source_file);
+        if (k == 'n') {
+          char_to_token(token, '\n');
+        } else if (k == 't') {
+          char_to_token(token, '\t');
+        } else if (k == 'r') {
+          char_to_token(token, '\r');
+        } else if (k == '\\') {
+          char_to_token(token, '\\');
+        } else if (k == '"') {
+          char_to_token(token, '"');
+        } else if (k == 'u') {
+          j = fgetc(source_file);
+          if (j != '{') {
+            fprintf(stderr, "Invalid unicode escape sequence\n");
+            exit(1);
+          }
+          char *unicode = (char *)malloc(8 * sizeof(char));
+          if (unicode == NULL) {
+            fprintf(stderr, "Error allocating memory for unicode escape sequence\n");
+            exit(99);
+          }
+          for (int i = 0; i < 8; i++) {
+            unicode[i] = fgetc(source_file);
+            if (unicode[i] == '}') {
+              unicode[i] = '\0';
+              break;
+            }
+          }
+          
+          
+
+        } else {
+          exit(1);
+        }
       } else {
         char_to_token(token, c); // Add the character to the token value
       }
     } else if (c == '"') { // Start of string literal
       inString = true;
-      char_to_token(token, c);
+      k = fgetc(source_file);
+      j = fgetc(source_file);
+      if (k == '"' && j == '"') {
+        char_to_token(token, k);
+        char_to_token(token, j);
+      } else {
+        ungetc(j, source_file);
+        ungetc(k, source_file);
+      }
     } else if (isalpha(c) || c == '_') { // Identifier
       char_to_token(token, c);
       while (isalnum(c = fgetc(source_file)) || c == '_') { // Read until the end of the identifier

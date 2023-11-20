@@ -1,4 +1,1 @@
-b
-Int fa
-Int "g" Int
-Int
+let zmrd be = "zrmd\""
