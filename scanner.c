@@ -351,19 +351,23 @@ int get_next_token(Token *token) {
   char c, k, j;
   bool inString = false;
   bool newline = false;
+  bool multiline = false;
 
   while (true) {
     c = fgetc(source_file); // Get the next character from the source file
     if (c == EOF) {
       break;
     }
-    if (newline) {
+    if (newline && c != '\t' && c != ' ' && c != '\r') {
       token->after_newline = true;
       newline = false;
     } else {
       token->after_newline = false;
     }
     if (c == '\n') {
+      if (multiline) {
+        char_to_token(token, '\n');
+      }
       newline = true;
       continue;
     }
@@ -404,6 +408,7 @@ int get_next_token(Token *token) {
         k = fgetc(source_file);
         j = fgetc(source_file);
         if (k == '"' && j == '"') {
+          multiline = false;
         } else {
           ungetc(j, source_file);
           ungetc(k, source_file);
@@ -463,8 +468,7 @@ int get_next_token(Token *token) {
       k = fgetc(source_file);
       j = fgetc(source_file);
       if (k == '"' && j == '"') {
-        char_to_token(token, k);
-        char_to_token(token, j);
+        multiline = true;
       } else {
         ungetc(j, source_file);
         ungetc(k, source_file);
@@ -535,6 +539,6 @@ int get_next_token(Token *token) {
     fprintf(stderr, "Unknown token: %s\n", token->val);
     exit(1);
   }
+  printf("Token: %s, newline: %d\n", token->val, token->after_newline);
   return token->type;
 }
-
