@@ -36,7 +36,6 @@ void determine_token_type(Token *token)
   int character; // The current character being read
   token->is_nullable = false;
   token->type = TOKEN_UNKNOWN;
-  token->after_newline = true;
   token->keyword = KW_UNKNOWN;
   if (strcmp(token->val, "if") == 0)
   {
@@ -67,7 +66,9 @@ void determine_token_type(Token *token)
   {
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_WHILE;
-  } else if (strcmp(token->val, "func") == 0) {
+  }
+  else if (strcmp(token->val, "func") == 0)
+  {
     token->type = TOKEN_KEYWORD;
     token->keyword = KW_FUNC;
   }
@@ -573,21 +574,25 @@ int get_next_token(Token *token)
         else if (k == 'u')
         {
           j = fgetc(source_file);
-          if (j != '{') {
+          if (j != '{')
+          {
             exit(1);
           }
           char *unicode = (char *)malloc(8 * sizeof(char));
-          if (unicode == NULL) {
+          if (unicode == NULL)
+          {
             exit(99);
           }
           for (int i = 0; i < 8; i++)
           {
             unicode[i] = fgetc(source_file);
-            if (!isxdigit(unicode[i])) {
+            if (!isxdigit(unicode[i]))
+            {
               exit(1);
             }
 
-            if (unicode[i] == '}') {
+            if (unicode[i] == '}')
+            {
               unicode[i] = '\0';
               ungetc('}', source_file);
               break;
@@ -597,11 +602,13 @@ int get_next_token(Token *token)
           char_to_token(token, k);
 
           k = fgetc(source_file);
-          if (k != '}') {
+          if (k != '}')
+          {
             exit(1);
           }
-
-        } else {
+        }
+        else
+        {
           exit(1);
         }
       }
