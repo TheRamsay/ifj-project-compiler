@@ -6,6 +6,7 @@
 #include <string.h>
 
 FILE *source_file;
+int token_count = 0;
 
 void scanner_init(FILE *file) { // Initialize the scanner
   source_file = file;           // Set the source file to the file passed in
@@ -342,7 +343,6 @@ void char_to_token(Token *token, char c) {
   token->val = new_val;
   token->length++;
 }
-
 int get_next_token(Token *token) {
   int nested_block_comment = 0;
   token->type = TOKEN_UNKNOWN;
@@ -354,16 +354,22 @@ int get_next_token(Token *token) {
   bool multiline = false;
 
   while (true) {
+
     c = fgetc(source_file); // Get the next character from the source file
     if (c == EOF) {
       break;
     }
+
     if (newline && c != '\t' && c != ' ' && c != '\r') {
       token->after_newline = true;
       newline = false;
+    } else if (!token_count && !newline) {
+      token->after_newline = true;
     } else {
       token->after_newline = false;
     }
+    token_count++;
+
     if (c == '\n') {
       if (multiline) {
         char_to_token(token, '\n');
@@ -417,18 +423,18 @@ int get_next_token(Token *token) {
         token->type = TOKEN_STRING_LITERAL;
         break;
       } else if (c == '\\') {
-        k = fgetc(source_file);
-        if (k == 'n') {
+        c = fgetc(source_file);
+        if (c == 'n') {
           char_to_token(token, '\n');
-        } else if (k == 't') {
+        } else if (c == 't') {
           char_to_token(token, '\t');
-        } else if (k == 'r') {
+        } else if (c == 'r') {
           char_to_token(token, '\r');
-        } else if (k == '\\') {
+        } else if (c == '\\') {
           char_to_token(token, '\\');
-        } else if (k == '"') {
+        } else if (c == '"') {
           char_to_token(token, '"');
-        } else if (k == 'u') {
+        } else if (c == 'u') {
           j = fgetc(source_file);
           if (j != '{') {
             exit(1);
@@ -449,11 +455,11 @@ int get_next_token(Token *token) {
               break;
             }
           }
-          k = strtol(unicode, NULL, 16);
-          char_to_token(token, k);
+          c = strtol(unicode, NULL, 16);
+          char_to_token(token, c);
 
-          k = fgetc(source_file);
-          if (k != '}') {
+          c = fgetc(source_file);
+          if (c != '}') {
             exit(1);
           }
 
