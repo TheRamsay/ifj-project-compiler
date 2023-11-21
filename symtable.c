@@ -498,3 +498,30 @@ SymtableItem *symtable_insert(Symtable *table, char *key, SymtableData *data)
 
 	return item;
 }
+
+void symtable_clear(Symtable *table)
+{
+	if (table == NULL)
+	{
+		return;
+	}
+
+	for (unsigned int i = 0; i < table->capacity; i++)
+	{
+		SymtableItem *current = table->items[i];
+		SymtableItem *next = NULL;
+
+		while (current != NULL)
+		{
+			next = current->next;
+			if (current->key != NULL)
+			{
+				free(current->key);
+			}
+			free(current);
+			current = next;
+		}
+	}
+
+	table->error_code = 0;
+}

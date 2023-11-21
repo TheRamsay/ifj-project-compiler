@@ -18,6 +18,7 @@ typedef struct
     Symtable *local_table;
     Token *token_buffer;
     bool buffer_active;
+    bool in_function;
 #ifndef PARSER_TEST
     gen_t *gen;
 #else
@@ -62,8 +63,8 @@ void call_params_n(Parser *parser);
 // call_params -> <call_params_kw> <term> <call_params_n>
 void call_params(Parser *parser);
 
-void statement(Parser *parser);
-void body(Parser *parser);
+bool statement(Parser *parser);
+bool body(Parser *parser);
 
 void program(Parser *parser);
 
@@ -75,7 +76,7 @@ Token *parse(Parser *parser, Token *input_tokens);
 
 void expression(Parser *parser);
 
-void return_t(Parser *parser);
+bool return_t(Parser *parser);
 
 void log_token_parsed(Parser *parser);
 

@@ -117,6 +117,8 @@ SymtableItem *symtable_get(const Symtable *table, const char *key);
 
 void symtable_dispose(Symtable *table);
 
+void symtable_clear(Symtable *table);
+
 SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType type, bool defined);
 SymtableItem *symtable_insert(Symtable *table, char *key, SymtableData *data);
 
