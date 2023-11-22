@@ -725,5 +725,7 @@ int get_next_token(Token *token)
     fprintf(stderr, "Unknown token: %s\n", token->val);
     exit(1);
   }
+
+  printf("tokenik: %d | value: %s | new_line: %d \n", token->type, token->val, token->after_newline);
   return token->type;
 }

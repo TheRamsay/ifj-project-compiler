@@ -238,7 +238,7 @@ void symtable_dispose(Symtable *table)
 	table->error_code = 0;
 }
 
-SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType type, bool defined)
+SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType type, bool defined, bool constant)
 {
 	SymtableItem *item = symtable_get(table, key);
 	// Item already exists
@@ -318,6 +318,8 @@ SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType 
 	else
 	{
 		item->data->variable.identifier_type = (SymtableIdentifierType){.data_type = UNKNOWN_TYPE, .nullable = false};
+		item->data->variable.initialized = defined;
+		item->data->variable.constant = constant;
 	}
 
 	table->items[index] = item;

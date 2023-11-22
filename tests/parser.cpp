@@ -29,6 +29,8 @@ void check_tokens(std::vector<Token> input_tokens, Token *output_tokens)
     int i;
     for (i = 0; output_tokens[i].type != TOKEN_EOF; i++)
     {
+        printf("ZMRD i = %d\n", i);
+        printf("ZMRD input %d %s | output %d %s\n", input_tokens[i].type, input_tokens[i].val, output_tokens[i].type, output_tokens[i].val);
         EXPECT_EQ(output_tokens[i].type, input_tokens[i].type);
         EXPECT_EQ(output_tokens[i].keyword, input_tokens[i].keyword);
         EXPECT_TRUE(strcmp(output_tokens[i].val, input_tokens[i].val) == 0);
@@ -882,4 +884,36 @@ TEST_F(ParserTest, FuncDeclarationMultipleParamsWithSameIdentifier)
     };
 
     EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC), "Semantic error.*");
+}
+
+TEST_F(ParserTest, ConstantModification)
+{
+    std::vector<Token> tokens = {
+        {TOKEN_KEYWORD, KW_LET, "let", 3, 0, 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
+        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4, 0, 1},
+        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+        {TOKEN_EOF, KW_UNKNOWN, "", 0},
+    };
+
+    EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR), "Semantic error.*");
+}
+
+TEST_F(ParserTest, MutableVariableModification)
+{
+    std::vector<Token> tokens = {
+        {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
+        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4, 0, 1},
+        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+        {TOKEN_EOF, KW_UNKNOWN, "", 0},
+    };
+
+    check_tokens(tokens, parse(&parser_, tokens.data()));
 }

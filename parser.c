@@ -289,7 +289,7 @@ void func_def(Parser *parser)
 {
     parser->in_function = true;
     char *key = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
-    SymtableItem *item = symtable_add_symbol(parser->global_table, key, SYMTABLE_FUNCTION, true);
+    SymtableItem *item = symtable_add_symbol(parser->global_table, key, SYMTABLE_FUNCTION, true, false);
 
     consume(parser, TOKEN_LPAREN, "Expected '('");
     func_params(parser, item);
@@ -426,6 +426,12 @@ bool if_statement(Parser *parser)
 bool statement(Parser *parser)
 {
     bool valid_return = false;
+    bool is_constant = false;
+
+    if (check_keyword(parser, KW_LET))
+    {
+        is_constant = true;
+    }
 
     // statement -> if <expression> { <statement_list> } else { <statement_list> } rule
     if (match_keyword(parser, KW_IF, true))
@@ -454,9 +460,9 @@ bool statement(Parser *parser)
     else if (match_keyword(parser, KW_LET, true) || match_keyword(parser, KW_VAR, true))
     {
         Token data_type = (Token){.type = TOKEN_UNKNOWN, .keyword = KW_UNKNOWN};
+        bool var_initialized = false;
 
         char *variable_id = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
-        SymtableItem *item = symtable_add_symbol(parser->in_function ? parser->local_table : parser->global_table, variable_id, SYMTABLE_VARIABLE, true);
 
         // Variable type definition
         if (match(parser, TOKEN_COLON, false))
@@ -478,26 +484,44 @@ bool statement(Parser *parser)
         // Variable initialization
         if (match(parser, TOKEN_ASSIGN, false))
         {
+            var_initialized = true;
             expression(parser);
         }
         else
         {
+            var_initialized = false;
+
             // Type was not defined
             if (data_type.type == TOKEN_UNKNOWN)
             {
                 exit_with_error(SEMANTIC_ERR_INFER, "Cannot infer type of variable '%s'", variable_id);
             }
-            else
-            {
-                item->data->variable.identifier_type = keyword_to_datatype(parser, data_type.keyword);
-            }
+        }
+
+        SymtableItem *item = symtable_add_symbol(parser->in_function ? parser->local_table : parser->global_table, variable_id, SYMTABLE_VARIABLE, var_initialized, is_constant);
+        if (var_initialized)
+        {
+            item->data->variable.identifier_type = keyword_to_datatype(parser, data_type.keyword);
         }
     }
     else if (check_type(parser, TOKEN_IDENTIFIER))
     {
+        // if (current_token(parser)->after_newline)
+        // {
+        //     exit_with_error(SYNTAX_ERR, "Multiple statements must be on separate lines");
+        // }
+
         // statement -> <identifier> <var_definition_value>
         if (peek(parser)->type == TOKEN_ASSIGN)
         {
+            SymtableItem *item = symtable_get(parser->in_function ? parser->local_table : parser->global_table, current_token(parser)->val);
+
+            // Modifing constant variable
+            if (item->data->variable.constant && item->data->variable.initialized)
+            {
+                exit_with_error(SEMANTIC_ERR, "Cannot reassign constant variable '%s'", item->key);
+            }
+
             consume(parser, TOKEN_IDENTIFIER, "Expected identifier");
             consume(parser, TOKEN_ASSIGN, "Expected '='");
             expression(parser);
