@@ -337,6 +337,11 @@ bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_ident
 		exit_with_error(SEMANTIC_ERR_FUNC, "Parameter name cannot be the same as the function name");
 	}
 
+	if (strcmp(in_identifier, "_") == 0)
+	{
+		exit_with_error(SYNTAX_ERR, "Parametr name cannot be _");
+	}
+
 	SymtableParam *param = malloc(sizeof(SymtableParam));
 
 	if (param == NULL)
@@ -390,10 +395,10 @@ bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_ident
 	{
 		SymtableParam *current = item->data->function.params;
 
-		while (current->next != NULL)
+		while (current != NULL)
 		{
 			// Check for duplicate names
-			if (strcmp(current->in_name, param->in_name) == 0 || strcmp(current->out_name, param->out_name) == 0)
+			if (strcmp(current->in_name, param->in_name) == 0)
 			{
 				exit_with_error(SEMANTIC_ERR_FUNC, "Duplicate parameter name");
 			}
@@ -401,7 +406,7 @@ bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_ident
 			current = current->next;
 		}
 
-		current->next = param;
+		current = param;
 	}
 
 	item->data->function.param_count++;

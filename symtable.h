@@ -40,7 +40,7 @@ typedef enum
 	INT_TYPE,
 	DOUBLE_TYPE,
 	STRING_TYPE,
-	NIL_TYPE
+	VOID_TYPE
 } SymtableDataType;
 
 typedef struct

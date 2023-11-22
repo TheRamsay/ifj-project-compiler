@@ -68,7 +68,12 @@ Token *peek(Parser *parser)
         return parser->token_buffer + 1;
     }
 
+#ifndef PARSER_TEST
     get_next_token(parser->token_buffer + 1);
+#else
+    *(parser->token_buffer + 1) = parser->input_tokens[parser->input_index++];
+    log_token();
+#endif
     parser->buffer_active = true;
     return parser->token_buffer + 1;
 }
@@ -80,8 +85,7 @@ bool match(Parser *parser, TokenType token_type, bool check_new_line)
     {
         if (check_new_line && !current_token(parser)->after_newline)
         {
-            // exit_with_error(SYNTAX_ERR, "Multiple statements must be on separate lines");
-            return false;
+            exit_with_error(SYNTAX_ERR, "Multiple statements must be on separate lines");
         }
 
         advance(parser);
@@ -95,12 +99,10 @@ bool match_keyword(Parser *parser, KeywordType keyword, bool check_new_line)
 {
     if (check_keyword(parser, keyword))
     {
-        (void)check_new_line;
-        // if (check_new_line && !current_token(parser)->after_newline)
-        // {
-        //     exit_witheerror(SYNTAX_ERR, "Multiple statements must be on separate lines");
-        // return false;
-        // }
+        if (check_new_line && !current_token(parser)->after_newline)
+        {
+            exit_with_error(SYNTAX_ERR, "Multiple statements must be on separate lines");
+        }
 
         advance(parser);
         return true;
@@ -206,6 +208,7 @@ void return_def(Parser *parser, SymtableItem *item)
 {
     if (check_type(parser, TOKEN_LBRACE))
     {
+        symtable_add_return(item, (SymtableIdentifierType){.data_type = VOID_TYPE, .nullable = false});
         return;
     }
 
@@ -294,7 +297,7 @@ void func_def(Parser *parser)
     return_def(parser, item);
     consume(parser, TOKEN_LBRACE, "Expected '{'");
 
-    if (!body(parser))
+    if (!body(parser) && item->data->function._return->data_type != VOID_TYPE)
     {
         exit_with_error(SEMANTIC_ERR_CALL, "Function control flow does lead to invalid return");
     }
@@ -351,6 +354,11 @@ void call_params(Parser *parser)
 
 bool return_t(Parser *parser)
 {
+    if (!parser->in_function)
+    {
+        exit_with_error(SYNTAX_ERR, "Return statement outside of function");
+    }
+
     // return_t -> eps rule
     if (check_type(parser, TOKEN_RBRACE))
     {
@@ -383,7 +391,7 @@ bool if_statement(Parser *parser)
     bool valid_return;
 
     // if_cond -> <expr> | VAR_DEFINITION_KW IDENTIFIER '=' <expr>
-    if (match_keyword(parser, KW_LET, true) || match_keyword(parser, KW_VAR, true))
+    if (match_keyword(parser, KW_LET, false) || match_keyword(parser, KW_VAR, false))
     {
         consume(parser, TOKEN_IDENTIFIER, "Expected identifier");
         consume(parser, TOKEN_ASSIGN, "Expected '='");

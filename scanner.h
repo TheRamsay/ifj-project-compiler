@@ -93,8 +93,8 @@ typedef struct
   TokenType type;
   KeywordType keyword;
   char *val;
-  bool is_nullable;
   int length;
+  bool is_nullable;
   bool after_newline;
 } Token;
 
