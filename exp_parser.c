@@ -7,22 +7,24 @@
 #include "stack.h"
 
 const int precedence_table[TABLE_SIZE][TABLE_SIZE] = {
-    //+ -  *  /  <  <= >  => == != (  )  i  $  E
-    {R, R, L, L, R, R, R, R, R, R, L, R, L, R, E}, // +
-    {R, R, L, L, R, R, R, R, R, R, L, R, L, R, E}, // -
-    {R, R, R, R, R, R, R, R, R, R, L, R, L, R, E}, // *
-    {R, R, R, R, R, R, R, R, R, R, L, R, L, R, E}, // /
-    {L, L, L, L, X, X, X, X, X, X, L, R, L, R, E}, // <
-    {L, L, L, L, X, X, X, X, X, X, L, R, L, R, E}, // <=
-    {L, L, L, L, X, X, X, X, X, X, L, R, L, R, E}, // >
-    {L, L, L, L, X, X, X, X, X, X, L, R, L, R, E}, // >=
-    {L, L, L, L, X, X, X, X, X, X, L, R, L, R, E}, // ==
-    {L, L, L, L, X, X, X, X, X, X, L, R, L, R, E}, // !=
-    {L, L, L, L, L, L, L, L, L, L, L, E, L, R, E}, // (
-    {R, R, R, R, R, R, R, R, R, R, X, R, L, R, X}, // )
-    {R, R, R, R, R, R, R, R, R, R, X, R, L, R, X}, // i
-    {L, L, L, L, L, L, L, L, L, L, L, X, L, X, L}, // $
-    {E, E, E, E, E, E, E, E, E, E, E, R, X, R, X}  // E
+    //+ -  *  /  <  <= >  => == != (  ) ??  !  i  $  E
+    {R, R, L, L, R, R, R, R, R, R, L, R, E, E, L, R, E}, // +
+    {R, R, L, L, R, R, R, R, R, R, L, R, E, E, L, R, E}, // -
+    {R, R, R, R, R, R, R, R, R, R, L, R, E, E, L, R, E}, // *
+    {R, R, R, R, R, R, R, R, R, R, L, R, E, E, L, R, E}, // /
+    {L, L, L, L, X, X, X, X, X, X, L, R, E, E, L, R, E}, // <
+    {L, L, L, L, X, X, X, X, X, X, L, R, E, E, L, R, E}, // <=
+    {L, L, L, L, X, X, X, X, X, X, L, R, E, E, L, R, E}, // >
+    {L, L, L, L, X, X, X, X, X, X, L, R, E, E, L, R, E}, // >=
+    {L, L, L, L, X, X, X, X, X, X, L, R, E, E, L, R, E}, // ==
+    {L, L, L, L, X, X, X, X, X, X, L, R, E, E, L, R, E}, // !=
+    {L, L, L, L, L, L, L, L, L, L, L, E, E, E, L, R, E}, // (
+    {R, R, R, R, R, R, R, R, R, R, X, R, E, E, L, R, X}, // )
+    {E, E, E, E, E, E, E, E, E, E, X, R, X, X, X, R, E}, // ??
+    {E, E, E, E, E, E, E, E, E, E, X, R, X, X, X, R, X}, // !
+    {R, R, R, R, R, R, R, R, R, R, X, R, E, E, L, R, X}, // i
+    {L, L, L, L, L, L, L, L, L, L, L, X, E, E, L, X, L}, // $
+    {E, E, E, E, E, E, E, E, E, E, E, R, E, E, X, R, X}  // E
 };
 
 Rule_t rules[] = {
@@ -77,15 +79,19 @@ int get_operator_index(TokenType op) {
     return 10;
   case TOKEN_RPAREN:
     return 11;
+  case TOKEN_NULL_COALESCING:
+    return 12;
+  case TOKEN_NOT:
+    return 13;
   case TOKEN_IDENTIFIER:
   case TOKEN_STRING_LITERAL:
   case TOKEN_INTEGER_LITERAL:
   case TOKEN_DECIMAL_LITERAL:
-    return 12;
-  case TOKEN_STACK_BOTTOM:
-    return 13;
-  case TOKEN_EXPRESSION:
     return 14;
+  case TOKEN_STACK_BOTTOM:
+    return 15;
+  case TOKEN_EXPRESSION:
+    return 16;
 
   default:
     return -1; // Operator not found
