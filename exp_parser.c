@@ -3,6 +3,7 @@
 //
 
 #include "exp_parser.h"
+#include "scanner.h"
 #include "stack.h"
 
 const int precedence_table[TABLE_SIZE][TABLE_SIZE] = {
@@ -125,12 +126,20 @@ Stack_token_t evaluate_rule(Stack_token_t *tokens) {
   return (Stack_token_t){.token = TOKEN_EOF, .precedence = None};
 }
 
-Stack_token_t get_next_token_temp(TokenType array[], int index, int size) {
+Stack_token_t get_next_token_wrap(TokenType array[], int index, int size) {
+
+#ifdef PARSER_TEST
   if (index >= 0 && index < size) {
     // Return the character at the specified index
     return (Stack_token_t){.precedence = None, .token = array[index]};
   }
   return (Stack_token_t){.token = TOKEN_STACK_BOTTOM, .precedence = None};
+#else
+  Token *token = malloc(sizeof(Token));
+  int result = get_next_token(token);
+
+  return (Stack_token_t){.token = token->type, .precedence = None};
+#endif
 }
 
 void handle_shift_case(void_stack_t *stack, Stack_token_t token, Stack_token_t action) {
@@ -163,18 +172,19 @@ int handle_reduce_case(void_stack_t *stack, Stack_token_t token) {
 }
 
 void handle_equals_case(void_stack_t *stack, Stack_token_t token) {
+
   Stack_token_t *new_token = malloc(sizeof(Stack_token_t));
   *new_token = token;
   stack_push(stack, new_token);
 }
 
-int parse_expression(TokenType *expressionToParse, int inputSize) {
+int parse_expression(TokenType *testExpressionToParse, int inputSize) {
   int expIndex = 0;
 
   void_stack_t *stack = stack_new(8192);
   stack_push(stack, &(Stack_token_t){.token = TOKEN_STACK_BOTTOM, .precedence = None});
 
-  Stack_token_t token = get_next_token_temp(expressionToParse, expIndex, inputSize);
+  Stack_token_t token = get_next_token_wrap(testExpressionToParse, expIndex, inputSize);
   expIndex++;
   while (420 == 420) {
     Stack_token_t stackTop = *(Stack_token_t *)stack_top(stack);
@@ -191,7 +201,7 @@ int parse_expression(TokenType *expressionToParse, int inputSize) {
     switch (action.precedence) {
     case L:
       handle_shift_case(stack, token, action);
-      token = get_next_token_temp(expressionToParse, expIndex, inputSize);
+      token = get_next_token_wrap(testExpressionToParse, expIndex, inputSize);
       expIndex++;
 
       break;
@@ -205,7 +215,7 @@ int parse_expression(TokenType *expressionToParse, int inputSize) {
 
     case E:
       handle_equals_case(stack, token);
-      token = get_next_token_temp(expressionToParse, expIndex, inputSize);
+      token = get_next_token_wrap(testExpressionToParse, expIndex, inputSize);
       expIndex++;
 
       break;

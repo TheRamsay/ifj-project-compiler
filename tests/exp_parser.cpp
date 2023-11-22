@@ -9,11 +9,21 @@ extern "C"{
 #include <stdlib.h>
 
 
+class ExpParserTest : public testing::Test
+{
+protected:
+
+    virtual void SetUp()
+    {
+    }
+};
+
 //Basic tests
 TEST(ExpParserTest, BasicTests) { 
     //Should return true
-    TokenType expresion[] = {TOKEN_INTEGER_LITERAL, TOKEN_STACK_BOTTOM};
-    ASSERT_TRUE(parse_expression(expresion, 2));
+
+    TokenType expresion1[] = {TOKEN_INTEGER_LITERAL,   TOKEN_STACK_BOTTOM};
+    ASSERT_TRUE(parse_expression(expresion1, 4));
 
     TokenType expresion2[] = {TOKEN_INTEGER_LITERAL, TOKEN_PLUS , TOKEN_INTEGER_LITERAL, TOKEN_STACK_BOTTOM};
     ASSERT_TRUE(parse_expression(expresion2, 4));

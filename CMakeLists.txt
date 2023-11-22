@@ -65,8 +65,9 @@ target_link_libraries(Test_stack gtest gtest_main)
 
 add_test(stack Test_stack)
 
+add_definitions(-DPARSER_TEST)
 add_executable(ExpParserTest
-        exp_parser.h exp_parser.c stack.h stack.c
+        exp_parser.h exp_parser.c stack.h stack.c scanner.h scanner.c
         tests/exp_parser.cpp)
 target_link_libraries(ExpParserTest gtest gtest_main)
 
