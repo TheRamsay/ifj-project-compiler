@@ -2,11 +2,6 @@
 
 #define TOKEN_BUFFER_LEN 2
 
-#define log_token()               \
-    {                             \
-        log_token_parsed(parser); \
-    }
-
 bool parser_init(Parser *parser)
 {
     parser->global_table = symtable_new(100);
@@ -72,7 +67,7 @@ Token *peek(Parser *parser)
     get_next_token(parser->token_buffer + 1);
 #else
     *(parser->token_buffer + 1) = parser->input_tokens[parser->input_index++];
-    log_token();
+    parser->output_tokens[parser->output_index++] = *(parser->token_buffer + 1);
 #endif
     parser->buffer_active = true;
     return parser->token_buffer + 1;
@@ -131,7 +126,7 @@ void advance(Parser *parser)
         get_next_token(parser->token_buffer);
 #else
         *(parser->token_buffer) = parser->input_tokens[parser->input_index++];
-        log_token();
+        parser->output_tokens[parser->output_index++] = *(parser->token_buffer);
 #endif
     }
 }
@@ -375,7 +370,7 @@ bool body(Parser *parser)
     bool valid_return;
 
     // body -> eps rule
-    if (check_type(parser, TOKEN_RBRACE) || check_type(parser, TOKEN_EOF))
+    if (check_type(parser, TOKEN_RBRACE) || check_type(parser, TOKEN_EOF) || check_keyword(parser, KW_FUNC))
     {
         return false;
     }
@@ -593,11 +588,3 @@ void expression(Parser *parser)
     consume(parser, TOKEN_COMMA, "Expected an expression");
     return;
 }
-
-#ifdef PARSER_TEST
-void log_token_parsed(Parser *parser)
-{
-    Token *token = current_token(parser);
-    parser->output_tokens[parser->output_index++] = *token;
-}
-#endif

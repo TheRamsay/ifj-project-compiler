@@ -94,24 +94,16 @@ SymtableItem *symtable_get(const Symtable *table, const char *key)
 
 	SymtableItem *current = table->items[hash];
 
-	if (current == NULL)
+	while (current != NULL)
 	{
-		return NULL;
-	}
-
-	while (strcmp(current->key, key) != 0 && current->next != NULL)
-	{
+		if (strcmp(current->key, key) == 0)
+		{
+			return current;
+		}
 		current = current->next;
 	}
 
-	if (strcmp(current->key, key) == 0)
-	{
-		return current;
-	}
-	else
-	{
-		return NULL;
-	}
+	return NULL;
 }
 
 /**
@@ -528,6 +520,8 @@ void symtable_clear(Symtable *table)
 			free(current);
 			current = next;
 		}
+
+		table->items[i] = NULL;
 	}
 
 	table->error_code = 0;

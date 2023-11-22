@@ -29,8 +29,6 @@ void check_tokens(std::vector<Token> input_tokens, Token *output_tokens)
     int i;
     for (i = 0; output_tokens[i].type != TOKEN_EOF; i++)
     {
-        printf("ZMRD i = %d\n", i);
-        printf("ZMRD input %d %s | output %d %s\n", input_tokens[i].type, input_tokens[i].val, output_tokens[i].type, output_tokens[i].val);
         EXPECT_EQ(output_tokens[i].type, input_tokens[i].type);
         EXPECT_EQ(output_tokens[i].keyword, input_tokens[i].keyword);
         EXPECT_TRUE(strcmp(output_tokens[i].val, input_tokens[i].val) == 0);
@@ -912,6 +910,58 @@ TEST_F(ParserTest, MutableVariableModification)
         {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4, 0, 1},
         {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
         {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+        {TOKEN_EOF, KW_UNKNOWN, "", 0},
+    };
+
+    check_tokens(tokens, parse(&parser_, tokens.data()));
+}
+
+TEST_F(ParserTest, SameVariableNameDifferentScopes)
+{
+    std::vector<Token> tokens{
+        {TOKEN_KEYWORD, KW_FUNC, "func", 4, 0, 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
+        {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
+        {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
+        {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+        {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "y", 1},
+        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+        {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
+        {TOKEN_KEYWORD, KW_FUNC, "func", 4, 0, 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj2", 5},
+        {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
+        {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
+        {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+        {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "y", 1},
+        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+        {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
+        {TOKEN_EOF, KW_UNKNOWN, "", 0},
+    };
+
+    check_tokens(tokens, parse(&parser_, tokens.data()));
+}
+
+TEST_F(ParserTest, SameVariableNameDifferentScopesGlobal)
+{
+    std::vector<Token> tokens{
+        {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "aho1j", 4},
+        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+        {TOKEN_KEYWORD, KW_FUNC, "func", 4, 0, 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
+        {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
+        {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
+        {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+        {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "aho1j", 4},
+        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+        {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
