@@ -1,7 +1,6 @@
-func pepa() -> Int {
-    if , {
-        return ,
-    } else {
-        return ,
-    }
-}
+let a =
+"""
+a
+b
+c
+"""

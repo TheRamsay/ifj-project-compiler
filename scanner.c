@@ -415,6 +415,11 @@ int get_next_token(Token *token) {
         j = fgetc(source_file);
         if (k == '"' && j == '"') {
           multiline = false;
+          if (token->val[strlen(token->val) - 1] != '\n') {
+            exit(1);
+          } else {
+            token->val[strlen(token->val) - 1] = '\0';
+          }
         } else {
           ungetc(j, source_file);
           ungetc(k, source_file);
@@ -474,6 +479,9 @@ int get_next_token(Token *token) {
       k = fgetc(source_file);
       j = fgetc(source_file);
       if (k == '"' && j == '"') {
+        c = fgetc(source_file);
+        if (c != '\n')
+          exit(1);
         multiline = true;
       } else {
         ungetc(j, source_file);
