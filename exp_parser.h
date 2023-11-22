@@ -8,7 +8,7 @@
 #include "scanner.h"
 #include "stack.h"
 
-#define TABLE_SIZE 15
+#define TABLE_SIZE 17
 #define RULES_SIZE 15
 #define RULE_MAX_LENGHT 3
 
