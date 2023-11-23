@@ -176,7 +176,7 @@ int get_closest_var_depth(gen_t *gen, str *name) {
 }
 
 bool is_constant(str *name) {
-  for (int i = 0; i < strlen(name->data); i++) {
+  for (size_t i = 0; i < strlen(name->data); i++) {
     if (name->data[i] == '@') {
       return true;
     }
@@ -208,6 +208,8 @@ str *get_symbol_path(gen_t *gen, str *name) {
   } else {
     path = get_closest_var_path(gen, name);
   }
+
+  return path;
 }
 
 void add_indentation(gen_t *gen) {
@@ -326,7 +328,7 @@ void generator_var_create(gen_t *gen, str *name) {
   str_append_str(dest, label);
   str_append_str(dest, name);
   str_append_cstr(dest, "\n");
-};
+}
 
 void generator_var_set(gen_t *gen, str *dest_symbol, str *src_symbol) {
   str *dest = get_dest(gen);
@@ -416,9 +418,7 @@ void generator_function_end(gen_t *gen, str *return_symbol) {
 }
 
 void generator_function_call(gen_t *gen, str *name, void_stack_t *args, str *return_var) {
-  str *fr = get_frame(gen);
   str *dest = get_dest(gen);
-  str *label = get_label(gen, -1);
 
   if (args != NULL) {
     while (!stack_is_empty(args)) {
