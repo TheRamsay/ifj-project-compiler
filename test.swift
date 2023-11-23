@@ -1,6 +1,1 @@
-let a =
-"""
-a
-b
-c
-"""
+"Ahoj\"Sve'te \\\u{22}"

@@ -447,18 +447,19 @@ int get_next_token(Token *token) {
           }
           char *unicode = (char *)malloc(8 * sizeof(char));
           if (unicode == NULL) {
+            printf("Error allocating memory for unicode character\n");
             exit(99);
           }
           for (int i = 0; i < 8; i++) {
             unicode[i] = fgetc(source_file);
-            if (!isxdigit(unicode[i])) {
-              exit(1);
-            }
-
             if (unicode[i] == '}') {
               unicode[i] = '\0';
               ungetc('}', source_file);
               break;
+            }
+
+            if (!isxdigit(unicode[i])) {
+              exit(1);
             }
           }
           c = strtol(unicode, NULL, 16);
@@ -555,6 +556,6 @@ int get_next_token(Token *token) {
     fprintf(stderr, "Unknown token: %s\n", token->val);
     exit(1);
   }
-  // printf("Token: %s, newline: %d\n", token->val, token->after_newline);
+  printf("Token: %s, newline: %d\n", token->val, token->after_newline);
   return token->type;
 }
