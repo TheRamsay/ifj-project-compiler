@@ -160,8 +160,6 @@ str *get_frame(gen_t *gen) {
 }
 
 str *get_dest(gen_t *gen, bool is_var) {
-  str *dest;
-
   if (is_var && gen->function_depth != 0) {
     return gen->out_str;
   }
