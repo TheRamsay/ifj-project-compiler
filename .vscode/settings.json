@@ -8,6 +8,7 @@
     "system_error": "c",
     "parser.h": "c"
   },
+  "C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, ColumnLimit: 100, AllowShortEnumsOnASingleLine: false, AllowShortBlocksOnASingleLine: Empty, BreakBeforeBinaryOperators: All  }",
   "makefile.launchConfigurations": [
     {
       "cwd": "/home/ramsay/school/ifj/ifj-project",
