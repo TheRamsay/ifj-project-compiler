@@ -352,6 +352,7 @@ int get_next_token(Token *token) {
   bool inString = false;
   bool newline = false;
   bool multiline = false;
+  bool multiline_string = false;
 
   while (true) {
 
@@ -403,7 +404,7 @@ int get_next_token(Token *token) {
           char_to_token(token, c);
         }
         token->type = TOKEN_EXPONENT; // Set the token type to exponent
-      } else {
+      } else if (multiline_string != true) {
         token->type = TOKEN_DECIMAL_LITERAL;
       }
       break;
@@ -473,6 +474,9 @@ int get_next_token(Token *token) {
         }
       } else {
         char_to_token(token, c); // Add the character to the token value
+        printf("Token: %s\n", token->val);
+        multiline_string = true;
+        token->type = TOKEN_STRING_LITERAL;
       }
     } else if (c == '"') { // Start of string literal
       inString = true;
@@ -553,6 +557,6 @@ int get_next_token(Token *token) {
     fprintf(stderr, "Unknown token: %s\n", token->val);
     exit(1);
   }
-  printf("Token: %s, newline: %d\n", token->val, token->after_newline);
+  // printf("Token: %s, newline: %d\n", token->val, token->after_newline);
   return token->type;
 }

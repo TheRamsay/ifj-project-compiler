@@ -1,8 +1,8 @@
 #ifndef __SCANNER_H__
 #define __SCANNER_H__
 
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 typedef enum {
   NONE,
@@ -77,7 +77,6 @@ typedef enum {
   TOKEN_VAR,
   TOKEN_EOF,
   TOKEN_UNKNOWN,
-  TOKEN_PRINT,
   TOKEN_IN,
   TOKEN_FOR,
   TOKEN_OPTIONAL_TYPE,
