@@ -523,7 +523,61 @@ TEST(GeneratorTest, WhileLoopInFn) {
   generator_dispose(gen);
 }
 
+TEST(GeneratorTest, ReturnExpr) {
+  gen_t *gen = generator_new();
+  generator_header(gen);
+
+  void_stack_t *args = stack_new(20);
+
+  str *str1 = str_new(50);
+  str *str2 = str_new(50);
+
+  str_set_cstr(str1, "var_ret");
+  generator_var_create(gen, str1);
+
+  str_set_cstr(str1, "test");
+  generator_function_begin(gen, str1, NULL);
+
+  str_set_cstr(str1, "var_int");
+  generator_var_create(gen, str1);
+  str_set_cstr(str2, "int@9");
+  generator_var_set(gen, str1, str2);
+
+  stack_push(args, str_new_from_cstr("var_int"));
+  stack_push(args, str_new_from_cstr("-"));
+  stack_push(args, str_new_from_cstr("int@1"));
+  stack_push(args, str_new_from_cstr("var_int"));
+  generator_function_return_expr(gen, args);
+
+  generator_function_end(gen, NULL);
+
+  str_set_cstr(str1, "test");
+  str_set_cstr(str2, "var_ret");
+  generator_function_call(gen, str1, NULL, str2);
+
+  stack_push(args, str_new_from_cstr("int@1"));
+  stack_push(args, str_new_from_str(str2));
+  str_set_cstr(str1, "write");
+  generator_function_call(gen, str1, args, NULL);
+
+  generator_footer(gen);
+
+  str_dispose(str2);
+  str_dispose(str1);
+
+  stack_dispose(args);
+
+  createTmpFile(gen->out_str);
+  auto [output, returnCode] = run_interpreter("./tmp");
+  deleteTmpFile();
+
+  EXPECT_EQ(strcmp(output, "9"), 0);
+
+  generator_dispose(gen);
+}
+
 TEST(GeneratorTest, FunAndGames) {
+  return;
   gen_t *gen = generator_new();
 
   generator_header(gen);

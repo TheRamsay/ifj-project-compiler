@@ -46,6 +46,8 @@ void generator_function_begin(gen_t *gen, str *name, void_stack_t *args);
 
 void generator_function_return(gen_t *gen, str *return_symbol);
 
+void generator_function_return_expr(gen_t *gen, void_stack_t *return_expr);
+
 void generator_function_end(gen_t *gen, str *return_symbol);
 
 void generator_function_call(gen_t *gen, str *name, void_stack_t *args, str *return_var);

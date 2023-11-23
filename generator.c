@@ -53,6 +53,7 @@ gen_t *generator_new() {
     goto onfail;
   };
   stack_push(gen->frame_stack, symtable_new(128));
+  symtable_insert(stack_top(gen->frame_stack), "?", NULL);
 
   // ! MAX DEPTH
   gen->construct_count_stack = stack_new(8192);
@@ -286,7 +287,7 @@ void generator_header(gen_t *gen) {
 
   str_append_cstr(gen->out_str, ".IFJCode23\n");
   str_append_cstr(gen->out_str, "# Kanvica: The Conqueror of Worlds\n\n");
-  str_append_cstr(gen->out_str, "DEFVAR GF@?\n");
+  str_append_cstr(gen->out_str, "DEFVAR GF@$?\n");
   str_append_cstr(gen->out_str, "JUMP main\n\n");
 
   FILE *builtin = fopen("../builtin.ifj23", "r");
@@ -414,13 +415,58 @@ void generator_function_return(gen_t *gen, str *return_symbol) {
 
   if (return_symbol != NULL) {
     add_indentation(gen);
-    str_append_cstr(gen->out_str, "MOVE GF@? ");
+    str_append_cstr(gen->out_str, "MOVE GF@$? ");
     str_append_str(gen->out_str, get_symbol_path(gen, return_symbol));
     str_append_cstr(gen->out_str, "\n");
   }
 
   add_indentation(gen);
   str_append_cstr(gen->out_str, "RETURN\n\n");
+}
+
+void generator_function_return_expr(gen_t *gen, void_stack_t *expr_stack) {
+  if (expr_stack == NULL || expr_stack->top_index == -1) {
+    if (gen->function_depth == 0) {
+      str_append_cstr(gen->main_str, "EXIT int@0");
+      return;
+    }
+
+    add_indentation(gen);
+    str_append_cstr(gen->fn_str, "RETURN\n\n");
+    return;
+  }
+
+  str *item;
+
+  while (!stack_is_empty(expr_stack)) {
+    item = stack_pop(expr_stack);
+
+    add_indentation(gen);
+
+    str *instruction = get_instruction(item->data[0]);
+    if (instruction != NULL) {
+      str_append_str_dispose(gen->fn_str, &instruction);
+    } else {
+      str_append_cstr(gen->fn_str, "PUSHS ");
+      str *path = get_symbol_path(gen, item);
+      str_append_str_dispose(gen->fn_str, &path);
+      str_append_cstr(gen->fn_str, "\n");
+    }
+
+    str_dispose(item);
+  }
+
+  add_indentation(gen);
+  str_append_cstr(gen->fn_str, "POPS GF@$?\n");
+
+  // In main
+  if (gen->function_depth == 0) {
+    str_append_cstr(gen->main_str, "EXIT GF@$?\n");
+    return;
+  }
+
+  add_indentation(gen);
+  str_append_cstr(gen->fn_str, "RETURN\n\n");
 }
 
 void generator_function_end(gen_t *gen, str *return_symbol) {
@@ -475,7 +521,7 @@ void generator_function_call(gen_t *gen, str *name, void_stack_t *args, str *ret
     add_indentation(gen);
     str_append_cstr(dest, "MOVE ");
     str_append_str(dest, get_symbol_path(gen, return_var));
-    str_append_cstr(dest, " GF@?\n");
+    str_append_cstr(dest, " GF@$?\n");
   }
 }
 
