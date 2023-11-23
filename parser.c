@@ -395,6 +395,12 @@ bool if_statement(Parser *parser)
 
     bool valid_return;
 
+    // If var is a little somarek, we don't support him
+    if (match_keyword(parser, KW_VAR, false))
+    {
+        exit_with_error(SYNTAX_ERR, "If var is not supported :P, use 'let' instead");
+    }
+
     // if_cond -> <expr> | VAR_DEFINITION_KW IDENTIFIER '=' <expr>
     if (match_keyword(parser, KW_LET, false) || match_keyword(parser, KW_VAR, false))
     {
