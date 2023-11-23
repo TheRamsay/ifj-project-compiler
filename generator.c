@@ -142,7 +142,7 @@ str *get_label(gen_t *gen, int depth) {
 str *get_frame(gen_t *gen) {
   str *fr = str_new(4);
 
-  if (gen->indent_depth == 0) {
+  if (gen->function_depth == 0) {
     str_set_cstr(fr, "GF@");
   } else {
     str_set_cstr(fr, "TF@");
