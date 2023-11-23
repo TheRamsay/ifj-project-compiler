@@ -474,7 +474,6 @@ int get_next_token(Token *token) {
         }
       } else {
         char_to_token(token, c); // Add the character to the token value
-        printf("Token: %s\n", token->val);
         multiline_string = true;
         token->type = TOKEN_STRING_LITERAL;
       }
@@ -529,8 +528,7 @@ int get_next_token(Token *token) {
           while (fgetc(source_file) != '*') // Read until the end of the block comment
             ;
           if (fgetc(source_file) == '/') { // If the block comment is over, decrement the nested block comment counter
-            if (nested_block_comment > 0) {
-              nested_block_comment--;
+            if (--nested_block_comment > 0) {
               goto loop;
             }
             continue;

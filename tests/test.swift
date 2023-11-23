@@ -6,6 +6,13 @@ if condition {
     }
 }
 
+/*
+    This is a multiline
+    comment to test the scanner
+*/
+
+// Another single-line comment
+
 var number = 42
 let pi = 3.14
 var name = "Debil"
@@ -17,9 +24,4 @@ let multilineString = """
 """
 
 
-/*
-    This is a multiline
-    comment to test the scanner
-*/
 
-// Another single-line comment
