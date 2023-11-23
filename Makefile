@@ -48,4 +48,4 @@ zip:
 test:
 	mkdir -p cmake-build
 	cd cmake-build && cmake ./..
-	cd cmake-build && make all && ctest $(CTESTFLAGS)
+	cd cmake-build && make all && ctest --verbose $(CTESTFLAGS)
