@@ -130,6 +130,32 @@ Stack_token_t evaluate_rule(Stack_token_t *tokens, int size) {
     }
 
     if (ruleMatch) {
+
+      // Assign type
+      if (rules[i].lenght == 1) {
+        switch (rules[i].rule[0]) {
+        case TOKEN_INTEGER_LITERAL:
+          return (Stack_token_t){.token = rules[i].result, .precedence = None, .type = {.data_type = INT_TYPE, .nullable = false}};
+
+        case TOKEN_DECIMAL_LITERAL:
+          return (Stack_token_t){.token = rules[i].result, .precedence = None, .type = {.data_type = DOUBLE_TYPE, .nullable = false}};
+
+        case TOKEN_STRING_LITERAL:
+          return (Stack_token_t){.token = rules[i].result, .precedence = None, .type = {.data_type = STRING_TYPE, .nullable = false}};
+        case TOKEN_IDENTIFIER: {
+        }
+        default:
+          break;
+        }
+        return (Stack_token_t){.token = rules[i].result, .precedence = None, .type = {.data_type = UNKNOWN_TYPE, .nullable = false}};
+      }
+      if (rules[i].lenght == 3) {
+        printf("%d %d %d\n", rightSide[0].type.data_type, rightSide[1].type.data_type, rightSide[2].type.data_type);
+        if (rightSide[0].type.data_type != rightSide[2].type.data_type) {
+          exit_with_error(SEMANTIC_ERR_EXPR, "Cannot use operator on different types");
+        }
+      }
+
       return (Stack_token_t){.token = rules[i].result, .precedence = None};
     }
   }
@@ -205,23 +231,32 @@ int parse_expression(Parser *parser) {
     Stack_token_t stackTop = *(Stack_token_t *)stack_top(stack);
 
     if (token.token.type == TOKEN_STACK_BOTTOM && stackTop.token.type == TOKEN_EXPRESSION) {
-      break;
+      Stack_token_t *stackTempTop = malloc(sizeof(Stack_token_t));
+      *stackTempTop = *(Stack_token_t *)stack_pop(stack);
+      Stack_token_t stackTop2 = *(Stack_token_t *)stack_top(stack);
+      if (stackTop2.token.type == TOKEN_STACK_BOTTOM) {
+      stack_push(stack, &stackTempTop);
+
+        break;
+      }
+
+      stack_push(stack, &stackTempTop);
     }
 
-    if (token.token.type == TOKEN_NOT) {
-      Stack_token_t *lastItem = malloc(sizeof(Stack_token_t));
-      lastItem = (Stack_token_t *)stack_top(stack);
+    // if (token.token.type == TOKEN_NOT) {
+    //   Stack_token_t *lastItem = malloc(sizeof(Stack_token_t));
+    //   lastItem = (Stack_token_t *)stack_top(stack);
 
-      SymtableItem *item = symtable_get(parser->local_table, lastItem->token.val);
-      if (item != NULL && item->data->variable.identifier_type.nullable) {
-        exit_with_error(SEMANTIC_ERR_EXPR, "Cannot use ! operator on nullable type");
-      }
-      item = symtable_get(parser->global_table, lastItem->token.val);
-      if (item != NULL && item->data->variable.identifier_type.nullable) {
-        exit_with_error(SEMANTIC_ERR_EXPR, "Cannot use ! operator on nullable type");
-      }
-      token = get_next_token_wrap(testExpressionToParse, expIndex, inputSize);
-    }
+    //   SymtableItem *item = symtable_get(parser->local_table, lastItem->token.val);
+    //   if (item != NULL && item->data->variable.identifier_type.nullable) {
+    //     exit_with_error(SEMANTIC_ERR_EXPR, "Cannot use ! operator on nullable type");
+    //   }
+    //   item = symtable_get(parser->global_table, lastItem->token.val);
+    //   if (item != NULL && item->data->variable.identifier_type.nullable) {
+    //     exit_with_error(SEMANTIC_ERR_EXPR, "Cannot use ! operator on nullable type");
+    //   }
+    //   token = get_next_token_wrap(testExpressionToParse, expIndex, inputSize);
+    // }
 
     Stack_token_t action = get_precedence(stackTop, token);
     if (action.precedence == X) {

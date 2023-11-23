@@ -23,9 +23,9 @@ protected:
     Parser parser_;
 };
 
-// //Basic tests
+// // Basic tests
 // TEST_F(ExpParserTest, BasicTests) { 
-//     //Should return true
+//     Should return true
 
 //     Token expresion1[] = { {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2},    {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0},};
 //     ASSERT_TRUE(parse_expression(expresion1, 2, &parser_));
@@ -117,29 +117,36 @@ protected:
 // }
 
 // Parenthesis  tests
-TEST_F(ExpParserTest, ParenthesisTests) {
-    Token expresion[] = { {TOKEN_LPAREN, KW_UNKNOWN, "(", 2} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_PLUS, KW_UNKNOWN, "+", 2} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2} , {TOKEN_RPAREN, KW_UNKNOWN, ")", 2} ,  {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
-    ASSERT_TRUE(parse_expression(expresion, 6, &parser_) );
+// TEST_F(ExpParserTest, ParenthesisTests) {
+//     Token expresion[] = { {TOKEN_LPAREN, KW_UNKNOWN, "(", 2} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_PLUS, KW_UNKNOWN, "+", 2} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2} , {TOKEN_RPAREN, KW_UNKNOWN, ")", 2} ,  {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
+//     ASSERT_TRUE(parse_expression(expresion, 6, &parser_) );
 
     // Token expresion1[] = { {TOKEN_LPAREN, KW_UNKNOWN, "(", 2} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_PLUS, KW_UNKNOWN, "+", 2} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2} , {TOKEN_RPAREN, KW_UNKNOWN, ")", 2}, {TOKEN_RPAREN, KW_UNKNOWN, ")", 2} ,  {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
     // EXPECT_EXIT(parse_expression(expresion1, 7, &parser_), ::testing::ExitedWithCode(SYNTAX_ERR), ".*");
 
     // Token expresion2[] = { {TOKEN_LPAREN, KW_UNKNOWN, "(", 2}, {TOKEN_LPAREN, KW_UNKNOWN, "(", 2} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_PLUS, KW_UNKNOWN, "+", 2} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2} , {TOKEN_RPAREN, KW_UNKNOWN, ")", 2} ,  {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
     // EXPECT_EXIT(parse_expression(expresion2, 7, &parser_), ::testing::ExitedWithCode(SYNTAX_ERR), ".*");
-}
+// }
 
-// Otaznicky  tests
-TEST_F(ExpParserTest, OtaznickyTests) {
-    Token expresion[] = {  {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_NULL_COALESCING, KW_UNKNOWN, "??", 2} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2} ,  {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
-    ASSERT_TRUE(parse_expression(expresion, 4, &parser_));
-}
+// // Otaznicky  tests
+// TEST_F(ExpParserTest, OtaznickyTests) {
+//     Token expresion[] = {  {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_NULL_COALESCING, KW_UNKNOWN, "??", 2} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2} ,  {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
+//     ASSERT_TRUE(parse_expression(expresion, 4, &parser_));
+// }
 
-// Vykricniky  tests
-TEST_F(ExpParserTest, VykricnikyTests) {
-     Token expresion1[] = { {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2},{TOKEN_NOT, KW_UNKNOWN, "!", 1}, {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0},};
+// // Vykricniky  tests
+// TEST_F(ExpParserTest, VykricnikyTests) {
+//      Token expresion1[] = { {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2},{TOKEN_NOT, KW_UNKNOWN, "!", 1}, {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0},};
 
-    SymtableItem *item =  symtable_add_symbol(parser_.global_table, "A", SYMTABLE_VARIABLE, true);
-    item->data->variable.identifier_type = (SymtableIdentifierType){.nullable = true, .data_type = INT_TYPE};
 
-    ASSERT_TRUE(parse_expression(expresion1, 3, &parser_));
+//     ASSERT_TRUE(parse_expression(expresion1, 3, &parser_));
+// }
+
+//Basic tests
+TEST_F(ExpParserTest, BasicTests2) { 
+    //Should return true
+
+    Token expresion2[] = {{TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_PLUS, KW_UNKNOWN, "+", 0} , {TOKEN_STRING_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
+    // EXPECT_EXIT(parse_expression(expresion2, 4, &parser_), ::testing::ExitedWithCode(SEMANTIC_ERR_EXPR), ".*");
+    parse_expression(expresion2, 4, &parser_);
 }

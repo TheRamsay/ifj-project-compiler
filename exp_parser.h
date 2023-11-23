@@ -5,9 +5,9 @@
 #ifndef _EXP_PARSER_H
 #define _EXP_PARSER_H
 
+#include "parser.h"
 #include "scanner.h"
 #include "stack.h"
-#include "parser.h"
 
 #define TABLE_SIZE 17
 #define RULES_SIZE 17
@@ -41,7 +41,7 @@ int parse_expression(Token expressionToParse[], int inputSize, Parser *parser);
 int parse_expression(Parser *parser);
 #endif
 
-TokenType *extract_tokens_from_stack(Stack_token_t *stack_tokens, size_t size);
+Stack_token_t *extract_tokens_from_stack(Stack_token_t *stack_tokens, size_t size);
 
 Stack_token_t *arrayFromStack(void_stack_t *stack, int *size);
 
