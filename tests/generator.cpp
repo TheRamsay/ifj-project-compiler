@@ -434,6 +434,8 @@ TEST(GeneratorTest, WhileLoop) {
 
   generator_loop_start(gen, args);
 
+  generator_var_create(gen, str_new_from_cstr("var_int1"));
+
   stack_push(args, str_new_from_cstr("int@1"));
   stack_push(args, str_new_from_cstr("var_int"));
   str_set_cstr(str1, "write");
@@ -446,6 +448,64 @@ TEST(GeneratorTest, WhileLoop) {
   generator_expr(gen, args);
 
   generator_loop_end(gen);
+
+  generator_footer(gen);
+
+  str_dispose(str2);
+  str_dispose(str1);
+
+  stack_dispose(args);
+
+  createTmpFile(gen->out_str);
+  auto [output, returnCode] = run_interpreter("./tmp");
+  // deleteTmpFile();
+
+  EXPECT_EQ(strcmp(output, "987654321"), 0);
+
+  generator_dispose(gen);
+}
+
+TEST(GeneratorTest, WhileLoopInFn) {
+  gen_t *gen = generator_new();
+  generator_header(gen);
+
+  void_stack_t *args = stack_new(20);
+
+  str *str1 = str_new(50);
+  str *str2 = str_new(50);
+
+  generator_function_begin(gen, str_new_from_cstr("test"), NULL);
+
+  str_set_cstr(str1, "var_int");
+  generator_var_create(gen, str1);
+  str_set_cstr(str2, "int@9");
+  generator_var_set(gen, str1, str2);
+
+  stack_push(args, str_new_from_cstr("<"));
+  stack_push(args, str_new_from_cstr("var_int"));
+  stack_push(args, str_new_from_cstr("int@0"));
+
+  generator_loop_start(gen, args);
+
+  generator_var_create(gen, str_new_from_cstr("var_int1"));
+
+  stack_push(args, str_new_from_cstr("int@1"));
+  stack_push(args, str_new_from_cstr("var_int"));
+  str_set_cstr(str1, "write");
+  generator_function_call(gen, str1, args, NULL);
+
+  stack_push(args, str_new_from_cstr("var_int"));
+  stack_push(args, str_new_from_cstr("-"));
+  stack_push(args, str_new_from_cstr("int@1"));
+  stack_push(args, str_new_from_cstr("var_int"));
+  generator_expr(gen, args);
+
+  generator_loop_end(gen);
+
+  generator_function_end(gen, NULL);
+
+  str_set_cstr(str1, "test");
+  generator_function_call(gen, str1, NULL, NULL);
 
   generator_footer(gen);
 
@@ -543,7 +603,7 @@ TEST(GeneratorTest, FunAndGames) {
 
   createTmpFile(gen->out_str);
   auto [output, returnCode] = run_interpreter("./tmp");
-  // deleteTmpFile();
+  deleteTmpFile();
 
   EXPECT_EQ(returnCode, 0);
   EXPECT_STREQ(output, "");

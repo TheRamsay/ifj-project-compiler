@@ -15,6 +15,7 @@
 
 typedef struct gen_t {
   str *out_str;
+  str *fn_str;
   str *main_str;
 
   void_stack_t *label_stack;

@@ -26,13 +26,17 @@ gen_t *generator_new() {
     goto onfail;
   }
 
-  gen->out_str = str_new(2000);
+  gen->out_str = str_new(4096);
   if (gen->out_str == NULL) {
     goto onfail;
   }
 
-  str *main_str = str_new_from_cstr("\nLABEL main\n");
-  gen->main_str = main_str;
+  gen->fn_str = str_new(1024);
+  if (gen->fn_str == NULL) {
+    goto onfail;
+  }
+
+  gen->main_str = str_new(4096);
   if (gen->main_str == NULL) {
     goto onfail;
   }
@@ -98,6 +102,10 @@ void generator_dispose(gen_t *gen) {
     str_dispose(gen->out_str);
   }
 
+  if (gen->fn_str == NULL) {
+    str_dispose(gen->out_str);
+  }
+
   if (gen->main_str == NULL) {
     str_dispose(gen->main_str);
   }
@@ -151,16 +159,18 @@ str *get_frame(gen_t *gen) {
   return fr;
 }
 
-str *get_dest(gen_t *gen) {
+str *get_dest(gen_t *gen, bool is_var) {
   str *dest;
 
-  if (gen->function_depth == 0) {
-    dest = gen->main_str;
-  } else {
-    dest = gen->out_str;
+  if (is_var && gen->function_depth != 0) {
+    return gen->out_str;
   }
 
-  return dest;
+  if (gen->function_depth == 0) {
+    return gen->main_str;
+  } else {
+    return gen->fn_str;
+  }
 }
 
 int get_closest_var_depth(gen_t *gen, str *name) {
@@ -189,7 +199,7 @@ str *get_closest_var_path(gen_t *gen, str *name) {
   int depth = get_closest_var_depth(gen, name);
 
   str *path;
-  if (depth == 0) {
+  if (depth == 0 || gen->function_depth == 0) {
     path = str_new_from_cstr("GF@");
   } else {
     path = str_new_from_cstr("TF@");
@@ -201,19 +211,15 @@ str *get_closest_var_path(gen_t *gen, str *name) {
 }
 
 str *get_symbol_path(gen_t *gen, str *name) {
-  str *path;
-
   if (is_constant(name)) {
-    path = str_new_from_cstr(name->data);
+    return str_new_from_cstr(name->data);
   } else {
-    path = get_closest_var_path(gen, name);
+    return get_closest_var_path(gen, name);
   }
-
-  return path;
 }
 
 void add_indentation(gen_t *gen) {
-  str *dest = get_dest(gen);
+  str *dest = get_dest(gen, false);
 
   for (int i = 0; i < gen->indent_depth; i++) {
     str_append_cstr(dest, "  ");
@@ -310,20 +316,33 @@ void generator_footer(gen_t *gen) {
     return;
   }
 
+  str_append_cstr(gen->out_str, "\nLABEL main\n");
   str_append_str_dispose(gen->out_str, &gen->main_str);
   str_append_cstr(gen->out_str, "\nEXIT int@0\n");
 }
 
 void generator_var_create(gen_t *gen, str *name) {
   str *fr = get_frame(gen);
-  str *dest = get_dest(gen);
+  str *dest = get_dest(gen, true);
 
   symtable_insert(stack_top(gen->frame_stack), str_to_cstr(name), NULL);
 
   str *label = get_label(gen, -1);
 
-  add_indentation(gen);
-  str_append_cstr(dest, "DEFVAR ");
+  // Need to append to the beginning of main
+  if (dest == gen->main_str) {
+    str *new_main_str = str_new(gen->main_str->alloc_size + 100);
+    str_append_cstr(new_main_str, "DEFVAR ");
+    str_append_str_dispose(new_main_str, &fr);
+    str_append_str(new_main_str, label);
+    str_append_str(new_main_str, name);
+    str_append_cstr(new_main_str, "\n");
+    str_append_str_dispose(new_main_str, &gen->main_str);
+    gen->main_str = new_main_str;
+    return;
+  }
+
+  str_append_cstr(dest, "  DEFVAR ");
   str_append_str_dispose(dest, &fr);
   str_append_str(dest, label);
   str_append_str(dest, name);
@@ -331,7 +350,7 @@ void generator_var_create(gen_t *gen, str *name) {
 }
 
 void generator_var_set(gen_t *gen, str *dest_symbol, str *src_symbol) {
-  str *dest = get_dest(gen);
+  str *dest = get_dest(gen, false);
 
   str *dest_path = get_symbol_path(gen, dest_symbol);
   str *src_path = get_symbol_path(gen, src_symbol);
@@ -411,6 +430,9 @@ void generator_function_end(gen_t *gen, str *return_symbol) {
   symtable_dispose(stack_pop(gen->frame_stack));
   stack_pop(gen->construct_count_stack);
 
+  str_append_str(gen->out_str, gen->fn_str);
+  str_set_cstr(gen->fn_str, "");
+
   generator_function_return(gen, return_symbol);
 
   gen->function_depth--;
@@ -418,7 +440,7 @@ void generator_function_end(gen_t *gen, str *return_symbol) {
 }
 
 void generator_function_call(gen_t *gen, str *name, void_stack_t *args, str *return_var) {
-  str *dest = get_dest(gen);
+  str *dest = get_dest(gen, false);
 
   if (args != NULL) {
     while (!stack_is_empty(args)) {
@@ -433,7 +455,7 @@ void generator_function_call(gen_t *gen, str *name, void_stack_t *args, str *ret
     }
   }
 
-  if (dest == gen->out_str) {
+  if (gen->function_depth != 0) {
     add_indentation(gen);
     str_append_cstr(dest, "PUSHFRAME\n");
   }
@@ -446,7 +468,7 @@ void generator_function_call(gen_t *gen, str *name, void_stack_t *args, str *ret
   str_append_cstr(dest, "$");
   str_append_cstr(dest, "\n");
 
-  if (dest == gen->out_str) {
+  if (gen->function_depth != 0) {
     add_indentation(gen);
     str_append_cstr(dest, "POPFRAME\n");
   }
@@ -462,7 +484,7 @@ void generator_function_call(gen_t *gen, str *name, void_stack_t *args, str *ret
 void generator_if_begin(gen_t *gen, str *left_symbol, bool eq, str *right_symbol) {
   generator_if_begin_base(gen);
 
-  str *dest = get_dest(gen);
+  str *dest = get_dest(gen, false);
 
   str *left_symbol_path = get_symbol_path(gen, left_symbol);
   str *right_symbol_path = get_symbol_path(gen, right_symbol);
@@ -491,7 +513,7 @@ void generator_if_begin(gen_t *gen, str *left_symbol, bool eq, str *right_symbol
 void generator_if_begin_stack(gen_t *gen, bool is_true, void_stack_t *expr_stack) {
   generator_if_begin_base(gen);
 
-  str *dest = get_dest(gen);
+  str *dest = get_dest(gen, false);
   str *item;
 
   while (!stack_is_empty(expr_stack)) {
@@ -544,7 +566,7 @@ void generator_if_else(gen_t *gen) {
   str_append_int(new_sub_label, struct_count);
   stack_push(gen->label_stack, new_sub_label);
 
-  str *dest = get_dest(gen);
+  str *dest = get_dest(gen, false);
   str *else_label = get_label(gen, -1);
 
   add_indentation(gen);
@@ -567,7 +589,7 @@ void generator_if_else(gen_t *gen) {
 
 void generator_if_end(gen_t *gen) {
   str *label = get_label(gen, -1);
-  str *dest = get_dest(gen);
+  str *dest = get_dest(gen, false);
 
   gen->indent_depth--;
 
@@ -589,7 +611,7 @@ void generator_expr(gen_t *gen, void_stack_t *expr_stack) {
     return;
   }
 
-  str *dest = get_dest(gen);
+  str *dest = get_dest(gen, false);
   str *item;
 
   while (!stack_is_empty(expr_stack)) {
@@ -631,7 +653,7 @@ void generator_loop_start(gen_t *gen, void_stack_t *expr_stack) {
   str_append_int(new_sub_label, struct_count);
   stack_push(gen->label_stack, new_sub_label);
 
-  str *dest = get_dest(gen);
+  str *dest = get_dest(gen, false);
   str *item;
 
   add_indentation(gen);
@@ -678,7 +700,7 @@ void generator_loop_end(gen_t *gen) {
   symtable_dispose(stack_pop(gen->frame_stack));
   stack_pop(gen->construct_count_stack);
 
-  str *dest = get_dest(gen);
+  str *dest = get_dest(gen, false);
 
   gen->indent_depth--;
 
