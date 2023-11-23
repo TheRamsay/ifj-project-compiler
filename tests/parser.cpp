@@ -52,7 +52,7 @@ TEST_F(ParserTest, Init)
     EXPECT_EQ(parser_.input_tokens, tokens.data());
     EXPECT_EQ(parser_.input_index, 1);
     EXPECT_EQ(parser_.buffer_active, false);
-    EXPECT_NE(parser_.local_table, nullptr);
+    EXPECT_NE(parser_.local_tables_stack, nullptr);
     EXPECT_NE(parser_.global_table, nullptr);
     EXPECT_NE(parser_.token_buffer, nullptr);
 
@@ -961,6 +961,60 @@ TEST_F(ParserTest, SameVariableNameDifferentScopesGlobal)
         {TOKEN_IDENTIFIER, KW_UNKNOWN, "aho1j", 4},
         {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
         {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+        {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
+        {TOKEN_EOF, KW_UNKNOWN, "", 0},
+    };
+
+    check_tokens(tokens, parse(&parser_, tokens.data()));
+}
+
+TEST_F(ParserTest, RedeclarationInDifferentScope)
+{
+    std::vector<Token> tokens{
+        {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "y", 1},
+        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+        {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+        {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+        {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "y", 1},
+        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+        {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
+        {TOKEN_KEYWORD, KW_ELSE, "else", 4},
+        {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+        {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
+        {TOKEN_EOF, KW_UNKNOWN, "", 0},
+    };
+
+    check_tokens(tokens, parse(&parser_, tokens.data()));
+}
+
+TEST_F(ParserTest, RedeclarationInDifferentScope2)
+{
+    std::vector<Token> tokens{
+        {TOKEN_KEYWORD, KW_FUNC, "func", 4, 0, 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "pepa", 4},
+        {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
+        {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
+        {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+        {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "y", 1},
+        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+        {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+        {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+        {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "y", 1},
+        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+        {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
+        {TOKEN_KEYWORD, KW_ELSE, "else", 4},
+        {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+        {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
         {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };

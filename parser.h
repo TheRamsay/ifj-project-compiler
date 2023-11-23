@@ -15,10 +15,13 @@
 typedef struct
 {
     Symtable *global_table;
-    Symtable *local_table;
+    void_stack_t *local_tables_stack;  // Stack of local tables
+    // Symtable *local_table;
     Token *token_buffer;
     bool buffer_active;
     bool in_function;
+    bool in_scope;
+
 #ifndef PARSER_TEST
     gen_t *gen;
 #else

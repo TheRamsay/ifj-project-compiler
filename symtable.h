@@ -13,6 +13,7 @@
 #define _SYMTABLE_H_
 
 #include <stdbool.h>
+#include "stack.h"
 
 /** symtable_init error. */
 #define SYMTABLE_INIT_ERROR 1

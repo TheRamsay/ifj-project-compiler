@@ -1,14 +1,16 @@
 #include "parser.h"
 
 #define TOKEN_BUFFER_LEN 2
+#define LUFAK_JE_PEPIK_TODO_PREPSAT_NA_DYNAMICKEJ_STACK 42069 + 2 // Special prime number that is optimal for this use case
 
 bool parser_init(Parser *parser)
 {
-    parser->global_table = symtable_new(100);
-    parser->local_table = symtable_new(100);
+    parser->global_table = symtable_new(LUFAK_JE_PEPIK_TODO_PREPSAT_NA_DYNAMICKEJ_STACK);
+    parser->local_tables_stack = stack_new(LUFAK_JE_PEPIK_TODO_PREPSAT_NA_DYNAMICKEJ_STACK);
     parser->buffer_active = false;
     parser->token_buffer = calloc(TOKEN_BUFFER_LEN, sizeof(Token));
     parser->in_function = false;
+    parser->in_scope = false;
 
     if (parser->token_buffer == NULL)
     {
@@ -282,6 +284,9 @@ void func_params(Parser *parser, SymtableItem *item)
 // function_def -> func FUNC_ID ( <func_params> ) <return_def> { <statement_list> }
 void func_def(Parser *parser)
 {
+    Symtable *local_table = symtable_new(LUFAK_JE_PEPIK_TODO_PREPSAT_NA_DYNAMICKEJ_STACK);
+    stack_push(parser->local_tables_stack, local_table);
+
     parser->in_function = true;
     char *key = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
     SymtableItem *item = symtable_add_symbol(parser->global_table, key, SYMTABLE_FUNCTION, true, false);
@@ -299,7 +304,7 @@ void func_def(Parser *parser)
 
     consume(parser, TOKEN_RBRACE, "Expected '}'");
 
-    symtable_clear(parser->local_table);
+    stack_pop(parser->local_tables_stack);
     parser->in_function = false;
 }
 
@@ -383,6 +388,11 @@ bool body(Parser *parser)
 // if_statement -> 'if' if_cond '{' body '} else {' body '}' .
 bool if_statement(Parser *parser)
 {
+    parser->in_scope = true;
+
+    Symtable *local_table = symtable_new(LUFAK_JE_PEPIK_TODO_PREPSAT_NA_DYNAMICKEJ_STACK);
+    stack_push(parser->local_tables_stack, local_table);
+
     bool valid_return;
 
     // if_cond -> <expr> | VAR_DEFINITION_KW IDENTIFIER '=' <expr>
@@ -406,6 +416,10 @@ bool if_statement(Parser *parser)
         exit_with_error(SYNTAX_ERR, "Expected 'else'");
     }
 
+    stack_pop(parser->local_tables_stack);
+    local_table = symtable_new(LUFAK_JE_PEPIK_TODO_PREPSAT_NA_DYNAMICKEJ_STACK);
+    stack_push(parser->local_tables_stack, local_table);
+
     consume(parser, TOKEN_LBRACE, "Expected '{'");
 
     valid_return &= body(parser);
@@ -415,6 +429,8 @@ bool if_statement(Parser *parser)
         exit_with_error(SYNTAX_ERR, "Expected '}'");
     }
 
+    stack_pop(parser->local_tables_stack);
+    parser->in_scope = false;
     return valid_return;
 }
 
@@ -436,6 +452,11 @@ bool statement(Parser *parser)
     // statement -> while <expression> { <statement_list> } else { <statement_list> } rule
     else if (match_keyword(parser, KW_WHILE, true))
     {
+        parser->in_scope = true;
+
+        Symtable *local_table = symtable_new(LUFAK_JE_PEPIK_TODO_PREPSAT_NA_DYNAMICKEJ_STACK);
+        stack_push(parser->local_tables_stack, local_table);
+
         expression(parser);
         consume(parser, TOKEN_LBRACE, "Expected '{'");
         // TODO: zmrd
@@ -445,6 +466,9 @@ bool statement(Parser *parser)
         {
             exit_with_error(SYNTAX_ERR, "Expected '}'");
         }
+
+        stack_pop(parser->local_tables_stack);
+        parser->in_scope = false;
     }
     // statement -> return <return_t>
     else if (match_keyword(parser, KW_RETURN, true))
@@ -493,7 +517,18 @@ bool statement(Parser *parser)
             }
         }
 
-        SymtableItem *item = symtable_add_symbol(parser->in_function ? parser->local_table : parser->global_table, variable_id, SYMTABLE_VARIABLE, var_initialized, is_constant);
+        Symtable *table;
+
+        if (!parser->in_function && !parser->in_scope)
+        {
+            table = parser->global_table;
+        }
+        else
+        {
+            table = parser->local_tables_stack->items[parser->local_tables_stack->top_index];
+        }
+
+        SymtableItem *item = symtable_add_symbol(table, variable_id, SYMTABLE_VARIABLE, var_initialized, is_constant);
         if (var_initialized)
         {
             item->data->variable.identifier_type = keyword_to_datatype(parser, data_type.keyword);
@@ -509,7 +544,19 @@ bool statement(Parser *parser)
         // statement -> <identifier> <var_definition_value>
         if (peek(parser)->type == TOKEN_ASSIGN)
         {
-            SymtableItem *item = symtable_get(parser->in_function ? parser->local_table : parser->global_table, current_token(parser)->val);
+
+            Symtable *table;
+
+            if (!parser->in_function && !parser->in_scope)
+            {
+                table = parser->global_table;
+            }
+            else
+            {
+                table = parser->local_tables_stack->items[parser->local_tables_stack->top_index];
+            }
+
+            SymtableItem *item = symtable_get(table, current_token(parser)->val);
 
             // Modifing constant variable
             if (item->data->variable.constant && item->data->variable.initialized)
