@@ -229,7 +229,7 @@ TEST_F(ParserTest, FuncDeclarationWithParams)
         {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
         {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
         {TOKEN_IDENTIFIER, KW_UNKNOWN, "_", 1},
-        {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "aihoj", 4},
         {TOKEN_COLON, KW_UNKNOWN, ":", 1},
         {TOKEN_KEYWORD, KW_INT, "String?", 7},
         {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
@@ -741,6 +741,11 @@ TEST_F(ParserTest, NestedIfWithoutElseBranch)
 TEST_F(ParserTest, IfLet)
 {
     std::vector<Token> tokens{
+        {TOKEN_KEYWORD, KW_LET, "let", 3, 0, 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
+        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+
         {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
         {TOKEN_KEYWORD, KW_LET, "let", 3},
         {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
@@ -761,6 +766,10 @@ TEST_F(ParserTest, IfLet)
 TEST_F(ParserTest, IfLetWithoutExpr)
 {
     std::vector<Token> tokens{
+        {TOKEN_KEYWORD, KW_LET, "let", 3, 0, 1},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
+        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
         {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
         {TOKEN_KEYWORD, KW_LET, "let", 3},
         {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
@@ -1091,4 +1100,24 @@ TEST_F(ParserTest, DeclareVariableWithSameNameAsFuncParam)
     };
 
     check_tokens(tokens, parse(&parser_, tokens.data()));
+}
+
+TEST_F(ParserTest, IfLetWithoutDefinition)
+{
+    std::vector<Token> tokens{
+        {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
+        {TOKEN_KEYWORD, KW_LET, "let", 3},
+        {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
+        {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+        {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+        {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
+        {TOKEN_KEYWORD, KW_ELSE, "else", 4},
+        {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+        {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
+        {TOKEN_EOF, KW_UNKNOWN, "", 0},
+    };
+
+    EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC), "Semantic error.*");
 }

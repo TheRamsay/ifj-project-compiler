@@ -53,9 +53,9 @@ Token consume(Parser *parser, TokenType token_type, char *error_msg);
 
 void return_def(Parser *parser, SymtableItem *item);
 
-void func_params_n(Parser *parser, SymtableItem *item);
+void func_params_n(Parser *parser, SymtableItem *item, Symtable *table);
 
-void func_params(Parser *parser, SymtableItem *item);
+void func_params(Parser *parser, SymtableItem *item, Symtable *table);
 
 // function_def -> func FUNC_ID ( <func_params> ) <return_def> { <statement_list> }
 void func_def(Parser *parser);

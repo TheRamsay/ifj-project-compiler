@@ -230,7 +230,7 @@ void symtable_dispose(Symtable *table)
 	table->error_code = 0;
 }
 
-SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType type, bool defined, bool constant)
+SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType type, bool defined, bool constant, bool param)
 {
 	SymtableItem *item = symtable_get(table, key);
 	// Item already exists
@@ -252,8 +252,18 @@ SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType 
 		}
 		else
 		{
-			// Variable is already defined -> error
-			exit_with_error(SEMANTIC_ERR_FUNC, "Variable %s already defined", key);
+			// Variable is already defined but only like a parameter -> ok
+			if (item->data->variable.param)
+			{
+				item->data->variable.constant = constant;
+				item->data->variable.param = false;
+			}
+			// Variable is already defined and not like a parameter -> error
+			else
+			{
+				// Variable is already defined -> error
+				exit_with_error(SEMANTIC_ERR_FUNC, "Variable %s already defined", key);
+			}
 		}
 	}
 
@@ -312,6 +322,7 @@ SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType 
 		item->data->variable.identifier_type = (SymtableIdentifierType){.data_type = UNKNOWN_TYPE, .nullable = false};
 		item->data->variable.initialized = defined;
 		item->data->variable.constant = constant;
+		item->data->variable.param = param;
 	}
 
 	table->items[index] = item;
@@ -426,7 +437,7 @@ bool symtable_add_return(SymtableItem *item, SymtableIdentifierType type)
 			exit_with_error(INTERNAL_ERROR, "Allocating memory for symtable failed");
 		}
 
-		return_type->data_type = type.data_type;
+		return_type->identifier_type = type;
 		item->data->function._return = return_type;
 	}
 	else

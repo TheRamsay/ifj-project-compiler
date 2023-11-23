@@ -55,6 +55,7 @@ typedef struct
 	SymtableIdentifierType identifier_type;
 	bool initialized;
 	bool constant;
+	bool param;
 } SymtableVariable;
 
 struct SymtableParam
@@ -67,7 +68,7 @@ struct SymtableParam
 
 struct SymtableReturn
 {
-	SymtableDataType data_type;
+	SymtableIdentifierType identifier_type;
 };
 
 typedef struct
@@ -122,7 +123,7 @@ void symtable_dispose(Symtable *table);
 
 void symtable_clear(Symtable *table);
 
-SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType type, bool defined, bool constant);
+SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType type, bool defined, bool constant, bool param);
 SymtableItem *symtable_insert(Symtable *table, char *key, SymtableData *data);
 
 bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_identifier, SymtableIdentifierType identifier_type);

@@ -165,9 +165,12 @@ bool is_datatype(Parser *parser)
            check_keyword(parser, KW_STRING);
 }
 
-SymtableIdentifierType keyword_to_datatype(Parser *parser, KeywordType keyword)
+SymtableIdentifierType parse_datatype(Parser *parser)
 {
     SymtableDataType type;
+
+    KeywordType keyword = current_token(parser)->keyword;
+
     switch (keyword)
     {
     case KW_INT:
@@ -187,6 +190,7 @@ SymtableIdentifierType keyword_to_datatype(Parser *parser, KeywordType keyword)
         break;
     }
 
+    advance(parser);
     bool nullable = match(parser, TOKEN_OPTIONAL_TYPE, false);
 
     return (SymtableIdentifierType){.data_type = type, .nullable = nullable};
@@ -220,14 +224,10 @@ void return_def(Parser *parser, SymtableItem *item)
         exit_with_error(SYNTAX_ERR, "expected datatype after '->'");
     }
 
-    KeywordType return_type = current_token(parser)->keyword;
-    symtable_add_return(item, keyword_to_datatype(parser, return_type));
-
-    // TODO: this is temporary
-    advance(parser);
+    symtable_add_return(item, parse_datatype(parser));
 }
 
-void func_params_n(Parser *parser, SymtableItem *item)
+void func_params_n(Parser *parser, SymtableItem *item, Symtable *local_table)
 {
     if (!match(parser, TOKEN_COMMA, false))
     {
@@ -245,14 +245,14 @@ void func_params_n(Parser *parser, SymtableItem *item)
         exit_with_error(SYNTAX_ERR, "Expected datatype after ':'");
     }
 
-    KeywordType param_type = current_token(parser)->keyword;
-    symtable_add_param(item, out_param_id, in_param_id, keyword_to_datatype(parser, param_type));
+    symtable_add_param(item, out_param_id, in_param_id, parse_datatype(parser));
+    symtable_add_symbol(local_table, in_param_id, SYMTABLE_VARIABLE, true, false, true);
     // Just consume type, idk what to do with it yet
-    advance(parser);
-    func_params_n(parser, item);
+    // advance(parser);
+    func_params_n(parser, item, local_table);
 }
 
-void func_params(Parser *parser, SymtableItem *item)
+void func_params(Parser *parser, SymtableItem *item, Symtable *local_table)
 {
     // If closing paren, then no params
     if (check_type(parser, TOKEN_RPAREN))
@@ -273,12 +273,14 @@ void func_params(Parser *parser, SymtableItem *item)
     {
         exit_with_error(SYNTAX_ERR, "Expected datatype after ':'");
     }
-    KeywordType param_type = current_token(parser)->keyword;
-    symtable_add_param(item, out_param_id, in_param_id, keyword_to_datatype(parser, param_type));
 
-    advance(parser);
+    SymtableIdentifierType data_type = parse_datatype(parser);
 
-    func_params_n(parser, item);
+    symtable_add_param(item, out_param_id, in_param_id, data_type);
+    SymtableItem *parameter_var_item = symtable_add_symbol(local_table, in_param_id, SYMTABLE_VARIABLE, true, false, true);
+    item->data->variable.identifier_type = data_type;
+
+    func_params_n(parser, item, local_table);
 }
 
 // function_def -> func FUNC_ID ( <func_params> ) <return_def> { <statement_list> }
@@ -289,15 +291,15 @@ void func_def(Parser *parser)
 
     parser->in_function = true;
     char *key = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
-    SymtableItem *item = symtable_add_symbol(parser->global_table, key, SYMTABLE_FUNCTION, true, false);
+    SymtableItem *item = symtable_add_symbol(parser->global_table, key, SYMTABLE_FUNCTION, true, false, false);
 
     consume(parser, TOKEN_LPAREN, "Expected '('");
-    func_params(parser, item);
+    func_params(parser, item, local_table);
     consume(parser, TOKEN_RPAREN, "Expected ')'");
     return_def(parser, item);
     consume(parser, TOKEN_LBRACE, "Expected '{'");
 
-    if (!body(parser) && item->data->function._return->data_type != VOID_TYPE)
+    if (!body(parser) && item->data->function._return->identifier_type.data_type != VOID_TYPE)
     {
         exit_with_error(SEMANTIC_ERR_CALL, "Function control flow does lead to invalid return");
     }
@@ -402,9 +404,36 @@ bool if_statement(Parser *parser)
     }
 
     // if_cond -> <expr> | VAR_DEFINITION_KW IDENTIFIER '=' <expr>
-    if (match_keyword(parser, KW_LET, false) || match_keyword(parser, KW_VAR, false))
+    if (match_keyword(parser, KW_LET, false))
     {
-        consume(parser, TOKEN_IDENTIFIER, "Expected identifier");
+        char *var_id = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
+
+        bool var_exists = false;
+
+        SymtableItem *result = symtable_get(parser->global_table, var_id);
+
+        if (result == NULL)
+        {
+            int i = parser->local_tables_stack->top_index;
+            while (i >= 0)
+            {
+                result = symtable_get(parser->local_tables_stack->items[i], var_id);
+                if (result != NULL)
+                {
+                    var_exists = true;
+                    break;
+                }
+                i--;
+            }
+        } else {
+            var_exists = true;
+        }
+
+        if (!var_exists)
+        {
+            exit_with_error(SEMANTIC_ERR_FUNC, "Variable %s has to be defined", var_id);
+        }
+
         consume(parser, TOKEN_ASSIGN, "Expected '='");
     }
 
@@ -484,7 +513,7 @@ bool statement(Parser *parser)
     // statement -> <var_definition_kw> <identifier> <var_definition_value>
     else if (match_keyword(parser, KW_LET, true) || match_keyword(parser, KW_VAR, true))
     {
-        Token data_type = (Token){.type = TOKEN_UNKNOWN, .keyword = KW_UNKNOWN};
+        SymtableIdentifierType identifier_type = (SymtableIdentifierType){.data_type = UNKNOWN_TYPE, .nullable = false};
         bool var_initialized = false;
 
         char *variable_id = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
@@ -500,10 +529,8 @@ bool statement(Parser *parser)
             else
             {
                 // Save data type token for later
-                data_type = *current_token(parser);
+                identifier_type = parse_datatype(parser);
             }
-
-            advance(parser);
         }
 
         // Variable initialization
@@ -517,7 +544,7 @@ bool statement(Parser *parser)
             var_initialized = false;
 
             // Type was not defined
-            if (data_type.type == TOKEN_UNKNOWN)
+            if (identifier_type.data_type == UNKNOWN_TYPE)
             {
                 exit_with_error(SEMANTIC_ERR_INFER, "Cannot infer type of variable '%s'", variable_id);
             }
@@ -534,10 +561,10 @@ bool statement(Parser *parser)
             table = parser->local_tables_stack->items[parser->local_tables_stack->top_index];
         }
 
-        SymtableItem *item = symtable_add_symbol(table, variable_id, SYMTABLE_VARIABLE, var_initialized, is_constant);
+        SymtableItem *item = symtable_add_symbol(table, variable_id, SYMTABLE_VARIABLE, var_initialized, is_constant, false);
         if (var_initialized)
         {
-            item->data->variable.identifier_type = keyword_to_datatype(parser, data_type.keyword);
+            item->data->variable.identifier_type = identifier_type;
         }
     }
     else if (check_type(parser, TOKEN_IDENTIFIER))
