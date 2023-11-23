@@ -15,10 +15,13 @@
 typedef struct
 {
     Symtable *global_table;
-    Symtable *local_table;
+    void_stack_t *local_tables_stack;  // Stack of local tables
+    // Symtable *local_table;
     Token *token_buffer;
     bool buffer_active;
     bool in_function;
+    bool in_scope;
+
 #ifndef PARSER_TEST
     gen_t *gen;
 #else
@@ -50,9 +53,9 @@ Token consume(Parser *parser, TokenType token_type, char *error_msg);
 
 void return_def(Parser *parser, SymtableItem *item);
 
-void func_params_n(Parser *parser, SymtableItem *item);
+void func_params_n(Parser *parser, SymtableItem *item, Symtable *table);
 
-void func_params(Parser *parser, SymtableItem *item);
+void func_params(Parser *parser, SymtableItem *item, Symtable *table);
 
 // function_def -> func FUNC_ID ( <func_params> ) <return_def> { <statement_list> }
 void func_def(Parser *parser);
