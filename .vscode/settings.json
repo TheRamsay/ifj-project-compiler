@@ -7,7 +7,8 @@
     "stdlib.h": "c",
     "system_error": "c",
     "exp_parser.h": "c",
-    "any": "c"
+    "any": "c",
+    "string_view": "c"
   },
   "C_Cpp.errorSquiggles": "disabled"
 }
