@@ -7,10 +7,11 @@
 
 #include "scanner.h"
 #include "stack.h"
+#include "parser.h"
 
 #define TABLE_SIZE 17
-#define RULES_SIZE 15
-#define RULE_MAX_LENGHT 3
+#define RULES_SIZE 17
+#define RULE_MAX_LENGHT 4
 
 const char operators[] = {TOKEN_PLUS, TOKEN_IDENTIFIER, TOKEN_STACK_BOTTOM, TOKEN_EXPRESSION};
 
@@ -30,13 +31,18 @@ typedef struct {
 
 typedef struct {
   Precedence precedence;
-  TokenType token;
+  Token token;
+  SymtableIdentifierType type;
 } Stack_token_t;
 
-int parse_expression(TokenType expressionToParse[], int inputSize);
+#ifdef PARSER_TEST
+int parse_expression(Token expressionToParse[], int inputSize, Parser *parser);
+#else
+int parse_expression(Parser *parser);
+#endif
 
 TokenType *extract_tokens_from_stack(Stack_token_t *stack_tokens, size_t size);
 
-Stack_token_t *arrayFromStack(void_stack_t *stack);
+Stack_token_t *arrayFromStack(void_stack_t *stack, int *size);
 
 #endif // _EXP_PARSER_H
