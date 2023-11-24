@@ -32,7 +32,7 @@ include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 include_directories(src)
 add_executable(main
         main.c
-        generator.h generator.c
+        # generator.h generator.c
         parser.h parser.c
         error.h error.c
         scanner.h scanner.c
@@ -41,16 +41,15 @@ add_executable(main
         symtable.h symtable.c)
 
 # ------- Tests -------
-# ------- Scanner -------
+
 add_executable(Test_scanner
         scanner.h scanner.c
         tests/scanner.cpp)
 target_link_libraries(Test_scanner gtest gtest_main)
 
 add_test(scanner Test_scanner)
-# ----------------------------------------------------------------
 
-# ------- Symbtable -------
+
 add_executable(Test_symtable
         symtable.h symtable.c
         error.h error.c
@@ -58,22 +57,39 @@ add_executable(Test_symtable
 target_link_libraries(Test_symtable gtest gtest_main)
 
 add_test(symtable Test_symtable)
-# ----------------------------------------------------------------
 
-# ------- Stack -------
+
 add_executable(Test_stack
         stack.h stack.c
         tests/stack.cpp)
 target_link_libraries(Test_stack gtest gtest_main)
 
 add_test(stack Test_stack)
+
+add_definitions(-DPARSER_TEST)
+add_executable(ExpParserTest
+        exp_parser.h exp_parser.c stack.h stack.c scanner.h scanner.c
+        parser.h parser.c
+        symtable.h symtable.c
+        error.h error.c
+        tests/exp_parser.cpp)
+target_link_libraries(ExpParserTest gtest gtest_main)
+
+add_test(str Test_str)
 # ----------------------------------------------------------------
 
-# ------- STR -------
-add_executable(Test_str
+# ------- Parser -------
+add_definitions(-DPARSER_TEST)
+add_executable(Test_parser
+        parser.h parser.c
+        symtable.h symtable.c
+        error.h error.c
+        generator.c generator.h
         str.h str.c
-        tests/str.cpp)
-target_link_libraries(Test_str gtest gtest_main)
+        stack.h stack.c
+        scanner.c scanner.h
+        tests/parser.cpp)
+target_link_libraries(Test_parser gtest gtest_main)
 
 add_test(str Test_str)
 # ----------------------------------------------------------------

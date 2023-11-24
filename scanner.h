@@ -86,6 +86,8 @@ typedef enum token_t
   TOKEN_EXPONENT,
   TOKEN_DECIMAL_LITERAL,
   TOKEN_INTEGER_LITERAL,
+  TOKEN_STACK_BOTTOM, // Used by expresion parser
+  TOKEN_EXPRESSION, // Used by expresion parser
 } TokenType;
 
 typedef struct
