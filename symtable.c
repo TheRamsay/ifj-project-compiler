@@ -400,7 +400,7 @@ bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_ident
 	{
 		SymtableParam *current = item->data->function.params;
 
-		while (current != NULL)
+		while (current->next != NULL)
 		{
 			// Check for duplicate names
 			if (strcmp(current->in_name, param->in_name) == 0)
@@ -411,7 +411,7 @@ bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_ident
 			current = current->next;
 		}
 
-		current = param;
+		current->next = param;
 	}
 
 	item->data->function.param_count++;

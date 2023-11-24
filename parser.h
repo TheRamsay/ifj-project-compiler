@@ -1,11 +1,12 @@
 #ifndef __PARSER_H__
 #define __PARSER_H__
 
-#include "error.h"
-#include "symtable.h"
 #include <stdbool.h>
-#include "scanner.h"
 #include <stdlib.h>
+
+#include "error.h"
+#include "scanner.h"
+#include "symtable.h"
 
 // Only include scanner and generator if not in debug mode, otherwise mock them
 #ifndef PARSER_TEST
@@ -14,21 +15,21 @@
 
 typedef struct
 {
-    Symtable *global_table;
-    void_stack_t *local_tables_stack;  // Stack of local tables
-    // Symtable *local_table;
-    Token *token_buffer;
-    bool buffer_active;
-    bool in_function;
-    bool in_scope;
+  Symtable *global_table;
+  void_stack_t *local_tables_stack; // Stack of local tables
+  // Symtable *local_table;
+  Token *token_buffer;
+  bool buffer_active;
+  bool in_function;
+  bool in_scope;
 
 #ifndef PARSER_TEST
-    gen_t *gen;
+  gen_t *gen;
 #else
-    Token *input_tokens;
-    int input_index;
-    Token *output_tokens;
-    int output_index;
+  Token *input_tokens;
+  int input_index;
+  Token *output_tokens;
+  int output_index;
 #endif
 } Parser;
 
@@ -53,18 +54,18 @@ Token consume(Parser *parser, TokenType token_type, char *error_msg);
 
 void return_def(Parser *parser, SymtableItem *item);
 
-void func_params_n(Parser *parser, SymtableItem *item, Symtable *table);
+void func_params_n(Parser *parser, SymtableItem *item, Symtable *table, void_stack_t *stack);
 
-void func_params(Parser *parser, SymtableItem *item, Symtable *table);
+void func_params(Parser *parser, SymtableItem *item, Symtable *table, void_stack_t *stack);
 
 // function_def -> func FUNC_ID ( <func_params> ) <return_def> { <statement_list> }
 void func_def(Parser *parser);
 
 // call_params_n -> , <call_params_kw> <term> <call_params_n>
-void call_params_n(Parser *parser);
+void call_params_n(Parser *parser, SymtableItem *item, SymtableParam *param);
 
 // call_params -> <call_params_kw> <term> <call_params_n>
-void call_params(Parser *parser);
+void call_params(Parser *parser, SymtableItem *item, SymtableParam *param);
 
 bool statement(Parser *parser);
 bool body(Parser *parser);

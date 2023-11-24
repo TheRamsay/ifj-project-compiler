@@ -546,6 +546,17 @@ int get_next_token(Token *token)
         }
         inString = false;
         token->type = TOKEN_STRING_LITERAL;
+
+        if (token->val == NULL)
+        {
+          token->val = (char *)malloc(sizeof(char));
+          if (token->val == NULL)
+          {
+            printf("Error allocating memory for token value\n");
+            exit(1);
+          }
+          token->val[0] = '\0';
+        }
         break;
       }
       else if (c == '\\')
@@ -726,6 +737,6 @@ int get_next_token(Token *token)
     exit(1);
   }
 
-  printf("tokenik: %d | value: %s | new_line: %d \n", token->type, token->val, token->after_newline);
+  printf("tokenik: %d | value: %s (pointer %p) | %d | %d | new_line: %d \n", token->type, token->val, token->val, token->keyword, token->is_nullable, token->after_newline);
   return token->type;
 }
