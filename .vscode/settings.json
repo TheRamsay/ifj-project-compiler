@@ -1,8 +1,15 @@
 {
   "files.associations": {
+    "*.html": "html",
+    "*.py": "python",
     "symtable.h": "c",
     "stack.h": "c",
     "stdlib.h": "c",
-    "system_error": "c"
-  }
+    "system_error": "c",
+    "exp_parser.h": "c",
+    "any": "c",
+    "string_view": "c",
+    "chrono": "c"
+  },
+  "C_Cpp.errorSquiggles": "disabled"
 }

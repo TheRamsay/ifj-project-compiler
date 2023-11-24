@@ -73,4 +73,8 @@ run_tests
 # Examples outputs
 !examples/*.out
 
+build*/
 cmake-build*/
+cmake-build*/
+
+build/

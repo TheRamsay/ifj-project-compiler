@@ -1,0 +1,97 @@
+LABEL readString$
+  READ GF@? string
+RETURN
+
+LABEL readInt$
+  READ GF@? int
+RETURN
+
+LABEL readDouble$
+  READ GF@? float
+RETURN
+
+LABEL write$
+  DEFVAR TF@argcount
+  POPS TF@argcount
+  DEFVAR TF@curarg
+
+  LABEL write$loop
+  JUMPIFEQ write$end TF@argcount int@0
+    POPS TF@curarg
+    WRITE TF@curarg
+    SUB TF@argcount TF@argcount int@1
+  JUMP write$loop
+
+  LABEL write$end
+RETURN
+
+LABEL Int2Double$
+  POPS GF@?
+  INT2FLOAT GF@? GF@?
+RETURN
+
+LABEL Double2Int$
+  POPS GF@?
+  FLOAT2INT GF@? GF@?
+RETURN
+
+LABEL length$
+  POPS GF@?
+  STRLEN GF@? GF@?
+RETURN
+
+LABEL substring$
+  DEFVAR TF@instr
+  POPS TF@instr
+  DEFVAR TF@startsAt
+  POPS TF@startsAt
+  DEFVAR TF@endsBefore
+  POPS TF@endsBefore
+
+  # startsAt < 0
+  LT GF@? TF@startsAt int@0
+  JUMPIFEQ substring$error GF@? bool@true
+
+  # endsBefore < 0
+  LT GF@? TF@endsBefore int@0
+  JUMPIFEQ substring$error GF@? bool@true
+
+  # startsAt >= length(instr)
+  STRLEN GF@? TF@instr
+  SUB GF@? GF@? int@1
+  GT GF@? TF@startsAt GF@?
+  JUMPIFEQ substring$error GF@? bool@true
+
+  # endsBefore > length(instr)
+  STRLEN GF@? TF@instr
+  GT GF@? TF@endsBefore GF@?
+  JUMPIFEQ substring$error GF@? bool@true
+
+  DEFVAR TF@outstr
+  MOVE TF@outstr string@
+  DEFVAR TF@curchar
+
+  LABEL substring$loop
+    GETCHAR TF@curchar TF@instr TF@startsAt
+    CONCAT TF@outstr TF@outstr TF@curchar
+    ADD TF@startsAt TF@startsAt int@1
+    JUMPIFEQ substring$end TF@startsAt TF@endsBefore
+  JUMP substring$loop
+
+  LABEL substring$end
+  MOVE GF@? TF@outstr
+RETURN
+
+  LABEL substring$error
+  MOVE GF@? nil@nil
+RETURN
+
+LABEL ord$
+  POPS GF@? # instr
+  STRI2INT GF@? GF@? int@0
+RETURN
+
+LABEL chr$
+  POPS GF@? # int
+  INT2CHAR GF@? GF@?
+RETURN

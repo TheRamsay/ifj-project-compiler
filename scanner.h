@@ -2,8 +2,9 @@
 #define __SCANNER_H__
 
 #include <stdio.h>
+#include <stdbool.h>
 
-typedef enum
+typedef enum keyword_t
 {
   NONE,
   KW_IF,
@@ -22,15 +23,16 @@ typedef enum
   KW_DOUBLE,
   KW_STRING,
   KW_FUNC,
-} Keyword;
+} KeywordType;
 
-typedef enum
+typedef enum token_t
 {
   TOKEN_KEYWORD,
   TOKEN_STRING_LITERAL,
   TOKEN_COLON,
   TOKEN_ARROW,
   TOKEN_IDENTIFIER,
+  TOKEN_IDENTIFIER_NOT_NULL,
   TOKEN_LPAREN,
   TOKEN_RPAREN,
   TOKEN_LBRACE,
@@ -84,14 +86,18 @@ typedef enum
   TOKEN_EXPONENT,
   TOKEN_DECIMAL_LITERAL,
   TOKEN_INTEGER_LITERAL,
+  TOKEN_STACK_BOTTOM, // Used by expresion parser
+  TOKEN_EXPRESSION, // Used by expresion parser
 } TokenType;
 
 typedef struct
 {
   TokenType type;
-  Keyword keyword;
+  KeywordType keyword;
   char *val;
   int length;
+  bool is_nullable;
+  bool after_newline;
 } Token;
 
 void scanner_init(FILE *file);
