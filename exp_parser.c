@@ -23,10 +23,10 @@ const int precedence_table[TABLE_SIZE][TABLE_SIZE] = {
     {L, L, L, L, X, X, X, X, X, X, L, R, X, X, L, R, E}, // !=
     {L, L, L, L, L, L, L, L, L, L, L, E, L, L, L, X, E}, // (
     {R, R, R, R, R, R, R, R, R, R, X, R, X, X, X, R, L}, // )
-    {L, L, L, L, X, X, X, X, X, X, L, R, X, X, L, E, L}, // ??
+    {L, L, L, L, X, X, X, X, X, X, L, R, X, X, L, R, L}, // ??
     {R, R, R, R, X, X, X, X, X, X, X, R, X, X, R, L, X}, // !
     {R, R, R, R, R, R, R, R, R, R, X, R, R, L, L, R, X}, // i
-    {L, L, L, L, L, L, L, L, L, L, L, X, X, L, L, X, L}, // $
+    {L, L, L, L, L, L, L, L, L, L, L, X, L, L, L, X, L}, // $
     {E, E, E, E, E, E, E, E, E, E, L, R, L, L, X, R, X}  // E
 };
 
@@ -96,8 +96,6 @@ int get_operator_index(TokenType op) {
     return 14;
   case TOKEN_STACK_BOTTOM:
     return 15;
-  case TOKEN_EXPRESSION:
-    return 16;
 
   default:
     return -1; // Operator not found
@@ -132,7 +130,17 @@ Stack_token_t evaluate_rule(Stack_token_t token) {
   case TOKEN_PLUS:
   case TOKEN_MINUS:
   case TOKEN_MULTIPLY:
-  case TOKEN_DIV: {
+  case TOKEN_DIV:
+  case TOKEN_LT:
+  case TOKEN_LE:
+  case TOKEN_GT:
+  case TOKEN_GE:
+  case TOKEN_EQ:
+  case TOKEN_NEQ: {
+    // TODO type check
+    return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = INT_TYPE, .nullable = false}};
+  }
+  case TOKEN_NULL_COALESCING: {
     // TODO type check
     return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = INT_TYPE, .nullable = false}};
   }
@@ -266,6 +274,14 @@ Token parse_expression(Parser *parser) {
 
     Stack_token_t action = get_precedence(stackTop, token);
     if (action.precedence == X) {
+      if (stackTop.token.type == TOKEN_STACK_BOTTOM && token.token.type == TOKEN_STACK_BOTTOM) {
+        break;
+        // Stack_token_t tempToken = *(Stack_token_t *)stack_top(stack);
+        // ;
+        // if (tempToken.token.type == TOKEN_EXPRESSION) {
+        //   break;
+        // }
+      }
       printf("Invalid relation between %d and %d\n", stackTop.token.val, token.token.val);
       exit_with_error(SYNTAX_ERR, "Invalid expression");
     }
