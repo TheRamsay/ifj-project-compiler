@@ -23,22 +23,22 @@ protected:
     Parser parser_;
 };
 
-// // Basic tests
-// TEST_F(ExpParserTest, BasicTests) { 
-//     Should return true
+// Basic tests
+TEST_F(ExpParserTest, BasicTests) { 
+    // Should return true
 
-//     Token expresion1[] = { {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2},    {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0},};
-//     ASSERT_TRUE(parse_expression(expresion1, 2, &parser_));
+    Token expresion1[] = { {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2},    {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0},};
+    ASSERT_EQ(parse_expression(expresion1, 2, &parser_).type, TOKEN_EXPRESSION);
 
-//     Token expresion2[] = {{TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_PLUS, KW_UNKNOWN, "+", 0} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
-//     ASSERT_TRUE(parse_expression(expresion2, 4, &parser_));
+    Token expresion2[] = {{TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_PLUS, KW_UNKNOWN, "+", 0} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
+    ASSERT_EQ(parse_expression(expresion2, 4, &parser_).type, TOKEN_EXPRESSION);
 
-//     Token expresion3[] = {{TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2},{TOKEN_PLUS, KW_UNKNOWN, "+", 0} , {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
-//     EXPECT_EXIT(parse_expression(expresion3, 3, &parser_), ::testing::ExitedWithCode(SYNTAX_ERR), ".*");
+    Token expresion3[] = {{TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2},{TOKEN_PLUS, KW_UNKNOWN, "+", 0} , {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
+    EXPECT_EXIT(parse_expression(expresion3, 3, &parser_), ::testing::ExitedWithCode(SYNTAX_ERR), ".*");
 
-//      Token expresion4[] = { {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
-//     EXPECT_EXIT(parse_expression(expresion4, 1, &parser_), ::testing::ExitedWithCode(SYNTAX_ERR), ".*");
-// }
+     Token expresion4[] = { {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
+    EXPECT_EXIT(parse_expression(expresion4, 1, &parser_), ::testing::ExitedWithCode(SYNTAX_ERR), ".*");
+}
 
 
 // //Minus tests
@@ -117,16 +117,16 @@ protected:
 // }
 
 // Parenthesis  tests
-// TEST_F(ExpParserTest, ParenthesisTests) {
-//     Token expresion[] = { {TOKEN_LPAREN, KW_UNKNOWN, "(", 2} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_PLUS, KW_UNKNOWN, "+", 2} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2} , {TOKEN_RPAREN, KW_UNKNOWN, ")", 2} ,  {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
-//     ASSERT_TRUE(parse_expression(expresion, 6, &parser_) );
+TEST_F(ExpParserTest, ParenthesisTests) {
+    Token expresion[] = { {TOKEN_LPAREN, KW_UNKNOWN, "(", 2} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_PLUS, KW_UNKNOWN, "+", 2} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2} , {TOKEN_RPAREN, KW_UNKNOWN, ")", 2} ,  {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
+    ASSERT_EQ(parse_expression(expresion, 6, &parser_).type, TOKEN_EXPRESSION );
 
     // Token expresion1[] = { {TOKEN_LPAREN, KW_UNKNOWN, "(", 2} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_PLUS, KW_UNKNOWN, "+", 2} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2} , {TOKEN_RPAREN, KW_UNKNOWN, ")", 2}, {TOKEN_RPAREN, KW_UNKNOWN, ")", 2} ,  {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
     // EXPECT_EXIT(parse_expression(expresion1, 7, &parser_), ::testing::ExitedWithCode(SYNTAX_ERR), ".*");
 
     // Token expresion2[] = { {TOKEN_LPAREN, KW_UNKNOWN, "(", 2}, {TOKEN_LPAREN, KW_UNKNOWN, "(", 2} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_PLUS, KW_UNKNOWN, "+", 2} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2} , {TOKEN_RPAREN, KW_UNKNOWN, ")", 2} ,  {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
     // EXPECT_EXIT(parse_expression(expresion2, 7, &parser_), ::testing::ExitedWithCode(SYNTAX_ERR), ".*");
-// }
+}
 
 // // Otaznicky  tests
 // TEST_F(ExpParserTest, OtaznickyTests) {
@@ -147,6 +147,6 @@ TEST_F(ExpParserTest, BasicTests2) {
     //Should return true
 
     Token expresion2[] = {{TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_PLUS, KW_UNKNOWN, "+", 0} , {TOKEN_STRING_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
-    // EXPECT_EXIT(parse_expression(expresion2, 4, &parser_), ::testing::ExitedWithCode(SEMANTIC_ERR_EXPR), ".*");
-    parse_expression(expresion2, 4, &parser_);
+    EXPECT_EXIT(parse_expression(expresion2, 4, &parser_), ::testing::ExitedWithCode(SEMANTIC_ERR_EXPR), ".*");
+    // parse_expression(expresion2, 4, &parser_);
 }

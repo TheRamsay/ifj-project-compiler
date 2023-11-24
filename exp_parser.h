@@ -36,9 +36,9 @@ typedef struct {
 } Stack_token_t;
 
 #ifdef PARSER_TEST
-int parse_expression(Token expressionToParse[], int inputSize, Parser *parser);
+Token parse_expression(Token expressionToParse[], int inputSize, Parser *parser);
 #else
-int parse_expression(Parser *parser);
+Token parse_expression(Parser *parser);
 #endif
 
 Stack_token_t *extract_tokens_from_stack(Stack_token_t *stack_tokens, size_t size);

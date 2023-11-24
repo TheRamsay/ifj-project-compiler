@@ -31,6 +31,18 @@ const int precedence_table[TABLE_SIZE][TABLE_SIZE] = {
 };
 
 Rule_t rules[] = {
+    {TOKEN_EXPRESSION, 1, {TOKEN_INTEGER_LITERAL}},
+    {TOKEN_EXPRESSION, 1, {TOKEN_DECIMAL_LITERAL}},
+    {
+        TOKEN_EXPRESSION,
+        1,
+        {TOKEN_STRING_LITERAL},
+    },
+    {
+        TOKEN_EXPRESSION,
+        1,
+        {TOKEN_IDENTIFIER},
+    },
     {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_PLUS, TOKEN_EXPRESSION}},
     {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_MINUS, TOKEN_EXPRESSION}},
     {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_MULTIPLY, TOKEN_EXPRESSION}},
@@ -44,18 +56,7 @@ Rule_t rules[] = {
     {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_NULL_COALESCING, TOKEN_EXPRESSION}},
     {TOKEN_EXPRESSION, 3, {TOKEN_LPAREN, TOKEN_EXPRESSION, TOKEN_RPAREN}},
     {TOKEN_EXPRESSION, 5, {TOKEN_LPAREN, TOKEN_EXPRESSION, TOKEN_PLUS, TOKEN_EXPRESSION, TOKEN_RPAREN}},
-    {TOKEN_EXPRESSION, 1, {TOKEN_INTEGER_LITERAL}},
-    {TOKEN_EXPRESSION, 1, {TOKEN_DECIMAL_LITERAL}},
-    {
-        TOKEN_EXPRESSION,
-        1,
-        {TOKEN_STRING_LITERAL},
-    },
-    {
-        TOKEN_EXPRESSION,
-        1,
-        {TOKEN_IDENTIFIER},
-    },
+
 };
 
 int get_operator_index(TokenType op) {
@@ -114,53 +115,32 @@ Stack_token_t get_precedence(Stack_token_t stack_top, Stack_token_t input) {
   return (Stack_token_t){.precedence = precedence_table[stack_index][input_index]};
 }
 
-Stack_token_t evaluate_rule(Stack_token_t *tokens, int size) {
-  Stack_token_t *rightSide = extract_tokens_from_stack(tokens, size);
+Stack_token_t evaluate_rule(Stack_token_t token) {
 
-  // Check each rule
-  for (int i = 0; i < RULES_SIZE; ++i) {
-    int ruleMatch = 1; // Assume a match until proven otherwise
+  switch (token.token.type) {
+  case TOKEN_INTEGER_LITERAL:
+    return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = INT_TYPE, .nullable = false}};
 
-    // Check each TokenType in the rule
-    for (int j = 0; j < rules[i].lenght; ++j) {
-      if (rightSide[j].token.type != rules[i].rule[j]) {
-        ruleMatch = 0; // Not a match
-        break;
-      }
-    }
+  case TOKEN_DECIMAL_LITERAL:
+    return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = DOUBLE_TYPE, .nullable = false}};
 
-    if (ruleMatch) {
-
-      // Assign type
-      if (rules[i].lenght == 1) {
-        switch (rules[i].rule[0]) {
-        case TOKEN_INTEGER_LITERAL:
-          return (Stack_token_t){.token = rules[i].result, .precedence = None, .type = {.data_type = INT_TYPE, .nullable = false}};
-
-        case TOKEN_DECIMAL_LITERAL:
-          return (Stack_token_t){.token = rules[i].result, .precedence = None, .type = {.data_type = DOUBLE_TYPE, .nullable = false}};
-
-        case TOKEN_STRING_LITERAL:
-          return (Stack_token_t){.token = rules[i].result, .precedence = None, .type = {.data_type = STRING_TYPE, .nullable = false}};
-        case TOKEN_IDENTIFIER: {
-        }
-        default:
-          break;
-        }
-        return (Stack_token_t){.token = rules[i].result, .precedence = None, .type = {.data_type = UNKNOWN_TYPE, .nullable = false}};
-      }
-      if (rules[i].lenght == 3) {
-        printf("%d %d %d\n", rightSide[0].type.data_type, rightSide[1].type.data_type, rightSide[2].type.data_type);
-        if (rightSide[0].type.data_type != rightSide[2].type.data_type) {
-          exit_with_error(SEMANTIC_ERR_EXPR, "Cannot use operator on different types");
-        }
-      }
-
-      return (Stack_token_t){.token = rules[i].result, .precedence = None};
-    }
+  case TOKEN_STRING_LITERAL:
+    return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = STRING_TYPE, .nullable = false}};
+  case TOKEN_IDENTIFIER: {
+    break;
+  }
+  case TOKEN_PLUS:
+  case TOKEN_MINUS:
+  case TOKEN_MULTIPLY:
+  case TOKEN_DIV: {
+    // TODO type check
+    return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = INT_TYPE, .nullable = false}};
   }
 
-  return (Stack_token_t){.token = TOKEN_EOF, .precedence = None};
+  default:
+    break;
+  }
+  return (Stack_token_t){.token = {TOKEN_EOF, KW_UNKNOWN, "Eof", 3}, .precedence = None, .type = {.data_type = UNKNOWN_TYPE, .nullable = false}};
 }
 
 Stack_token_t get_next_token_wrap(Token array[], int index, int size) {
@@ -179,33 +159,58 @@ Stack_token_t get_next_token_wrap(Token array[], int index, int size) {
 #endif
 }
 
-void handle_shift_case(void_stack_t *stack, Stack_token_t token, Stack_token_t action) {
+void handle_shift_case(void_stack_t *stack, Stack_token_t token) {
   Stack_token_t *new_token = malloc(sizeof(Stack_token_t));
-  Stack_token_t *new_action = malloc(sizeof(Stack_token_t));
-  *new_token = token;
-  *new_action = action;
 
-  stack_push(stack, new_action);
+  *new_token = token;
   stack_push(stack, new_token);
 }
 
-int handle_reduce_case(void_stack_t *stack, Stack_token_t token) {
-  int size = 0;
-  Stack_token_t *result = arrayFromStack(stack, &size);
-  Stack_token_t *ruleProduct = malloc(sizeof(Stack_token_t));
+int handle_reduce_case(void_stack_t *stack, Stack_token_t token, Stack_token_t precedence) {
+  while (precedence.precedence == R) {
 
-  *ruleProduct = evaluate_rule(result, size);
+    Stack_token_t firstToken = *(Stack_token_t *)stack_pop(stack);
 
-  if (ruleProduct->token.type == TOKEN_EOF) {
-    return -1;
+    Stack_token_t *ruleProduct = malloc(sizeof(Stack_token_t));
+
+    *ruleProduct = evaluate_rule(firstToken);
+
+    if (ruleProduct->token.type == TOKEN_EOF) {
+      Stack_token_t secondToken = *(Stack_token_t *)stack_pop(stack);
+      Stack_token_t thirdToken = *(Stack_token_t *)stack_pop(stack);
+
+      if (firstToken.token.type == TOKEN_EXPRESSION && thirdToken.token.type == TOKEN_EXPRESSION) {
+        if (firstToken.type.data_type != thirdToken.type.data_type) {
+          exit_with_error(SEMANTIC_ERR_EXPR, "Cannot use operator on different types");
+        }
+        *ruleProduct = evaluate_rule(secondToken);
+      }
+
+      if (firstToken.token.type == TOKEN_RPAREN && thirdToken.token.type == TOKEN_LPAREN) {
+        if (secondToken.token.type == TOKEN_EXPRESSION) {
+          *ruleProduct = (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = INT_TYPE, .nullable = false}};
+        }
+      }
+    }
+
+    stack_push(stack, ruleProduct);
+
+    Stack_token_t stackTop = *(Stack_token_t *)stack_top(stack);
+    if (stackTop.token.type == TOKEN_EXPRESSION) {
+      // Pop the top token
+      Stack_token_t tempToken = *(Stack_token_t *)stack_pop(stack);
+
+      // Get the second most top token
+      Stack_token_t second_most_top_token = *(Stack_token_t *)stack_top(stack);
+
+      // Update the global variable _stack_top
+      stackTop = second_most_top_token;
+
+      // Push the top token back onto the stack
+      stack_push(stack, &tempToken);
+    }
+    precedence = get_precedence(stackTop, token);
   }
-
-  Stack_token_t stackTop = *(Stack_token_t *)stack_top(stack);
-  Stack_token_t *action = malloc(sizeof(Stack_token_t));
-  *action = get_precedence(stackTop, token);
-
-  stack_push(stack, action);
-  stack_push(stack, ruleProduct);
   return 0;
 }
 
@@ -216,10 +221,10 @@ void handle_equals_case(void_stack_t *stack, Stack_token_t token) {
   stack_push(stack, new_token);
 }
 #ifdef PARSER_TEST
-int parse_expression(Token *testExpressionToParse, int inputSize, Parser *parser) {
+Token parse_expression(Token *testExpressionToParse, int inputSize, Parser *parser) {
   int expIndex = 0;
 #else
-int parse_expression(Parser *parser) {
+Token parse_expression(Parser *parser) {
 #endif
 
   void_stack_t *stack = stack_new(8192);
@@ -231,31 +236,32 @@ int parse_expression(Parser *parser) {
     Stack_token_t stackTop = *(Stack_token_t *)stack_top(stack);
 
     if (token.token.type == TOKEN_STACK_BOTTOM && stackTop.token.type == TOKEN_EXPRESSION) {
-      Stack_token_t *stackTempTop = malloc(sizeof(Stack_token_t));
-      *stackTempTop = *(Stack_token_t *)stack_pop(stack);
-      Stack_token_t stackTop2 = *(Stack_token_t *)stack_top(stack);
-      if (stackTop2.token.type == TOKEN_STACK_BOTTOM) {
-      stack_push(stack, &stackTempTop);
+      Stack_token_t top_token = *(Stack_token_t *)stack_pop(stack);
+      Stack_token_t second_most_top_token = *(Stack_token_t *)stack_top(stack);
 
+      stack_push(stack, &top_token);
+      if (second_most_top_token.token.type == TOKEN_STACK_BOTTOM) {
         break;
       }
-
-      stack_push(stack, &stackTempTop);
     }
 
-    // if (token.token.type == TOKEN_NOT) {
-    //   Stack_token_t *lastItem = malloc(sizeof(Stack_token_t));
-    //   lastItem = (Stack_token_t *)stack_top(stack);
+    if (stackTop.token.type == TOKEN_EXPRESSION) {
+      // Pop the top token
+      Stack_token_t tempToken = *(Stack_token_t *)stack_pop(stack);
 
-    //   SymtableItem *item = symtable_get(parser->local_table, lastItem->token.val);
-    //   if (item != NULL && item->data->variable.identifier_type.nullable) {
-    //     exit_with_error(SEMANTIC_ERR_EXPR, "Cannot use ! operator on nullable type");
-    //   }
-    //   item = symtable_get(parser->global_table, lastItem->token.val);
-    //   if (item != NULL && item->data->variable.identifier_type.nullable) {
-    //     exit_with_error(SEMANTIC_ERR_EXPR, "Cannot use ! operator on nullable type");
-    //   }
-    //   token = get_next_token_wrap(testExpressionToParse, expIndex, inputSize);
+      // Get the second most top token
+      Stack_token_t second_most_top_token = *(Stack_token_t *)stack_top(stack);
+
+      // Update the global variable _stack_top
+      stackTop = second_most_top_token;
+
+      // Push the top token back onto the stack
+      stack_push(stack, &tempToken);
+    }
+
+    // if (token.token.type == TOKEN_STACK_BOTTOM && stackTop.token.type == TOKEN_EXPRESSION) {
+
+    //   break;
     // }
 
     Stack_token_t action = get_precedence(stackTop, token);
@@ -266,7 +272,7 @@ int parse_expression(Parser *parser) {
 
     switch (action.precedence) {
     case L:
-      handle_shift_case(stack, token, action);
+      handle_shift_case(stack, token);
       token = get_next_token_wrap(testExpressionToParse, expIndex, inputSize);
       expIndex++;
 
@@ -274,7 +280,7 @@ int parse_expression(Parser *parser) {
 
     case R:
       // If there is no rule, expression is not valid
-      if (handle_reduce_case(stack, token) == -1) {
+      if (handle_reduce_case(stack, token, action) == -1) {
         printf("No rule for token %d\n", token.token.type);
         exit_with_error(SYNTAX_ERR, "Invalid expression");
       }
@@ -289,9 +295,12 @@ int parse_expression(Parser *parser) {
     }
   }
 
+  Token *result = malloc(sizeof(Token));
+  *result = ((Stack_token_t *)stack_top(stack))->token;
+
   stack_dispose(stack);
   free(stack);
-  return 1;
+  return *result;
 }
 
 // Runs thought the stack until it finds an L precedence, returns the array of tokens to be reduced
@@ -312,25 +321,12 @@ Stack_token_t *arrayFromStack(void_stack_t *stack, int *index) {
   Stack_token_t stackTop = *(Stack_token_t *)stack_top(stack);
 
   while (stackTop.precedence != L && stack->top_index >= 0) {
-    // if (stackTop.token.type == TOKEN_EXPRESSION) {
-    //   Stack_token_t tempToken = *(Stack_token_t *)stack_pop(stack);
-    //   stackTop = *(Stack_token_t *)stack_top(stack);
-
-    //   resultArray[*index] = stackTop;
-    //   stack_pop(stack);
-    //   *index = *index + 1;
-
-    //   stack_push(stack, &tempToken);
-    //   continue;
-    // }
 
     resultArray[*index] = stackTop;
     stack_pop(stack);
     stackTop = *(Stack_token_t *)stack_top(stack);
     *index = *index + 1;
   }
-  // Get rid of the L
-  stack_pop(stack);
 
   return resultArray;
 }
