@@ -1,1 +1,1 @@
-let zmrd be = "zrmd\u{zz}"
+"Ahoj\"Sve'te \\\u{22}"
