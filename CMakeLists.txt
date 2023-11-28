@@ -33,6 +33,8 @@ include_directories(src)
 add_executable(main
         main.c
         # generator.h generator.c
+        builtin.h builtin.c
+        exp_parser.h exp_parser.c
         parser.h parser.c
         error.h error.c
         scanner.h scanner.c
@@ -53,6 +55,7 @@ add_test(scanner Test_scanner)
 add_executable(Test_symtable
         symtable.h symtable.c
         error.h error.c
+        builtin.h builtin.c
         tests/symtable.cpp)
 target_link_libraries(Test_symtable gtest gtest_main)
 
@@ -66,11 +69,14 @@ target_link_libraries(Test_stack gtest gtest_main)
 
 add_test(stack Test_stack)
 
-add_definitions(-DPARSER_TEST)
+# add_definitions(-DPARSER_TEST)
 add_executable(ExpParserTest
         exp_parser.h exp_parser.c stack.h stack.c scanner.h scanner.c
         parser.h parser.c
         symtable.h symtable.c
+
+
+                builtin.h builtin.c
         error.h error.c
         tests/exp_parser.cpp)
 target_link_libraries(ExpParserTest gtest gtest_main)
@@ -81,7 +87,9 @@ add_test(str Test_str)
 # ------- Parser -------
 add_definitions(-DPARSER_TEST)
 add_executable(Test_parser
+        exp_parser.h exp_parser.c
         parser.h parser.c
+        builtin.h builtin.c
         symtable.h symtable.c
         error.h error.c
         generator.c generator.h
@@ -93,19 +101,6 @@ target_link_libraries(Test_parser gtest gtest_main)
 
 add_test(str Test_str)
 # ----------------------------------------------------------------
-
-# ------- Parser -------
-add_definitions(-DPARSER_TEST)
-add_executable(Test_parser
-        parser.h parser.c
-        symtable.h symtable.c
-        error.h error.c
-        generator.c generator.h
-        str.h str.c
-        stack.h stack.c
-        scanner.c scanner.h
-        tests/parser.cpp)
-target_link_libraries(Test_parser gtest gtest_main)
 
 add_test(parser Test_parser)
 # ----------------------------------------------------------------

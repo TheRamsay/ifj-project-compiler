@@ -6,8 +6,12 @@
 
 #include "builtin.h"
 
-void builtin_add_to_symtable(Symtable *symtable) {
-  if (symtable == NULL) {
+const char *builtin_fns_ifjcode = "";
+
+void builtin_add_to_symtable(Symtable *symtable)
+{
+  if (symtable == NULL)
+  {
     return;
   }
 

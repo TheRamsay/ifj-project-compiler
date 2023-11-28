@@ -400,6 +400,11 @@ bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_ident
 	{
 		SymtableParam *current = item->data->function.params;
 
+		if (strcmp(current->in_name, param->in_name) == 0)
+		{
+			exit_with_error(SEMANTIC_ERR_FUNC, "Duplicate parameter name");
+		}
+
 		while (current->next != NULL)
 		{
 			// Check for duplicate names

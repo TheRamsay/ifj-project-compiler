@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "exp_parser.h"
 #include "string.h"
 
 #define TOKEN_BUFFER_LEN 2
@@ -19,13 +20,15 @@ bool parser_init(Parser *parser)
 		return false;
 	}
 
-#ifndef PARSER_TEST
-	parser->gen = generator_new();
+	builtin_add_to_symtable(parser->global_table);
 
-	if (parser->gen == NULL)
-	{
-		return false;
-	}
+#ifndef PARSER_TEST
+	// parser->gen = generator_new();
+
+	// if (parser->gen == NULL)
+	// {
+	// 	return false;
+	// }
 
 #else
 	parser->input_tokens = NULL;
@@ -114,7 +117,8 @@ bool compare_symtable_item_with_token(Token *token, SymtableIdentifierType ident
 	return false;
 }
 
-bool compare_symtable_item_types(SymtableIdentifierType identifier_type1, SymtableIdentifierType identifier_type2)
+bool compare_symtable_item_types(SymtableIdentifierType identifier_type1,
+								 SymtableIdentifierType identifier_type2)
 {
 	return (identifier_type1.data_type == identifier_type2.data_type && identifier_type1.nullable == identifier_type2.nullable);
 }
@@ -190,7 +194,7 @@ bool check_keyword(Parser *parser, KeywordType keyword)
 }
 
 // Advance to next token
-void advance(Parser *parser)
+Token advance(Parser *parser)
 {
 	if (parser->buffer_active)
 	{
@@ -206,6 +210,7 @@ void advance(Parser *parser)
 		parser->output_tokens[parser->output_index++] = *(parser->token_buffer);
 #endif
 	}
+	return *(parser->token_buffer);
 }
 
 // Returns true if current token is of the expected type
@@ -221,11 +226,11 @@ Token consume(Parser *parser, TokenType token_type, char *error_msg)
 	if (!check_type(parser, token_type))
 	{
 		// #ifdef PARSER_TEST
-		exit_with_error(SYNTAX_ERR, "current_token %d (value: %s) | next token %d (value: %s) | %s",
-						current_token(parser)->keyword, current_token(parser)->val, peek(parser)->type,
-						peek(parser)->val, error_msg);
+		// exit_with_error(SYNTAX_ERR, "current_token %d (value: %s) | next token %d (value: %s) | %s",
+		// 				current_token(parser)->keyword, current_token(parser)->val, peek(parser)->type,
+		// 				peek(parser)->val, error_msg);
 		// #else
-		// exit_with_error(SYNTAX_ERR, "%s", error_msg);
+		exit_with_error(SYNTAX_ERR, "%s", error_msg);
 		// #endif
 	}
 
@@ -303,7 +308,7 @@ void func_params_n(Parser *parser, SymtableItem *item, Symtable *local_table, vo
 	// IN identifier for function param
 	char *in_param_id = consume(parser, TOKEN_IDENTIFIER, "Expected in identifier").val;
 
-	stack_push(stack, in_param_id);
+	// stack_push(stack, in_param_id);
 
 	consume(parser, TOKEN_COLON, "Expected : ");
 
@@ -427,12 +432,13 @@ void check_call_param(Parser *parser, SymtableParam *param, Token *first, Token 
 		// If variable is not defined
 		if (param_variable == NULL)
 		{
-			exit_with_error(SEMANTIC_ERR_CALL, "Variable %s is not defined", first->val);
+			exit_with_error(SEMANTIC_ERR_VAR, "Variable %s is not defined", first->val);
 		}
 		else
 		{
 			// If variable type doesn't match the expected type
-			if (!compare_symtable_item_types(param_variable->data->variable.identifier_type, param->identifier_type))
+			if (!compare_symtable_item_types(param_variable->data->variable.identifier_type,
+											 param->identifier_type))
 			{
 				exit_with_error(SEMANTIC_ERR_CALL, "Variable %s is not of the expected type", first->val);
 			}
@@ -442,7 +448,8 @@ void check_call_param(Parser *parser, SymtableParam *param, Token *first, Token 
 	{
 		if (!compare_symtable_item_with_token(first, param->identifier_type))
 		{
-			exit_with_error(SEMANTIC_ERR_CALL, "Parameter %s type doesn't match the definition", first->val);
+			exit_with_error(SEMANTIC_ERR_CALL, "Parameter %s type doesn't match the definition",
+							first->val);
 		}
 	}
 	else
@@ -527,7 +534,7 @@ void call_params(Parser *parser, SymtableItem *item, SymtableParam *param)
 	call_params_n(parser, item, param->next);
 }
 
-void func_call(Parser *parser)
+SymtableIdentifierType func_call(Parser *parser)
 {
 	char *func_id = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
 
@@ -542,6 +549,8 @@ void func_call(Parser *parser)
 	call_params(parser, item, item->data->function.params);
 	consume(parser, TOKEN_RPAREN, "Expected ')'");
 	// generator_function_call(parser->gen, func_id, NULL, NULL);
+
+	return item->data->function._return->identifier_type;
 }
 
 bool return_t(Parser *parser)
@@ -730,7 +739,18 @@ bool statement(Parser *parser)
 			var_initialized = true;
 			if (check_type(parser, TOKEN_IDENTIFIER) && peek(parser)->type == TOKEN_LPAREN)
 			{
-				func_call(parser);
+				SymtableIdentifierType returned_type = func_call(parser);
+
+				if (returned_type.data_type == VOID_TYPE)
+				{
+					exit_with_error(SEMANTIC_ERR_EXPR, "Cannot assign void to variable");
+				}
+
+				if (!compare_symtable_item_types(identifier_type, returned_type))
+				{
+					exit_with_error(SEMANTIC_ERR_EXPR, "Cannot assign %s to %s", returned_type.data_type,
+									identifier_type.data_type);
+				}
 			}
 			else
 			{
@@ -870,4 +890,5 @@ void expression(Parser *parser)
 {
 	consume(parser, TOKEN_COMMA, "Expected an expression");
 	return;
+	// return parse_expression(parser);
 }

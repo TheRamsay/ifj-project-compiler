@@ -911,6 +911,7 @@ TEST_F(ParserTest, FuncDeclarationMultipleParamsWithSameIdentifier)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
+    // parse(&parser_, tokens.data());
     EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC), "Semantic error.*");
 }
 

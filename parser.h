@@ -4,14 +4,15 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include "builtin.h"
 #include "error.h"
 #include "scanner.h"
 #include "symtable.h"
 
 // Only include scanner and generator if not in debug mode, otherwise mock them
-#ifndef PARSER_TEST
-#include "generator.h"
-#endif
+// #ifndef PARSER_TEST
+// #include "generator.h"
+// #endif
 
 typedef struct
 {
@@ -24,7 +25,7 @@ typedef struct
   bool in_scope;
 
 #ifndef PARSER_TEST
-  gen_t *gen;
+  // gen_t *gen;
 #else
   Token *input_tokens;
   int input_index;
@@ -44,7 +45,7 @@ bool match(Parser *parser, TokenType token_type, bool check_new_line);
 bool check_keyword(Parser *parser, KeywordType keyword);
 
 // Advance to next token
-void advance(Parser *parser);
+Token advance(Parser *parser);
 
 // Returns true if current token is of the expected type
 bool check_type(Parser *parser, TokenType token_type);
