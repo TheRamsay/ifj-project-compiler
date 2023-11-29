@@ -1,11 +1,10 @@
 #ifndef __SCANNER_H__
 #define __SCANNER_H__
 
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 
-typedef enum keyword_t
-{
+typedef enum keyword_t {
   NONE,
   KW_IF,
   KW_ELSE,
@@ -25,8 +24,7 @@ typedef enum keyword_t
   KW_FUNC,
 } KeywordType;
 
-typedef enum token_t
-{
+typedef enum token_t {
   TOKEN_KEYWORD,
   TOKEN_STRING_LITERAL,
   TOKEN_COLON,
@@ -86,12 +84,11 @@ typedef enum token_t
   TOKEN_EXPONENT,
   TOKEN_DECIMAL_LITERAL,
   TOKEN_INTEGER_LITERAL,
-  TOKEN_STACK_BOTTOM, // Used by expresion parser
-  TOKEN_EXPRESSION, // Used by expresion parser
+  TOKEN_STACK_BOTTOM,  // Used by expresion parser
+  TOKEN_EXPRESSION,    // Used by expresion parser
 } TokenType;
 
-typedef struct
-{
+typedef struct {
   TokenType type;
   KeywordType keyword;
   char *val;
@@ -107,4 +104,4 @@ int get_next_token(Token *token);
 void char_to_token(Token *token, char c);
 void determine_token_type(Token *token);
 
-#endif // __SCANNER_H__
+#endif  // __SCANNER_H__
