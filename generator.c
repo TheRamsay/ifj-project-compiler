@@ -215,8 +215,6 @@ str *get_symbol_path(gen_t *gen, str *name) {
   } else {
     return get_closest_var_path(gen, name);
   }
-
-  return path;
 }
 
 void add_indentation(gen_t *gen) {
