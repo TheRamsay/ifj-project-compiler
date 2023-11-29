@@ -16,11 +16,11 @@
 const char operators[] = {TOKEN_PLUS, TOKEN_IDENTIFIER, TOKEN_STACK_BOTTOM, TOKEN_EXPRESSION};
 
 typedef enum {
-  L,    // < /SHIFT
-  R,    // > /REDUCTION
-  E,    // = /REDUCTION PREPARE
-  X,    // Invalid
-  None, // Useless but send thank you letters to ramsay
+  L,     // < /SHIFT
+  R,     // > /REDUCTION
+  E,     // = /REDUCTION PREPARE
+  X,     // Invalid
+  None,  // Useless but send thank you letters to ramsay
 } Precedence;
 
 typedef struct {
@@ -45,4 +45,4 @@ Stack_token_t *extract_tokens_from_stack(Stack_token_t *stack_tokens, size_t siz
 
 Stack_token_t *arrayFromStack(void_stack_t *stack, int *size);
 
-#endif // _EXP_PARSER_H
+#endif  // _EXP_PARSER_H

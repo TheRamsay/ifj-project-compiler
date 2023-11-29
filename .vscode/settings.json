@@ -11,5 +11,11 @@
     "string_view": "c",
     "chrono": "c"
   },
-  "C_Cpp.errorSquiggles": "disabled"
+  "C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, ColumnLimit: 100, AllowShortEnumsOnASingleLine: false, AllowShortBlocksOnASingleLine: Empty, BreakBeforeBinaryOperators: All  }",
+  "[c]": {
+    "editor.formatOnSave": true,
+  },
+  "[cpp]": {
+    "editor.formatOnSave": true,
+  }
 }

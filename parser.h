@@ -1,34 +1,34 @@
 #ifndef __PARSER_H__
 #define __PARSER_H__
 
-#include "error.h"
-#include "symtable.h"
 #include <stdbool.h>
-#include "scanner.h"
 #include <stdlib.h>
+
+#include "error.h"
+#include "scanner.h"
+#include "symtable.h"
 
 // Only include scanner and generator if not in debug mode, otherwise mock them
 #ifndef PARSER_TEST
 #include "generator.h"
 #endif
 
-typedef struct
-{
-    Symtable *global_table;
-    void_stack_t *local_tables_stack;  // Stack of local tables
-    // Symtable *local_table;
-    Token *token_buffer;
-    bool buffer_active;
-    bool in_function;
-    bool in_scope;
+typedef struct {
+  Symtable *global_table;
+  void_stack_t *local_tables_stack;  // Stack of local tables
+  // Symtable *local_table;
+  Token *token_buffer;
+  bool buffer_active;
+  bool in_function;
+  bool in_scope;
 
 #ifndef PARSER_TEST
-    gen_t *gen;
+  gen_t *gen;
 #else
-    Token *input_tokens;
-    int input_index;
-    Token *output_tokens;
-    int output_index;
+  Token *input_tokens;
+  int input_index;
+  Token *output_tokens;
+  int output_index;
 #endif
 } Parser;
 

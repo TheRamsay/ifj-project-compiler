@@ -7,8 +7,8 @@
 
 // #include <filesystem>
 
-#include "./test_utils.cpp"
-#include "gtest/gtest.h"
+// #include "./test_utils.cpp"
+// #include "gtest/gtest.h"
 
 // void createTmpFile(str *content) {
 //   FILE *tmpFile = fopen("./tmp", "w");
@@ -519,7 +519,7 @@
 //   generator_var_create(gen, str_new_from_cstr("returnvar"));
 //   stack_push(args, str_new_from_cstr("arg1"));
 //   generator_function_call(gen, str_new_from_cstr("test-return"), args,
-//   str_new_from_cstr("returnvar"));
+//                           str_new_from_cstr("returnvar"));
 
 //   generator_var_set(gen, str_new_from_cstr("arg1"), str_new_from_cstr("int@5"));
 //   // arg1 = (arg1 * arg1) + arg1
