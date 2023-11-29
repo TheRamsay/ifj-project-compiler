@@ -174,7 +174,7 @@ str *get_dest(gen_t *gen, bool is_var) {
 
 int get_closest_var_depth(gen_t *gen, str *name) {
   for (int i = gen->frame_stack->top_index; i >= 0; i--) {
-    Symtable *frame = gen->frame_stack->items[i];
+    symtable_t *frame = gen->frame_stack->items[i];
 
     if (symtable_search(frame, name->data)) {
       return i;
