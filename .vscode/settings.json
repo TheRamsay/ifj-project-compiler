@@ -9,16 +9,10 @@
     "parser.h": "c"
   },
   "C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, ColumnLimit: 100, AllowShortEnumsOnASingleLine: false, AllowShortBlocksOnASingleLine: Empty, BreakBeforeBinaryOperators: All  }",
-  "makefile.launchConfigurations": [
-    {
-      "cwd": "/home/ramsay/school/ifj/ifj-project",
-      "binaryPath": "/home/ramsay/school/ifj/ifj-project/main",
-      "binaryArgs": []
-    },
-    {
-      "cwd": "/home/ramsay/school/ifj/project",
-      "binaryPath": "/home/ramsay/school/ifj/project/main",
-      "binaryArgs": []
-    }
-  ]
+  "[c]": {
+    "editor.formatOnSave": true,
+  },
+  "[cpp]": {
+    "editor.formatOnSave": true,
+  }
 }
