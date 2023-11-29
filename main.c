@@ -1,10 +1,9 @@
-#include "scanner.h"
 #include "parser.h"
+#include "scanner.h"
 #include "stdio.h"
 
 #ifndef PARSER_TEST
-int main()
-{
+int main() {
   // FILE *input_file = stdin;
   FILE *input_file = fopen("ahoj.swift", "r");
   Token token;
@@ -24,8 +23,5 @@ int main()
   return 0;
 }
 #else
-int main()
-{
-  return 0;
-}
+int main() { return 0; }
 #endif

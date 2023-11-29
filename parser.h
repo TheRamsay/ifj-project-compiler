@@ -14,10 +14,9 @@
 // #include "generator.h"
 // #endif
 
-typedef struct
-{
+typedef struct {
   Symtable *global_table;
-  void_stack_t *local_tables_stack; // Stack of local tables
+  void_stack_t *local_tables_stack;  // Stack of local tables
   // Symtable *local_table;
   Token *token_buffer;
   bool buffer_active;
