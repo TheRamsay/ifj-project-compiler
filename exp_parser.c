@@ -151,18 +151,46 @@ Stack_token_t evaluate_rule(Stack_token_t token) {
   return (Stack_token_t){.token = {TOKEN_EOF, KW_UNKNOWN, "Eof", 3}, .precedence = None, .type = {.data_type = UNKNOWN_TYPE, .nullable = false}};
 }
 
+#ifdef PARSER_TEST
 Stack_token_t get_next_token_wrap(Token array[], int index, int size) {
+#else
+Stack_token_t get_next_token_wrap(TokenType previousToken, Parser *parser) {
+#endif
 
 #ifdef PARSER_TEST
   if (index >= 0 && index < size) {
     // Return the character at the specified index
+
+    // Check if the token is valid
+    int tokenIndex = get_operator_index(array[index].type);
+
+    if (tokenIndex == -1) {
+      return (Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None};
+    }
+
     return (Stack_token_t){.precedence = None, .token = array[index]};
   }
   return (Stack_token_t){.token = TOKEN_STACK_BOTTOM, .precedence = None};
 #else
-  Token *token = malloc(sizeof(Token));
-  int result = get_next_token(token);
+  Token peakToken = peek(parser, token);
 
+  // Check if the token is valid
+  int tokenIndex = get_operator_index(peakToken->type);
+
+  if (tokenIndex == -1) {
+    return (Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None};
+  }
+
+  // Identifier check
+  if (peakToken->type == TOKEN_IDENTIFIER && previousToken == TOKEN_IDENTIFIER) {
+    return (Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None};
+  }
+
+  // Peaked token is valid, consume it
+  advance(parser);
+  Token *token = malloc(sizeof(Token));
+  token = current_token(parser);
+  // int result = get_next_token(token);
   return (Stack_token_t){.token = token, .precedence = None};
 #endif
 }
@@ -238,7 +266,13 @@ Token parse_expression(Parser *parser) {
   void_stack_t *stack = stack_new(8192);
   stack_push(stack, &(Stack_token_t){.token = TOKEN_STACK_BOTTOM, .precedence = None});
 
+#ifdef PARSER_TEST
   Stack_token_t token = get_next_token_wrap(testExpressionToParse, expIndex, inputSize);
+  expIndex++;
+#else
+  Stack_token_t token = get_next_token_wrap(token.token.type, parser);
+#endif
+
   expIndex++;
   while (420 == 420) {
     Stack_token_t stackTop = *(Stack_token_t *)stack_top(stack);
@@ -289,8 +323,12 @@ Token parse_expression(Parser *parser) {
     switch (action.precedence) {
     case L:
       handle_shift_case(stack, token);
+#ifdef PARSER_TEST
       token = get_next_token_wrap(testExpressionToParse, expIndex, inputSize);
       expIndex++;
+#else
+      token = get_next_token_wrap(token.token.type, parser);
+#endif
 
       break;
 
@@ -304,8 +342,12 @@ Token parse_expression(Parser *parser) {
 
     case E:
       handle_equals_case(stack, token);
+#ifdef PARSER_TEST
       token = get_next_token_wrap(testExpressionToParse, expIndex, inputSize);
       expIndex++;
+#else
+      token = get_next_token_wrap(token.token.type, parser);
+#endif
 
       break;
     }

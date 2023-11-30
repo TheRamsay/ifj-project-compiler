@@ -9,7 +9,8 @@
     "exp_parser.h": "c",
     "any": "c",
     "string_view": "c",
-    "chrono": "c"
+    "chrono": "c",
+    "functional": "c"
   },
   "C_Cpp.errorSquiggles": "disabled"
 }
