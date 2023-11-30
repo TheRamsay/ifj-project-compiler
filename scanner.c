@@ -456,7 +456,8 @@ void char_to_token(Token *token, char c)
   token->val = new_val;
   token->length++;
 }
-int get_next_token(Token *token) {
+int get_next_token(Token *token)
+{
   int nested_block_comment = 0;
   token->type = TOKEN_UNKNOWN;
   token->length = 0;
@@ -467,7 +468,8 @@ int get_next_token(Token *token) {
   bool multiline = false;
   bool multiline_string = false;
 
-  while (true) {
+  while (true)
+  {
 
     c = fgetc(source_file); // Get the next character from the source file
     if (c == EOF)
@@ -475,18 +477,25 @@ int get_next_token(Token *token) {
       break;
     }
 
-    if (newline && c != '\t' && c != ' ' && c != '\r') {
+    if (newline && c != '\t' && c != ' ' && c != '\r')
+    {
       token->after_newline = true;
       newline = false;
-    } else if (!token_count && !newline) {
+    }
+    else if (!token_count && !newline)
+    {
       token->after_newline = true;
-    } else {
+    }
+    else
+    {
       token->after_newline = false;
     }
     token_count++;
 
-    if (c == '\n') {
-      if (multiline) {
+    if (c == '\n')
+    {
+      if (multiline)
+      {
         char_to_token(token, '\n');
       }
       newline = true;
@@ -527,7 +536,9 @@ int get_next_token(Token *token) {
           char_to_token(token, c);
         }
         token->type = TOKEN_EXPONENT; // Set the token type to exponent
-      } else if (multiline_string != true) {
+      }
+      else if (multiline_string != true)
+      {
         token->type = TOKEN_DECIMAL_LITERAL;
       }
       break;
@@ -539,14 +550,20 @@ int get_next_token(Token *token) {
       { // End of string literal
         k = fgetc(source_file);
         j = fgetc(source_file);
-        if (k == '"' && j == '"') {
+        if (k == '"' && j == '"')
+        {
           multiline = false;
-          if (token->val[strlen(token->val) - 1] != '\n') {
+          if (token->val[strlen(token->val) - 1] != '\n')
+          {
             exit(1);
-          } else {
+          }
+          else
+          {
             token->val[strlen(token->val) - 1] = '\0';
           }
-        } else {
+        }
+        else
+        {
           ungetc(j, source_file);
           ungetc(k, source_file);
         }
@@ -564,39 +581,55 @@ int get_next_token(Token *token) {
           token->val[0] = '\0';
         }
         break;
-      } else if (c == '\\') {
+      }
+      else if (c == '\\')
+      {
         c = fgetc(source_file);
-        if (c == 'n') {
+        if (c == 'n')
+        {
           char_to_token(token, '\n');
-        } else if (c == 't') {
+        }
+        else if (c == 't')
+        {
           char_to_token(token, '\t');
-        } else if (c == 'r') {
+        }
+        else if (c == 'r')
+        {
           char_to_token(token, '\r');
-        } else if (c == '\\') {
+        }
+        else if (c == '\\')
+        {
           char_to_token(token, '\\');
-        } else if (c == '"') {
+        }
+        else if (c == '"')
+        {
           char_to_token(token, '"');
-        } else if (c == 'u') {
+        }
+        else if (c == 'u')
+        {
           j = fgetc(source_file);
           if (j != '{')
           {
             exit(1);
           }
           char *unicode = (char *)malloc(8 * sizeof(char));
-          if (unicode == NULL) {
+          if (unicode == NULL)
+          {
             printf("Error allocating memory for unicode character\n");
             exit(99);
           }
           for (int i = 0; i < 8; i++)
           {
             unicode[i] = fgetc(source_file);
-            if (unicode[i] == '}') {
+            if (unicode[i] == '}')
+            {
               unicode[i] = '\0';
               ungetc('}', source_file);
               break;
             }
 
-            if (!isxdigit(unicode[i])) {
+            if (!isxdigit(unicode[i]))
+            {
               exit(1);
             }
           }
@@ -604,7 +637,8 @@ int get_next_token(Token *token) {
           char_to_token(token, c);
 
           c = fgetc(source_file);
-          if (c != '}') {
+          if (c != '}')
+          {
             exit(1);
           }
         }
@@ -625,12 +659,15 @@ int get_next_token(Token *token) {
       inString = true;
       k = fgetc(source_file);
       j = fgetc(source_file);
-      if (k == '"' && j == '"') {
+      if (k == '"' && j == '"')
+      {
         c = fgetc(source_file);
         if (c != '\n')
           exit(1);
         multiline = true;
-      } else {
+      }
+      else
+      {
         ungetc(j, source_file);
         ungetc(k, source_file);
       }
@@ -687,8 +724,10 @@ int get_next_token(Token *token) {
         loop:
           while (fgetc(source_file) != '*') // Read until the end of the block comment
             ;
-          if (fgetc(source_file) == '/') { // If the block comment is over, decrement the nested block comment counter
-            if (--nested_block_comment > 0) {
+          if (fgetc(source_file) == '/')
+          { // If the block comment is over, decrement the nested block comment counter
+            if (--nested_block_comment > 0)
+            {
               goto loop;
             }
             continue;
@@ -724,6 +763,6 @@ int get_next_token(Token *token) {
     fprintf(stderr, "Unknown token: %s\n", token->val);
     exit(1);
   }
-  printf("Token: %s, newline: %d\n", token->val, token->after_newline);
+  printf("TokenType: %d, Token: %s, newline: %d\n", token->keyword, token->val, token->after_newline);
   return token->type;
 }

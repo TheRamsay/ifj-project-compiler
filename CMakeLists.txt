@@ -84,11 +84,11 @@ add_executable(Test_parser
         scanner.c scanner.h
         tests/parser.cpp)
 target_link_libraries(Test_parser gtest gtest_main)
+add_test(parser Test_parser)
 
 add_test(str Test_str)
 # ----------------------------------------------------------------
 
-add_test(parser Test_parser)
 # ----------------------------------------------------------------
 # ------- Generator -------
 add_executable(Test_generator

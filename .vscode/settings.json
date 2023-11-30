@@ -1,24 +1,50 @@
 {
-  "files.associations": {
-    "*.html": "html",
-    "*.py": "python",
-    "symtable.h": "c",
-    "stack.h": "c",
-    "stdlib.h": "c",
-    "system_error": "c",
-    "parser.h": "c"
-  },
-  "C_Cpp.clang_format_fallbackStyle": "{ BasedOnStyle: Google, ColumnLimit: 100, AllowShortEnumsOnASingleLine: false, AllowShortBlocksOnASingleLine: Empty, BreakBeforeBinaryOperators: All  }",
-  "makefile.launchConfigurations": [
-    {
-      "cwd": "/home/ramsay/school/ifj/ifj-project",
-      "binaryPath": "/home/ramsay/school/ifj/ifj-project/main",
-      "binaryArgs": []
+    "files.associations": {
+        "*.html": "html",
+        "*.py": "python",
+        "symtable.h": "c",
+        "stack.h": "c",
+        "stdlib.h": "c",
+        "system_error": "c",
+        "parser.h": "c",
+        "exp_parser.h": "c",
+        "string.h": "c",
+        "builtin.h": "c",
+        "generator.h": "c",
+        "str.h": "c"
     },
-    {
-      "cwd": "/home/ramsay/school/ifj/project",
-      "binaryPath": "/home/ramsay/school/ifj/project/main",
-      "binaryArgs": []
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/home/ramsay/school/ifj/ifj-project",
+            "binaryPath": "/home/ramsay/school/ifj/ifj-project/main",
+            "binaryArgs": []
+        },
+        {
+            "cwd": "/home/ramsay/school/ifj/project",
+            "binaryPath": "/home/ramsay/school/ifj/project/main",
+            "binaryArgs": []
+        }
+    ],
+    "editor.tokenColorCustomizations": {
+        "textMateRules": [
+            {
+                "scope": "googletest.failed",
+                "settings": {
+                    "foreground": "#f00"
+                }
+            },
+            {
+                "scope": "googletest.passed",
+                "settings": {
+                    "foreground": "#0f0"
+                }
+            },
+            {
+                "scope": "googletest.run",
+                "settings": {
+                    "foreground": "#0f0"
+                }
+            }
+        ]
     }
-  ]
 }

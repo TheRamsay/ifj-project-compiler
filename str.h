@@ -10,7 +10,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-typedef struct str {
+typedef struct str
+{
   unsigned int alloc_size;
   char *data;
 } str;

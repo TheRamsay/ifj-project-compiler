@@ -15,7 +15,7 @@ bool parser_init(Parser *parser)
 	parser->in_scope = false;
 	parser->current_function_name = NULL;
 
-	parser->first_pass = true;
+	parser->semantic_enabled = false;
 	parser->tokens = NULL;
 
 	if (parser->token_buffer == NULL)
@@ -138,23 +138,25 @@ void is_valid_statement(Parser *parser)
 }
 
 // Returns current token
-Token *current_token(Parser *parser) { return parser->token_buffer; }
+Token *current_token(Parser *parser) { return parser->tokens->token; }
 
 Token *peek(Parser *parser)
 {
-	if (parser->buffer_active)
-	{
-		return parser->token_buffer + 1;
-	}
+	// 	if (parser->buffer_active)
+	// 	{
+	// 		return parser->token_buffer + 1;
+	// 	}
 
-#ifndef PARSER_TEST
-	get_next_token(parser->token_buffer + 1);
-#else
-	*(parser->token_buffer + 1) = parser->input_tokens[parser->input_index++];
-	parser->output_tokens[parser->output_index++] = *(parser->token_buffer + 1);
-#endif
-	parser->buffer_active = true;
-	return parser->token_buffer + 1;
+	// #ifndef PARSER_TEST
+	// 	get_next_token(parser->token_buffer + 1);
+	// #else
+	// 	*(parser->token_buffer + 1) = parser->input_tokens[parser->input_index++];
+	// 	parser->output_tokens[parser->output_index++] = *(parser->token_buffer + 1);
+	// #endif
+	// 	parser->buffer_active = true;
+	// 	return parser->token_buffer + 1;
+
+	return parser->tokens->next->token;
 }
 
 // Check if current token is of the expected type and advance if it is
@@ -197,23 +199,31 @@ bool check_keyword(Parser *parser, KeywordType keyword)
 }
 
 // Advance to next token
-Token advance(Parser *parser)
+Token *advance(Parser *parser)
 {
-	if (parser->buffer_active)
+	// 	if (parser->buffer_active)
+	// 	{
+	// 		parser->token_buffer[0] = parser->token_buffer[1];
+	// 		parser->buffer_active = false;
+	// 	}
+	// 	else
+	// 	{
+	// #ifndef PARSER_TEST
+	// 		get_next_token(parser->token_buffer);
+	// #else
+	// 		*(parser->token_buffer) = parser->input_tokens[parser->input_index++];
+	// 		parser->output_tokens[parser->output_index++] = *(parser->token_buffer);
+	// #endif
+	// 	}
+	// 	return *(parser->token_buffer);
+
+	if (parser->tokens->next == NULL)
 	{
-		parser->token_buffer[0] = parser->token_buffer[1];
-		parser->buffer_active = false;
+		return NULL;
 	}
-	else
-	{
-#ifndef PARSER_TEST
-		get_next_token(parser->token_buffer);
-#else
-		*(parser->token_buffer) = parser->input_tokens[parser->input_index++];
-		parser->output_tokens[parser->output_index++] = *(parser->token_buffer);
-#endif
-	}
-	return *(parser->token_buffer);
+
+	parser->tokens = parser->tokens->next;
+	return parser->tokens->token;
 }
 
 // Returns true if current token is of the expected type
@@ -361,23 +371,52 @@ void func_params(Parser *parser, SymtableItem *item, Symtable *local_table, void
 // function_def -> func FUNC_ID ( <func_params> ) <return_def> { <statement_list> }
 void func_def(Parser *parser)
 {
+	SymtableItem *item;
 	Symtable *local_table = symtable_new(LUFAK_JE_PEPIK_TODO_PREPSAT_NA_DYNAMICKEJ_STACK);
 	stack_push(parser->local_tables_stack, local_table);
 
 	parser->in_function = true;
 	char *key = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
 	parser->current_function_name = key;
-	SymtableItem *item = symtable_add_symbol(parser->global_table, key, SYMTABLE_FUNCTION, true, false, false);
 
-	void_stack_t *stack = stack_new(LUFAK_JE_PEPIK_TODO_PREPSAT_NA_DYNAMICKEJ_STACK);
+	// If we are in semantic analysis, we don't parse the function header, it's already parsed`
+	if (parser->semantic_enabled)
+	{
+		Token *token = current_token(parser);
 
-	consume(parser, TOKEN_LPAREN, "Expected '('");
-	func_params(parser, item, local_table, stack);
-	// generator_function_begin(parser->gen, key, stack);
-	consume(parser, TOKEN_RPAREN, "Expected ')'");
-	return_def(parser, item);
-	// generator_function_begin(parser->gen, key, stack);
-	consume(parser, TOKEN_LBRACE, "Expected '{'");
+		while (token != NULL && token->type != TOKEN_EOF && token->type != TOKEN_LBRACE)
+		{
+			token = advance(parser);
+		}
+
+		if (current_token(parser)->type == TOKEN_LBRACE)
+		{
+			advance(parser);
+		}
+	}
+	else
+
+	if (!parser->semantic_enabled)
+	{
+		item = symtable_add_symbol(parser->global_table, key, SYMTABLE_FUNCTION, true, false, false);
+		void_stack_t *stack = stack_new(LUFAK_JE_PEPIK_TODO_PREPSAT_NA_DYNAMICKEJ_STACK);
+		consume(parser, TOKEN_LPAREN, "Expected '('");
+		func_params(parser, item, local_table, stack);
+		// generator_function_begin(parser->gen, key, stack);
+		consume(parser, TOKEN_RPAREN, "Expected ')'");
+		return_def(parser, item);
+		// generator_function_begin(parser->gen, key, stack);
+		consume(parser, TOKEN_LBRACE, "Expected '{'");
+
+		Token *token = current_token(parser);
+
+		while (token != NULL && token->type != TOKEN_EOF && token->keyword != KW_FUNC)
+		{
+			token = advance(parser);
+		}
+
+		return;
+	}
 
 	if (!body(parser) && item->data->function._return->identifier_type.data_type != VOID_TYPE)
 	{
@@ -650,6 +689,7 @@ bool if_statement(Parser *parser)
 	}
 
 	SymtableIdentifierType expression_type = expression(parser);
+	(void)expression_type;
 
 #ifdef PARSER_TEST
 	if (expression_type.data_type == VOID_TYPE)
@@ -713,6 +753,8 @@ bool statement(Parser *parser)
 		stack_push(parser->local_tables_stack, local_table);
 
 		SymtableIdentifierType expression_type = expression(parser);
+		(void)expression_type;
+
 #ifdef PARSER_TEST
 		if (expression_type.data_type == VOID_TYPE)
 		{
@@ -923,11 +965,21 @@ void program(Parser *parser)
 	}
 	else
 	{
-		// Check statements only in second pass
-		if (!parser->first_pass)
+		if (parser->semantic_enabled)
 		{
-
 			body(parser);
+		}
+		// First pass only checkes function definitions
+		else
+		{
+			printf("Juuuu");
+			Token *token = current_token(parser);
+
+			// CHrhh mnam mnam zchroustal jsem vsecky tokeny ktere nejsou func
+			while (token != NULL || token->type != TOKEN_EOF || token->keyword != KW_FUNC)
+			{
+				token = advance(parser);
+			}
 		}
 	}
 
@@ -945,10 +997,6 @@ Token *parse(Parser *parser, Token *input_tokens)
 	parser->input_tokens = input_tokens;
 #endif
 
-	scanner_consume(parser);
-
-	// Get first token
-	advance(parser);
 	// prog rule
 	program(parser);
 
@@ -956,6 +1004,27 @@ Token *parse(Parser *parser, Token *input_tokens)
 	parser->output_tokens[parser->output_index] = (Token){.type = TOKEN_EOF};
 	return parser->output_tokens;
 #endif
+}
+
+void parser_start(Parser *parser)
+{
+	scanner_consume(parser);
+
+	DLL_Token *first_token = parser->tokens;
+
+	printf("Starting first pass\n");
+	// First pass
+	parse(parser);
+	parser->semantic_enabled = true;
+
+	printf("Starting second pass\n");
+	// Second pass
+	parser->tokens = first_token;
+
+	// Get first token
+	// advance(parser);
+	// prog rule
+	parse(parser);
 }
 
 SymtableIdentifierType expression(Parser *parser)
@@ -973,12 +1042,13 @@ SymtableIdentifierType expression(Parser *parser)
 
 void scanner_consume(Parser *parser)
 {
-	Token *token = NULL;
+	Token token;
 	DLL_Token *prev = NULL;
+
 	while (true)
 	{
-		token = current_token(parser);
-		DLL_Token *dll_token = dll_token_new(*token);
+		get_next_token(&token);
+		DLL_Token *dll_token = dll_token_new(token);
 
 		if (prev == NULL)
 		{
@@ -990,12 +1060,12 @@ void scanner_consume(Parser *parser)
 			dll_token->prev = prev;
 		}
 
-		if (check_type(parser, TOKEN_EOF))
+		if (token.type == TOKEN_EOF)
 		{
 			break;
 		}
 
-		advance(parser);
+		prev = dll_token;
 	}
 }
 
@@ -1007,18 +1077,32 @@ DLL_Token *dll_token_new(Token token)
 		exit_with_error(INTERNAL_ERROR, "Malloc failed");
 	}
 
-	dll_token->token = token;
-	dll_token->next = NULL;
-	dll_token->prev = NULL;
+	dll_token->token = malloc(sizeof(Token));
 
-	dll_token->token.val = malloc(sizeof(char) * (strlen(token.val) + 1));
-
-	if (dll_token->token.val == NULL)
+	if (dll_token->token == NULL)
 	{
 		exit_with_error(INTERNAL_ERROR, "Malloc failed");
 	}
 
-	strcpy(dll_token->token.val, token.val);
+	*dll_token->token = token;
+
+	dll_token->next = NULL;
+	dll_token->prev = NULL;
+
+	if (token.val == NULL)
+	{
+		return dll_token;
+	}
+
+	dll_token->token->val = malloc(sizeof(char) * (strlen(token.val) + 1));
+
+	if (dll_token->token->val == NULL)
+	{
+		free(dll_token->token);
+		exit_with_error(INTERNAL_ERROR, "Malloc failed");
+	}
+
+	strcpy(dll_token->token->val, token.val);
 
 	return dll_token;
 }

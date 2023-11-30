@@ -15,6 +15,15 @@
 // #include "generator.h"
 // #endif
 
+typedef struct DLL_Token DLL_Token;
+
+struct DLL_Token
+{
+  Token *token;
+  DLL_Token *next;
+  DLL_Token *prev;
+};
+
 typedef struct
 {
   Symtable *global_table;
@@ -25,7 +34,7 @@ typedef struct
   bool in_scope;
   char *current_function_name;
   DLL_Token *tokens;
-  bool first_pass;
+  bool semantic_enabled;
 
 #ifndef PARSER_TEST
   gen_t *gen;
@@ -36,14 +45,6 @@ typedef struct
   int output_index;
 #endif
 } Parser;
-
-typedef struct
-{
-  Token token;
-  DLL_Token *next;
-  DLL_Token *prev;
-
-} DLL_Token;
 
 DLL_Token *dll_token_new(Token token);
 
@@ -58,7 +59,7 @@ bool match(Parser *parser, TokenType token_type, bool check_new_line);
 bool check_keyword(Parser *parser, KeywordType keyword);
 
 // Advance to next token
-Token advance(Parser *parser);
+Token *advance(Parser *parser);
 
 // Returns true if current token is of the expected type
 bool check_type(Parser *parser, TokenType token_type);
@@ -101,4 +102,7 @@ void log_token_parsed(Parser *parser);
 Token *current_token(Parser *parser);
 bool match_peek(TokenType token_type);
 Token *peek(Parser *parser);
+void parser_start(Parser *parser);
+
+void scanner_consume(Parser *parser);
 #endif
