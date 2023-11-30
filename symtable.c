@@ -96,6 +96,8 @@ SymtableItem *symtable_get(const Symtable *table, const char *key) {
       return current;
     }
   }
+
+  return NULL;
 }
 
 /**
@@ -367,14 +369,35 @@ SymtableItem *symtable_insert(Symtable *table, char *key, SymtableData *data) {
 
     if (current == NULL) {
       table->items[i % table->capacity] = item;
-      break;
+      return item;
     }
 
     if (strcmp(current->key, key) == 0) {
-      current->data = item;
-      break;
+      current = item;
+      return item;
     }
   }
+
+  // If we get here, the table is full
+  Symtable *new_table = symtable_new(table->capacity * 2);
+  for (unsigned int i = 0; i < table->capacity; i++) {
+    SymtableItem *current = table->items[i];
+    if (current != NULL) {
+      symtable_insert(new_table, current->key, current->data);
+    }
+  }
+
+  free(item);
+  item = symtable_insert(new_table, key, data);
+
+  SymtableItem **old_items = table->items;
+
+  table->capacity = new_table->capacity;
+  table->items = new_table->items;
+  table->error_code = new_table->error_code;
+
+  free(old_items);
+  free(new_table);
 
   return item;
 }

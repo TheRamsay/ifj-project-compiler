@@ -27,7 +27,7 @@ TEST(SymtableTest, New) {
 }
 
 TEST(SymtableTest, Insert) {
-  Symtable *symtable = symtable_new(100);
+  Symtable *symtable = symtable_new(2);
 
   SymtableData *item1 = (SymtableData *)malloc(sizeof(SymtableData));
   char *key1 = getKey("a");
