@@ -4,7 +4,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "builtin.h"
+// #include "builtin.h"
+#include "generator.h"
 #include "error.h"
 #include "scanner.h"
 #include "symtable.h"
@@ -18,14 +19,16 @@ typedef struct
 {
   Symtable *global_table;
   void_stack_t *local_tables_stack; // Stack of local tables
-  // Symtable *local_table;
   Token *token_buffer;
   bool buffer_active;
   bool in_function;
   bool in_scope;
+  char *current_function_name;
+  DLL_Token *tokens;
+  bool first_pass;
 
 #ifndef PARSER_TEST
-  // gen_t *gen;
+  gen_t *gen;
 #else
   Token *input_tokens;
   int input_index;
@@ -33,6 +36,16 @@ typedef struct
   int output_index;
 #endif
 } Parser;
+
+typedef struct
+{
+  Token token;
+  DLL_Token *next;
+  DLL_Token *prev;
+
+} DLL_Token;
+
+DLL_Token *dll_token_new(Token token);
 
 bool parser_init(Parser *parser);
 
@@ -79,7 +92,7 @@ void parse(Parser *parser);
 Token *parse(Parser *parser, Token *input_tokens);
 #endif
 
-void expression(Parser *parser);
+SymtableIdentifierType expression(Parser *parser);
 
 bool return_t(Parser *parser);
 
