@@ -1,9 +1,9 @@
-extern "C"
-{
+extern "C" {
 #include "../symtable.h"
 }
 
 #include <string.h>
+
 #include "gtest/gtest.h"
 
 // void delete_symtable(symtable_t *symtable)
@@ -19,8 +19,7 @@ extern "C"
 //   return newKey;
 // }
 
-TEST(SymtableTest, New)
-{
+TEST(SymtableTest, New) {
   // Symtable *symtable = symtable_new(2);
   // ASSERT_EQ(symtable->capacity, 2);
   // ASSERT_EQ(symtable->error_code, 0);

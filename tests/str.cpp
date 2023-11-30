@@ -36,7 +36,7 @@ TEST(StrTest, NewFrom) {
   str_dispose(s);
 
   s = str_new_from_cstr(NULL);
-  
+
   ASSERT_EQ(s, nullptr);
 }
 
@@ -49,7 +49,7 @@ TEST(StrTest, SetCstr) {
   ASSERT_EQ(strcmp(s->data, "Hello, World!"), 0);
 
   str_set_cstr(s, NULL);
-  
+
   ASSERT_NE(s, nullptr);
   ASSERT_EQ(strcmp(s->data, "Hello, World!"), 0);
 
@@ -91,7 +91,7 @@ TEST(StrTest, AppendCstr) {
   str *s = str_new(5);
 
   str_set_cstr(s, "1");
-  
+
   ASSERT_EQ(strcmp(s->data, "1"), 0);
 
   str_append_cstr(s, "2");
@@ -113,7 +113,7 @@ TEST(StrTest, AppendStr) {
   str_set_cstr(c, "2");
 
   str_append_str(s, c);
-  
+
   ASSERT_EQ(strcmp(s->data, "12"), 0);
 
   str_append_str(s, c);
@@ -149,7 +149,7 @@ TEST(StrTest, AppendCstrResize) {
   str *s = str_new(5);
 
   str_set_cstr(s, "123");
-  
+
   ASSERT_EQ(strcmp(s->data, "123"), 0);
 
   str_append_cstr(s, "45678");
@@ -159,7 +159,6 @@ TEST(StrTest, AppendCstrResize) {
 
   str_dispose(s);
 }
-
 
 TEST(StrTest, AppendCstrDestroy) {
   str *s = str_new(10);

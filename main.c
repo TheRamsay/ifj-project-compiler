@@ -1,10 +1,9 @@
-#include "scanner.h"
 #include "parser.h"
+#include "scanner.h"
 #include "stdio.h"
 
 #ifndef PARSER_TEST
-int main()
-{
+int main() {
   // FILE *input_file = stdin;
   FILE *input_file = fopen("./ahoj.swift", "r");
   Token token;
@@ -15,7 +14,8 @@ int main()
   // printf("scanner_init\n");
   // while (get_next_token(&token) != TOKEN_EOF)
   // {
-    // printf("tokenik: %d | value: %s | new_line: %d \n", token.type, token.val, token.after_newline);
+  // printf("tokenik: %d | value: %s | new_line: %d \n", token.type, token.val,
+  // token.after_newline);
   // }
   parser_start(&parser);
   scanner_destroy();
@@ -23,8 +23,5 @@ int main()
   return 0;
 }
 #else
-int main()
-{
-  return 0;
-}
+int main() { return 0; }
 #endif
