@@ -32,7 +32,7 @@ bool parser_init(Parser *parser) {
     return false;
   }
 
-  // builtin_add_to_symtable(parser->global_table);
+  builtin_add_to_symtable(parser->global_table);
 
 #ifndef PARSER_TEST
   parser->gen = generator_new();

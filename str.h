@@ -4,7 +4,7 @@
 /*
  **/
 
-#ifndef _STR_H
+#ifndef _STR_H_
 #define _STR_H_
 
 #include <stdbool.h>

@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-// #include "builtin.h"
+#include "builtin.h"
 #include "error.h"
 #include "generator.h"
 #include "scanner.h"
