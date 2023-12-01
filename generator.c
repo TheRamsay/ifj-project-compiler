@@ -227,41 +227,41 @@ void add_indentation(gen_t *gen) {
 
 str *get_instruction(char symbol) {
   switch (symbol) {
-    case '+': {
-      return str_new_from_cstr("ADDS\n");
-    }
-    case '-': {
-      return str_new_from_cstr("SUBS\n");
-    }
-    case '*': {
-      return str_new_from_cstr("MULS\n");
-    }
-    // float / float -> float
-    case '/': {
-      return str_new_from_cstr("DIVS\n");
-    }
-    // int / int -> int
-    case ':': {
-      return str_new_from_cstr("IDIVS\n");
-    }
-    case '<': {
-      return str_new_from_cstr("LTS\n");
-    }
-    case '>': {
-      return str_new_from_cstr("GTS\n");
-    }
-    case '=': {
-      return str_new_from_cstr("EQS\n");
-    }
-    case '&': {
-      return str_new_from_cstr("ANDS\n");
-    }
-    case '|': {
-      return str_new_from_cstr("ORS\n");
-    }
-    case '!': {
-      return str_new_from_cstr("NOTS\n");
-    }
+  case '+': {
+    return str_new_from_cstr("ADDS\n");
+  }
+  case '-': {
+    return str_new_from_cstr("SUBS\n");
+  }
+  case '*': {
+    return str_new_from_cstr("MULS\n");
+  }
+  // float / float -> float
+  case '/': {
+    return str_new_from_cstr("DIVS\n");
+  }
+  // int / int -> int
+  case ':': {
+    return str_new_from_cstr("IDIVS\n");
+  }
+  case '<': {
+    return str_new_from_cstr("LTS\n");
+  }
+  case '>': {
+    return str_new_from_cstr("GTS\n");
+  }
+  case '=': {
+    return str_new_from_cstr("EQS\n");
+  }
+  case '&': {
+    return str_new_from_cstr("ANDS\n");
+  }
+  case '|': {
+    return str_new_from_cstr("ORS\n");
+  }
+  case '!': {
+    return str_new_from_cstr("NOTS\n");
+  }
   }
 
   return NULL;
@@ -483,7 +483,8 @@ void generator_function_end(gen_t *gen, str *return_symbol) {
   gen->indent_depth--;
 }
 
-void generator_function_call(gen_t *gen, str *name, void_stack_t *args, str *return_var) {
+void generator_function_call(gen_t *gen, str *name, void_stack_t *args,
+                             str *return_var) {
   str *dest = get_dest(gen, false);
 
   if (args != NULL) {
@@ -525,7 +526,8 @@ void generator_function_call(gen_t *gen, str *name, void_stack_t *args, str *ret
   }
 }
 
-void generator_if_begin(gen_t *gen, str *left_symbol, bool eq, str *right_symbol) {
+void generator_if_begin(gen_t *gen, str *left_symbol, bool eq,
+                        str *right_symbol) {
   generator_if_begin_base(gen);
 
   str *dest = get_dest(gen, false);
@@ -554,7 +556,8 @@ void generator_if_begin(gen_t *gen, str *left_symbol, bool eq, str *right_symbol
   gen->indent_depth++;
 }
 
-void generator_if_begin_stack(gen_t *gen, bool is_true, void_stack_t *expr_stack) {
+void generator_if_begin_stack(gen_t *gen, bool is_true,
+                              void_stack_t *expr_stack) {
   generator_if_begin_base(gen);
 
   str *dest = get_dest(gen, false);

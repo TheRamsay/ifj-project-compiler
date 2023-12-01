@@ -7,7 +7,7 @@ extern "C" {
 #include "gtest/gtest.h"
 
 class ScannerTest : public testing::Test {
- protected:
+protected:
   FILE *input_file;
   Token token;
   void SetUp() override {
@@ -27,7 +27,7 @@ TEST_F(ScannerTest, Scan_Tokens_KW) {
   EXPECT_EQ(token.keyword, KW_IF);
 
   result = get_next_token(&token);
-  EXPECT_EQ(result, TOKEN_IDENTIFIER);  // Assuming "condition" is an identifier
+  EXPECT_EQ(result, TOKEN_IDENTIFIER); // Assuming "condition" is an identifier
   EXPECT_EQ(token.type, TOKEN_IDENTIFIER);
 
   result = get_next_token(&token);
