@@ -84,10 +84,7 @@ struct SymtableItem {
   /** The key of the item */
   char *key;
   /** The data of the item */
-  // void *data; // TODO: Change to whatever we're gonna need
   SymtableData *data;
-  /** Pointer to the next item with the same hash */
-  SymtableItem *next;
 };
 
 typedef struct {
@@ -102,8 +99,6 @@ typedef struct {
 Symtable *symtable_new(unsigned int capacity);
 
 bool symtable_search(Symtable *table, const char *key);
-
-void symtable_delete(Symtable *table, const char *key);
 
 SymtableItem *symtable_get(const Symtable *table, const char *key);
 
