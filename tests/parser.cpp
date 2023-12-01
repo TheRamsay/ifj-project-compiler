@@ -120,7 +120,7 @@ TEST_F(ParserTest, Init)
 
   std::vector<Token> tokens = {{TOKEN_EOF, KW_UNKNOWN, "", false, 0, false}};
 
-  Token *output = parse(&parser_, tokens.data());
+  Token *output = parser_start(&parser_, tokens.data());
 
   EXPECT_EQ(parser_.input_tokens, tokens.data());
   EXPECT_EQ(parser_.input_index, 1);
@@ -144,7 +144,7 @@ TEST_F(ParserTest, LetVariableDeclaration) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, VarVariableDeclaration) {
@@ -154,7 +154,7 @@ TEST_F(ParserTest, VarVariableDeclaration) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, LetVariableDeclarationWithType)
@@ -169,7 +169,7 @@ TEST_F(ParserTest, LetVariableDeclarationWithType)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, VarVariableDeclarationWithType)
@@ -184,7 +184,7 @@ TEST_F(ParserTest, VarVariableDeclarationWithType)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, LetVariableDeclarationWithTypeWithoutInit) {
@@ -194,7 +194,7 @@ TEST_F(ParserTest, LetVariableDeclarationWithTypeWithoutInit) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, VarVariableDeclarationWithTypeWithoutInit) {
@@ -204,7 +204,7 @@ TEST_F(ParserTest, VarVariableDeclarationWithTypeWithoutInit) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, LetVariableDeclarationWithoutInit) {
@@ -214,7 +214,7 @@ TEST_F(ParserTest, LetVariableDeclarationWithoutInit) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_INFER),
+  EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_INFER),
               "Semantic error.*");
 }
 
@@ -225,7 +225,7 @@ TEST_F(ParserTest, VarVariableDeclarationWithoutInit) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_INFER),
+  EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_INFER),
               "Semantic error.*");
 }
 
@@ -240,7 +240,7 @@ TEST_F(ParserTest, FuncDeclaration) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, FuncDeclarationWithReturnType)
@@ -259,7 +259,7 @@ TEST_F(ParserTest, FuncDeclarationWithReturnType)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, FuncDeclarationWithReturnTypeNullable)
@@ -278,7 +278,7 @@ TEST_F(ParserTest, FuncDeclarationWithReturnTypeNullable)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, FuncDeclarationWithParams)
@@ -302,7 +302,7 @@ TEST_F(ParserTest, FuncDeclarationWithParams)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, FuncDeclarationWithParamsWithReturnType)
@@ -330,7 +330,7 @@ TEST_F(ParserTest, FuncDeclarationWithParamsWithReturnType)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, FuncDeclarationWithBody)
@@ -359,7 +359,7 @@ TEST_F(ParserTest, FuncDeclarationWithBody)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, FuncDeclarationWithEmptyReturn)
@@ -386,7 +386,7 @@ TEST_F(ParserTest, FuncDeclarationWithEmptyReturn)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-    EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_RETURN), "Semantic error.*");
+    EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_RETURN), "Semantic error.*");
 }
 
 TEST_F(ParserTest, VoidFuncDeclarationWithNonEmptyReturn)
@@ -412,7 +412,7 @@ TEST_F(ParserTest, VoidFuncDeclarationWithNonEmptyReturn)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-    EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_RETURN), "Semantic error.*");
+    EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_RETURN), "Semantic error.*");
 }
 
 TEST_F(ParserTest, FuncDeclarationWithReturn)
@@ -440,7 +440,7 @@ TEST_F(ParserTest, FuncDeclarationWithReturn)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, TwoStatementsTwoLines) {
@@ -452,7 +452,7 @@ TEST_F(ParserTest, TwoStatementsTwoLines) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0, 0, 0},
   };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, TwoStatementsOnSameLine) {
@@ -464,7 +464,7 @@ TEST_F(ParserTest, TwoStatementsOnSameLine) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0, 0, 0},
   };
 
-  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
+  EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
               "Syntax error.*");
 }
 
@@ -491,7 +491,7 @@ TEST_F(ParserTest, NoReturnInBranch)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_CALL),
+  EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_CALL),
               "Semantic error.*");
 }
 
@@ -527,7 +527,7 @@ TEST_F(ParserTest, NoReturnInBranchNested)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_CALL),
+  EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_CALL),
               "Semantic error.*");
 }
 
@@ -556,7 +556,7 @@ TEST_F(ParserTest, NoReturnInBranchButInFuncBody)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, NoReturnInBranchButInFuncBody2)
@@ -582,7 +582,7 @@ TEST_F(ParserTest, NoReturnInBranchButInFuncBody2)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, NoReturnInBranchNestedVoidFunc)
@@ -613,7 +613,7 @@ TEST_F(ParserTest, NoReturnInBranchNestedVoidFunc)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, VariableRedeclaration) {
@@ -625,7 +625,7 @@ TEST_F(ParserTest, VariableRedeclaration) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC),
+  EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC),
               "Semantic error.*");
 }
 
@@ -638,7 +638,7 @@ TEST_F(ParserTest, MultipleVariables) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, FuncRedeclaration) {
@@ -658,7 +658,7 @@ TEST_F(ParserTest, FuncRedeclaration) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC),
+  EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC),
               "Semantic error.*");
 }
 
@@ -679,7 +679,7 @@ TEST_F(ParserTest, MultipleFuncDeclaration) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, FuncParamsInOutSameName) {
@@ -697,7 +697,7 @@ TEST_F(ParserTest, FuncParamsInOutSameName) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC),
+  EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC),
               "Semantic error.*");
 }
 
@@ -716,7 +716,7 @@ TEST_F(ParserTest, FuncParamsInvalidName) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
+  EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
               "Syntax error.*");
 }
 
@@ -727,7 +727,7 @@ TEST_F(ParserTest, TopLevelReturn) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
+  EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
               "Syntax error.*");
 }
 
@@ -740,7 +740,7 @@ TEST_F(ParserTest, SimpleIf) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, NestedIf) {
@@ -755,7 +755,7 @@ TEST_F(ParserTest, NestedIf) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, SimpleIfWithoutElseBranch) {
@@ -765,7 +765,7 @@ TEST_F(ParserTest, SimpleIfWithoutElseBranch) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
+  EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
               "Syntax error.*");
 }
 
@@ -779,7 +779,7 @@ TEST_F(ParserTest, NestedIfWithoutElseBranch) {
       {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},    {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
+  EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
               "Syntax error.*");
 }
 
@@ -796,7 +796,7 @@ TEST_F(ParserTest, IfLet) {
       {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},        {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, IfLetWithoutExpr) {
@@ -818,7 +818,7 @@ TEST_F(ParserTest, IfLetWithoutExpr) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
+  EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
               "Syntax error.*");
 }
 
@@ -830,7 +830,7 @@ TEST_F(ParserTest, IfWithoutExpr) {
       {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},    {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
+  EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
               "Syntax error.*");
 }
 
@@ -844,7 +844,7 @@ TEST_F(ParserTest, IfVar) {
       {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},        {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
+  EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
               "Syntax error.*");
 }
 
@@ -857,7 +857,7 @@ TEST_F(ParserTest, SimpleWhile) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, WhileWithBody) {
@@ -867,7 +867,7 @@ TEST_F(ParserTest, WhileWithBody) {
       {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},          {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, WhileWithoutExpression) {
@@ -879,7 +879,7 @@ TEST_F(ParserTest, WhileWithoutExpression) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
+  EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
               "Syntax error.*");
 }
 
@@ -904,7 +904,7 @@ TEST_F(ParserTest, FuncDeclarMissingParameterType) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
+  EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
               "Syntax error.*");
 }
 
@@ -931,8 +931,8 @@ TEST_F(ParserTest, FuncDeclarationMultipleParamsWithSameIdentifier) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  // parse(&parser_, tokens.data());
-  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC),
+  // parser_start(&parser_, tokens.data());
+  EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC),
               "Semantic error.*");
 }
 
@@ -961,7 +961,7 @@ TEST_F(ParserTest, FuncDeclarationMultipleParamsWithSameName)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, ConstantModification) {
@@ -976,7 +976,7 @@ TEST_F(ParserTest, ConstantModification) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR),
+  EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR),
               "Semantic error.*");
 }
 
@@ -992,7 +992,7 @@ TEST_F(ParserTest, MutableVariableModification) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, SameVariableNameDifferentScopes) {
@@ -1020,7 +1020,7 @@ TEST_F(ParserTest, SameVariableNameDifferentScopes) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, SameVariableNameDifferentScopesGlobal) {
@@ -1042,7 +1042,7 @@ TEST_F(ParserTest, SameVariableNameDifferentScopesGlobal) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, RedeclarationInDifferentScope) {
@@ -1057,7 +1057,7 @@ TEST_F(ParserTest, RedeclarationInDifferentScope) {
       {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},      {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, RedeclarationInDifferentScope2) {
@@ -1075,7 +1075,7 @@ TEST_F(ParserTest, RedeclarationInDifferentScope2) {
       {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},        {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, DeclareVariableWithSameNameAsFuncParam) {
@@ -1097,7 +1097,7 @@ TEST_F(ParserTest, DeclareVariableWithSameNameAsFuncParam) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parse(&parser_, tokens.data()));
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, IfLetWithoutDefinition) {
@@ -1110,7 +1110,7 @@ TEST_F(ParserTest, IfLetWithoutDefinition) {
       {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},        {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-    EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC), "Semantic error.*");
+    EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC), "Semantic error.*");
 }
 
 TEST_F(ParserTest, VariableAssignmentFuncCallWithoutType)
@@ -1135,7 +1135,7 @@ TEST_F(ParserTest, VariableAssignmentFuncCallWithoutType)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-    check_tokens(tokens, parse(&parser_, tokens.data()));
+    check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, VariableAssignmentFuncCallWithType)
@@ -1162,7 +1162,7 @@ TEST_F(ParserTest, VariableAssignmentFuncCallWithType)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-    check_tokens(tokens, parse(&parser_, tokens.data()));
+    check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, VariableAssignmentFuncCallWithWrongType)
@@ -1189,7 +1189,7 @@ TEST_F(ParserTest, VariableAssignmentFuncCallWithWrongType)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-    EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_EXPR), "Semantic error.*");
+    EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_EXPR), "Semantic error.*");
 }
 
 TEST_F(ParserTest, VariableAssignmentFuncCallVoidFunc)
@@ -1215,7 +1215,7 @@ TEST_F(ParserTest, VariableAssignmentFuncCallVoidFunc)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-    EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_EXPR), "Semantic error.*");
+    EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_EXPR), "Semantic error.*");
 }
 
 TEST_F(ParserTest, FuncCallWithoutAssignment)
@@ -1237,7 +1237,7 @@ TEST_F(ParserTest, FuncCallWithoutAssignment)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-    check_tokens(tokens, parse(&parser_, tokens.data()));
+    check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, UndefinedFuncCallWithoutAssignment)
@@ -1249,7 +1249,7 @@ TEST_F(ParserTest, UndefinedFuncCallWithoutAssignment)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-    EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC), "Semantic error.*");
+    EXPECT_EXIT(parser_start(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC), "Semantic error.*");
 }
 
 TEST_F(ParserTest, VariableAssignmentFuncCallAfterDefinition)
@@ -1274,5 +1274,5 @@ TEST_F(ParserTest, VariableAssignmentFuncCallAfterDefinition)
         {TOKEN_EOF, KW_UNKNOWN, "", 0},
     };
 
-    check_tokens(tokens, parse(&parser_, tokens.data()));
+    check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }

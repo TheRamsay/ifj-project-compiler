@@ -87,11 +87,7 @@ bool body(Parser *parser);
 
 void program(Parser *parser);
 
-#ifndef PARSER_TEST
 void parse(Parser *parser);
-#else
-Token *parse(Parser *parser, Token *input_tokens);
-#endif
 
 SymtableIdentifierType expression(Parser *parser);
 
@@ -102,7 +98,12 @@ void log_token_parsed(Parser *parser);
 Token *current_token(Parser *parser);
 bool match_peek(TokenType token_type);
 Token *peek(Parser *parser);
+
+#ifndef PARSER_TEST
 void parser_start(Parser *parser);
+#else
+Token *parser_start(Parser *parser, Token *input_tokens);
+#endif
 
 void scanner_consume(Parser *parser);
 #endif
