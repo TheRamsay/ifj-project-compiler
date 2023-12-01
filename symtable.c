@@ -116,8 +116,6 @@ bool symtable_search(Symtable *table, const char *key) {
 
   unsigned int hash = hash_function(key, table->capacity);
 
-  SymtableItem *current = table->items[hash];
-
   for (unsigned int i = hash; i < table->capacity + hash; i++) {
     SymtableItem *current = table->items[i % table->capacity];
 
