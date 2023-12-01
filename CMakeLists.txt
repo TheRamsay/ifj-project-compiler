@@ -28,59 +28,63 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
         EXCLUDE_FROM_ALL)
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
+# ----------------------------------------------------------------
 # ------- App -------
 include_directories(src)
 add_executable(main
         main.c
-        # generator.h generator.c
+        generator.h generator.c
+        builtin.h builtin.c
         parser.h parser.c
         error.h error.c
         scanner.h scanner.c
         stack.h stack.c
+        str.h str.c
         symtable.h symtable.c)
 
+# ----------------------------------------------------------------
 # ------- Tests -------
 
-add_executable(Test_scanner
-        scanner.h scanner.c
-        tests/scanner.cpp)
-target_link_libraries(Test_scanner gtest gtest_main)
+# add_executable(Test_scanner
+#         scanner.h scanner.c
+#         tests/scanner.cpp)
+# target_link_libraries(Test_scanner gtest gtest_main)
 
-add_test(scanner Test_scanner)
+# add_test(scanner Test_scanner)
 
 
+# ----------------------------------------------------------------
+# ------- Symtable -------
 add_executable(Test_symtable
         symtable.h symtable.c
         error.h error.c
+        builtin.h builtin.c
         tests/symtable.cpp)
 target_link_libraries(Test_symtable gtest gtest_main)
-
 add_test(symtable Test_symtable)
+# ----------------------------------------------------------------
 
-
+# ----------------------------------------------------------------
+# ------- Stack -------
 add_executable(Test_stack
         stack.h stack.c
         tests/stack.cpp)
 target_link_libraries(Test_stack gtest gtest_main)
-
 add_test(stack Test_stack)
-
-add_definitions(-DPARSER_TEST)
-add_executable(ExpParserTest
-        exp_parser.h exp_parser.c stack.h stack.c scanner.h scanner.c
-        parser.h parser.c
-        symtable.h symtable.c
-        error.h error.c
-        tests/exp_parser.cpp)
-target_link_libraries(ExpParserTest gtest gtest_main)
-
-add_test(str Test_str)
 # ----------------------------------------------------------------
 
+add_executable(Test_str
+        str.h str.c     
+        tests/str.cpp)
+target_link_libraries(Test_str gtest gtest_main)
+add_test(str Test_str)
+
+# ----------------------------------------------------------------
 # ------- Parser -------
 add_definitions(-DPARSER_TEST)
 add_executable(Test_parser
         parser.h parser.c
+        builtin.h builtin.c
         symtable.h symtable.c
         error.h error.c
         generator.c generator.h
@@ -89,8 +93,10 @@ add_executable(Test_parser
         scanner.c scanner.h
         tests/parser.cpp)
 target_link_libraries(Test_parser gtest gtest_main)
-
 add_test(parser Test_parser)
+
+# ----------------------------------------------------------------
+
 # ----------------------------------------------------------------
 # ------- Generator -------
 add_executable(Test_generator

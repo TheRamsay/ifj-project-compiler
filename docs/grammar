@@ -1,0 +1,31 @@
+program -> func func_id (<func_params>) -> <return_type> { <statement_list> } <program>
+<program> -> <statement> <program>
+<program> -> epsilon
+
+<func_params> -> <param_out_id> <param_in_id> : <type> <next_params>
+<func_params> -> epsilon
+<next_params> -> , <param_out_id> <param_in_id> : <type> <next_params>
+<next_params> -> epsilon
+
+<statement_list> -> <statement> <statement_list>
+<statement_list> -> epsilon
+
+<statement> -> if ( <expr> ) { <statement_list> } <else>
+<else> -> epsilon
+<else> -> else <else_next>
+<else_next> -> { <statement_list> }
+<else_next> -> if ( <expr> ) { <statement_list> } <else>
+
+<statement> -> while ( <expr> ) { <statement_list> }
+<statement> -> break
+<statement> -> continue
+<statement> -> return <optional_expr>
+
+<optional_expr> -> <expr>
+<optional_expr> -> epsilon
+
+<statement> -> <func_id> ( <call_params> )
+<statement> -> <expr>
+
+<term> -> <var_id>
+<term> ->
