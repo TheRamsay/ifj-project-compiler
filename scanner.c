@@ -319,59 +319,78 @@ int get_next_token(Token *token) {
       newline = true;
       continue;
     }
-
-    if (isdigit(c)) {                           // Integer or decimal literal
+    if (c == '_') {
+      char_to_token(token, c);
+      c = fgetc(source_file);
+      if (!isalpha(c) && !isdigit(c)) {
+        fprintf(stderr, "Invalid identifier: %s\n", token->val);
+        exit(1);
+      }
+    }
+    if (isdigit(c)) {
       char_to_token(token, c);                  // Add the character to the token value
       while (isdigit(c = fgetc(source_file))) { // Read until the end of the literal
         char_to_token(token, c);
       }
+      if (c == 'e' || c == 'E') {
+        fprintf(stderr, "Invalid integer literal");
+        exit(1);
+      }
       if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.') {
-        fprintf(stderr, "Invalid integer literal: %s\n", token->val);
+        fprintf(stderr, "Invalid integer literal");
         exit(1);
       }
-
-      ungetc(c, source_file);              // Put the last character back into the source file
-      token->type = TOKEN_INTEGER_LITERAL; // Set the token type to integer literal
-      break;
-    }
-    if (c == '.') { // Decimal literal
-      char_to_token(token, c);
-      c = fgetc(source_file);
-      if (!isdigit(c) && c != 'e' && c != 'E') {
-        fprintf(stderr, "Invalid decimal literal: %s\n", token->val);
-        exit(1);
-      }
-      while (isdigit(c)) {
+      //   ungetc(c, source_file);              // Put the last character back into the source file
+      //   token->type = TOKEN_INTEGER_LITERAL; // Set the token type to integer literal
+      //   break;
+      // }
+      if (c == '.') { // Decimal literal
         char_to_token(token, c);
         c = fgetc(source_file);
-      }
-      if (c == 'e' || c == 'E') { // Exponent
-        char_to_token(token, c);
-        if ((c = fgetc(source_file)) == '+' || c == '-') { // Exponent sign
-          char_to_token(token, c);
-        } else {
-          // ungetc(c, source_file); // Put the character back into the source file
-        }
-        if (!isdigit(c)) {
-          fprintf(stderr, "Invalid exponent in literal: %s\n", token->val);
+
+        if (!isdigit(c) && c != 'e' && c != 'E') {
+          fprintf(stderr, "Invalid decimal literal: %s\n", token->val);
           exit(1);
         }
-        while (isdigit(c)) { // Exponent value
+        while (isdigit(c)) {
           char_to_token(token, c);
           c = fgetc(source_file);
         }
+        // if (!isdigit(c) && c != 'e' && c != 'E') {
+        //   fprintf(stderr, "Invalid decimal literal: %s\n", token->val);
+        //   exit(1);
+        // }
+        if (c == 'e' || c == 'E') { // Exponent
+          char_to_token(token, c);
+          if ((c = fgetc(source_file)) == '+' || c == '-') { // Exponent sign
+            char_to_token(token, c);
+          } else {
+            // ungetc(c, source_file); // Put the character back into the source file
+          }
+          if (!isdigit(c)) {
+            fprintf(stderr, "Invalid exponent in literal: %s\n", token->val);
+            exit(1);
+          }
+          while (isdigit(c)) { // Exponent value
+            char_to_token(token, c);
+            c = fgetc(source_file);
+          }
 
-        if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.') {
-          fprintf(stderr, "Invalid numeric literal: %s\n", token->val);
-          exit(1);
+          if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.') {
+            fprintf(stderr, "Invalid numeric literal: %s\n", token->val);
+            exit(1);
+          }
+
+          token->type = TOKEN_EXPONENT; // Set the token type to exponent
+        } else if (multiline_string != true && token->type != TOKEN_EXPONENT) {
+          token->type = TOKEN_DECIMAL_LITERAL;
         }
 
-        token->type = TOKEN_EXPONENT; // Set the token type to exponent
-      } else if (multiline_string != true && token->type != TOKEN_EXPONENT) {
-        token->type = TOKEN_DECIMAL_LITERAL;
+        ungetc(c, source_file);
+        break;
       }
-
-      ungetc(c, source_file);
+      ungetc(c, source_file);              // Put the last character back into the source file
+      token->type = TOKEN_INTEGER_LITERAL; // Set the token type to integer literal
       break;
     }
 
@@ -519,5 +538,18 @@ int get_next_token(Token *token) {
     fprintf(stderr, "Unknown token: %s\n", token->val);
     exit(1);
   }
+  printf("Token Type: %d token: %s\n", token->type, token->val);
   return token->type;
+}
+
+int main() {
+  FILE *input_file = stdin;
+  Token token;
+  scanner_init(input_file);
+  while (get_next_token(&token) != TOKEN_EOF)
+    ;
+
+  scanner_destroy();
+
+  return 0;
 }
