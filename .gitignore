@@ -1,16 +1,6 @@
 # Prerequisites
 *.d
 
-# Random binaries ?? :D 
-scanner
-parser
-
-# Dump files
-vgcore.*
-
-# test file
-ahoj.swift
-
 # Object files
 *.o
 *.ko
@@ -85,3 +75,6 @@ run_tests
 
 build*/
 cmake-build*/
+cmake-build*/
+
+build/

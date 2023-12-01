@@ -77,14 +77,15 @@ typedef enum token_t {
   TOKEN_VAR,
   TOKEN_EOF,
   TOKEN_UNKNOWN,
+  TOKEN_PRINT,
   TOKEN_IN,
   TOKEN_FOR,
   TOKEN_OPTIONAL_TYPE,
   TOKEN_EXPONENT,
   TOKEN_DECIMAL_LITERAL,
   TOKEN_INTEGER_LITERAL,
-  TOKEN_STACK_BOTTOM, // Used by expresion parser
-  TOKEN_EXPRESSION,   // Used by expresion parser
+  TOKEN_STACK_BOTTOM,  // Used by expresion parser
+  TOKEN_EXPRESSION,    // Used by expresion parser
 } TokenType;
 
 typedef struct {
@@ -103,4 +104,4 @@ int get_next_token(Token *token);
 void char_to_token(Token *token, char c);
 void determine_token_type(Token *token);
 
-#endif // __SCANNER_H__
+#endif  // __SCANNER_H__

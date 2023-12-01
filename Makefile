@@ -7,7 +7,7 @@
 
 # Compiler settings
 CC = gcc
-CFLAGS = -std=c11 -g3 -O0 -Wall -Wextra -Werror -pedantic
+CFLAGS = -std=c11 -g3 -O2 -Wall -Wextra -Werror -pedantic
 
 # Get all .c files
 SRCS = $(wildcard *.c)
@@ -35,7 +35,7 @@ run: main
 
 # Clean up
 clean:
-	rm -rf main scanner *.o *.out *.d *.a *.log xhumld00.zip ./cmake-build vgcore.* 
+	rm -rf main *.o *.out *.d *.a *.log xhumld00.zip ./cmake-build
 
 # PDF documentation
 pdf:

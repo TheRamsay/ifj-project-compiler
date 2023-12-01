@@ -12,7 +12,7 @@ extern "C" {
 #include "vector"
 
 class ParserTest : public testing::Test {
-protected:
+ protected:
   void SetUp() override { init_success_ = parser_init(&parser_); }
 
   Parser parser_;
@@ -32,91 +32,6 @@ void check_tokens(std::vector<Token> input_tokens, Token *output_tokens) {
   EXPECT_EQ(i + 1, input_tokens.size());
 }
 
-KeywordType symtable_identifier_type_to_kw(SymtableIdentifierType type) {
-  switch (type.data_type) {
-  case INT_TYPE:
-    return KW_INT;
-  case DOUBLE_TYPE:
-    return KW_DOUBLE;
-  case STRING_TYPE:
-    return KW_STRING;
-  case VOID_TYPE:
-    return KW_VOID;
-  default:
-    return KW_UNKNOWN;
-  }
-}
-
-std::string symtable_identifier_type_to_str(SymtableIdentifierType type) {
-  switch (type.data_type) {
-  case INT_TYPE:
-    return type.nullable ? "Int?" : "Int";
-  case DOUBLE_TYPE:
-    return type.nullable ? "Double?" : "Double";
-  case STRING_TYPE:
-    return type.nullable ? "String?" : "String";
-  case VOID_TYPE:
-    return "Void";
-  default:
-    return "";
-  }
-}
-
-std::vector<Token> generate_function(SymtableData func,
-                                     std::vector<Token> body) {
-  if (func.type != SYMTABLE_FUNCTION) {
-    return {};
-  }
-
-  std::vector<Token> tokens = {
-      {TOKEN_KEYWORD, KW_FUNC, "func", 4, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, func.identifier, strlen(func.identifier)},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-  };
-
-  auto current_param = func.function.params;
-
-  while (current_param != NULL) {
-    auto str_type =
-        symtable_identifier_type_to_str(current_param->identifier_type);
-    tokens.push_back((Token){TOKEN_IDENTIFIER, KW_UNKNOWN,
-                             current_param->out_name,
-                             strlen(current_param->out_name)});
-    tokens.push_back((Token){TOKEN_IDENTIFIER, KW_UNKNOWN,
-                             current_param->in_name,
-                             strlen(current_param->in_name)});
-    tokens.push_back((Token){TOKEN_COLON, KW_UNKNOWN, ":", 1});
-    tokens.push_back(
-        (Token){TOKEN_KEYWORD,
-                symtable_identifier_type_to_kw(current_param->identifier_type),
-                str_type.data(), str_type.length(),
-                current_param->identifier_type.nullable});
-
-    if (current_param->next != NULL) {
-      tokens.push_back((Token){TOKEN_COMMA, KW_UNKNOWN, ",", 1});
-    }
-
-    current_param = current_param->next;
-  }
-
-  tokens.push_back((Token){TOKEN_RPAREN, KW_UNKNOWN, ")", 1});
-
-  if (func.function._return->identifier_type.data_type != VOID_TYPE) {
-    auto str_type =
-        symtable_identifier_type_to_str(func.function._return->identifier_type);
-    tokens.push_back((Token){TOKEN_ARROW, KW_UNKNOWN, "->", 2});
-    tokens.push_back((Token){
-        TOKEN_KEYWORD,
-        symtable_identifier_type_to_kw(func.function._return->identifier_type),
-        str_type.data(), str_type.length(),
-        func.function._return->identifier_type.nullable});
-  }
-
-  tokens.push_back((Token){TOKEN_LBRACE, KW_UNKNOWN, "{", 1});
-  tokens.insert(tokens.end(), body.begin(), body.end());
-  tokens.push_back((Token){TOKEN_RBRACE, KW_UNKNOWN, "}", 1});
-}
-
 TEST_F(ParserTest, Init) {
   if (!init_success_) {
     return;
@@ -124,7 +39,7 @@ TEST_F(ParserTest, Init) {
 
   std::vector<Token> tokens = {{TOKEN_EOF, KW_UNKNOWN, "", false, 0, false}};
 
-  Token *output = parser_start(&parser_, tokens.data());
+  Token *output = parse(&parser_, tokens.data());
 
   EXPECT_EQ(parser_.input_tokens, tokens.data());
   EXPECT_EQ(parser_.input_index, 1);
@@ -143,78 +58,64 @@ TEST_F(ParserTest, Init) {
 
 TEST_F(ParserTest, LetVariableDeclaration) {
   std::vector<Token> tokens = {
-      {TOKEN_KEYWORD, KW_LET, "let", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_KEYWORD, KW_LET, "let", 3, 0, 1}, {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
+      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, VarVariableDeclaration) {
   std::vector<Token> tokens = {
-      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1}, {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
+      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, LetVariableDeclarationWithType) {
   std::vector<Token> tokens = {
-      {TOKEN_KEYWORD, KW_LET, "let", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
-      {TOKEN_COLON, KW_UNKNOWN, ":", 1},
-      {TOKEN_KEYWORD, KW_INT, "Int?", 4, 1},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_KEYWORD, KW_LET, "let", 3, 0, 1}, {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
+      {TOKEN_COLON, KW_UNKNOWN, ":", 1},       {TOKEN_KEYWORD, KW_INT, "Int", 3},
+      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, VarVariableDeclarationWithType) {
   std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
-      {TOKEN_COLON, KW_UNKNOWN, ":", 1},
-      {TOKEN_KEYWORD, KW_INT, "Int?", 4, 1},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1}, {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
+      {TOKEN_COLON, KW_UNKNOWN, ":", 1},       {TOKEN_KEYWORD, KW_INT, "Int", 3},
+      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, LetVariableDeclarationWithTypeWithoutInit) {
   std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_LET, "let", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
-      {TOKEN_COLON, KW_UNKNOWN, ":", 1},
-      {TOKEN_KEYWORD, KW_INT, "Int", 3},
+      {TOKEN_KEYWORD, KW_LET, "let", 3, 0, 1}, {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
+      {TOKEN_COLON, KW_UNKNOWN, ":", 1},       {TOKEN_KEYWORD, KW_INT, "Int", 3},
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, VarVariableDeclarationWithTypeWithoutInit) {
   std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
-      {TOKEN_COLON, KW_UNKNOWN, ":", 1},
-      {TOKEN_KEYWORD, KW_INT, "Int", 3},
+      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1}, {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
+      {TOKEN_COLON, KW_UNKNOWN, ":", 1},       {TOKEN_KEYWORD, KW_INT, "Int", 3},
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, LetVariableDeclarationWithoutInit) {
@@ -224,8 +125,7 @@ TEST_F(ParserTest, LetVariableDeclarationWithoutInit) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_INFER),
+  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_INFER),
               "Semantic error.*");
 }
 
@@ -236,8 +136,7 @@ TEST_F(ParserTest, VarVariableDeclarationWithoutInit) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_INFER),
+  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_INFER),
               "Semantic error.*");
 }
 
@@ -252,7 +151,7 @@ TEST_F(ParserTest, FuncDeclaration) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, FuncDeclarationWithReturnType) {
@@ -262,7 +161,7 @@ TEST_F(ParserTest, FuncDeclarationWithReturnType) {
       {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
       {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
       {TOKEN_ARROW, KW_UNKNOWN, "->", 2},
-      {TOKEN_KEYWORD, KW_INT, "Int?", 4, 1},
+      {TOKEN_KEYWORD, KW_INT, "Double", 3},
       {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
       {TOKEN_KEYWORD, KW_RETURN, "return", 6, 0, 1},
       {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
@@ -270,7 +169,7 @@ TEST_F(ParserTest, FuncDeclarationWithReturnType) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, FuncDeclarationWithReturnTypeNullable) {
@@ -280,7 +179,7 @@ TEST_F(ParserTest, FuncDeclarationWithReturnTypeNullable) {
       {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
       {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
       {TOKEN_ARROW, KW_UNKNOWN, "->", 2},
-      {TOKEN_KEYWORD, KW_INT, "Int?", 4, 1},
+      {TOKEN_KEYWORD, KW_INT, "String?", 7},
       {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
       {TOKEN_KEYWORD, KW_RETURN, "return", 6, 0, 1},
       {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
@@ -288,30 +187,22 @@ TEST_F(ParserTest, FuncDeclarationWithReturnTypeNullable) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, FuncDeclarationWithParams) {
   std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_FUNC, "func", 4, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "_", 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "aihoj", 4},
-      {TOKEN_COLON, KW_UNKNOWN, ":", 1},
-      {TOKEN_KEYWORD, KW_INT, "String?", 7, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "pepik", 5},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "pepicek", 7},
-      {TOKEN_COLON, KW_UNKNOWN, ":", 1},
-      {TOKEN_KEYWORD, KW_INT, "Int", 3},
-      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_EOF, KW_UNKNOWN, "", 0},
+      {TOKEN_KEYWORD, KW_FUNC, "func", 4, 0, 1},  {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
+      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},         {TOKEN_IDENTIFIER, KW_UNKNOWN, "_", 1},
+      {TOKEN_IDENTIFIER, KW_UNKNOWN, "aihoj", 4}, {TOKEN_COLON, KW_UNKNOWN, ":", 1},
+      {TOKEN_KEYWORD, KW_INT, "String?", 7},      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_IDENTIFIER, KW_UNKNOWN, "pepik", 5}, {TOKEN_IDENTIFIER, KW_UNKNOWN, "pepicek", 7},
+      {TOKEN_COLON, KW_UNKNOWN, ":", 1},          {TOKEN_KEYWORD, KW_INT, "Int", 3},
+      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},         {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},         {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, FuncDeclarationWithParamsWithReturnType) {
@@ -330,7 +221,7 @@ TEST_F(ParserTest, FuncDeclarationWithParamsWithReturnType) {
       {TOKEN_KEYWORD, KW_INT, "Int", 3},
       {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
       {TOKEN_ARROW, KW_UNKNOWN, "->", 2},
-      {TOKEN_KEYWORD, KW_INT, "Int?", 4, 1, 0},
+      {TOKEN_KEYWORD, KW_INT, "String?", 7},
       {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
       {TOKEN_KEYWORD, KW_RETURN, "return", 6, 0, 1},
       {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
@@ -338,7 +229,7 @@ TEST_F(ParserTest, FuncDeclarationWithParamsWithReturnType) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, FuncDeclarationWithBody) {
@@ -349,7 +240,7 @@ TEST_F(ParserTest, FuncDeclarationWithBody) {
       {TOKEN_IDENTIFIER, KW_UNKNOWN, "_", 1},
       {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
       {TOKEN_COLON, KW_UNKNOWN, ":", 1},
-      {TOKEN_KEYWORD, KW_INT, "String?", 7, 1},
+      {TOKEN_KEYWORD, KW_INT, "String?", 7},
       {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
       {TOKEN_IDENTIFIER, KW_UNKNOWN, "pepik", 5},
       {TOKEN_IDENTIFIER, KW_UNKNOWN, "pepicek", 7},
@@ -357,7 +248,7 @@ TEST_F(ParserTest, FuncDeclarationWithBody) {
       {TOKEN_KEYWORD, KW_INT, "Int", 3},
       {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
       {TOKEN_ARROW, KW_UNKNOWN, "->", 2},
-      {TOKEN_KEYWORD, KW_INT, "Int?", 4, 1},
+      {TOKEN_KEYWORD, KW_INT, "String?", 7},
       {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
       {TOKEN_COMMA, KW_UNKNOWN, ",", 1, 0, 1},
       {TOKEN_KEYWORD, KW_RETURN, "return", 6, 0, 1},
@@ -366,13 +257,13 @@ TEST_F(ParserTest, FuncDeclarationWithBody) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, FuncDeclarationWithEmptyReturn) {
   std::vector<Token> tokens{
       {TOKEN_KEYWORD, KW_FUNC, "func", 4, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "xx", 4},
+      {TOKEN_IDENTIFIER, KW_UNKNOWN, "pepa", 4},
       {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
       {TOKEN_IDENTIFIER, KW_UNKNOWN, "_", 1},
       {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
@@ -392,36 +283,7 @@ TEST_F(ParserTest, FuncDeclarationWithEmptyReturn) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_RETURN),
-              "Semantic error.*");
-}
-
-TEST_F(ParserTest, VoidFuncDeclarationWithNonEmptyReturn) {
-  std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_FUNC, "func", 4, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "xx", 4},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "_", 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
-      {TOKEN_COLON, KW_UNKNOWN, ":", 1},
-      {TOKEN_KEYWORD, KW_INT, "String?", 7},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "pepik", 5},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "pepicek", 7},
-      {TOKEN_COLON, KW_UNKNOWN, ":", 1},
-      {TOKEN_KEYWORD, KW_INT, "Int", 3},
-      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_KEYWORD, KW_RETURN, "return", 6, 0, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_EOF, KW_UNKNOWN, "", 0},
-  };
-
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_RETURN),
-              "Semantic error.*");
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, FuncDeclarationWithReturn) {
@@ -440,7 +302,7 @@ TEST_F(ParserTest, FuncDeclarationWithReturn) {
       {TOKEN_KEYWORD, KW_INT, "Int", 3},
       {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
       {TOKEN_ARROW, KW_UNKNOWN, "->", 2},
-      {TOKEN_KEYWORD, KW_INT, "Int?", 4, 1},
+      {TOKEN_KEYWORD, KW_INT, "String?", 7},
       {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
       {TOKEN_KEYWORD, KW_RETURN, "return", 6, 0, 1},
       {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
@@ -448,40 +310,32 @@ TEST_F(ParserTest, FuncDeclarationWithReturn) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, TwoStatementsTwoLines) {
   std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_LET, "let", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4, 0},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 0, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 0, 1},
-      {TOKEN_KEYWORD, KW_LET, "var", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "pepa", 4, 0},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 0, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 0, 1},
+      {TOKEN_KEYWORD, KW_LET, "let", 3, 0, 1}, {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4, 0},
+      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 0, 1},   {TOKEN_COMMA, KW_UNKNOWN, ",", 0, 1},
+      {TOKEN_KEYWORD, KW_LET, "var", 3, 0, 1}, {TOKEN_IDENTIFIER, KW_UNKNOWN, "pepa", 4, 0},
+      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 0, 1},   {TOKEN_COMMA, KW_UNKNOWN, ",", 0, 1},
       {TOKEN_EOF, KW_UNKNOWN, "", 0, 0, 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, TwoStatementsOnSameLine) {
   std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_LET, "let", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4, 0},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 0, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 0, 1},
-      {TOKEN_KEYWORD, KW_LET, "var", 3, 0, 0},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "pepa", 4, 0},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 0, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 0, 1},
+      {TOKEN_KEYWORD, KW_LET, "let", 3, 0, 1}, {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4, 0},
+      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 0, 1},   {TOKEN_COMMA, KW_UNKNOWN, ",", 0, 1},
+      {TOKEN_KEYWORD, KW_LET, "var", 3, 0, 0}, {TOKEN_IDENTIFIER, KW_UNKNOWN, "pepa", 4, 0},
+      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 0, 1},   {TOKEN_COMMA, KW_UNKNOWN, ",", 0, 1},
       {TOKEN_EOF, KW_UNKNOWN, "", 0, 0, 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SYNTAX_ERR), "Syntax error.*");
+  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
+              "Syntax error.*");
 }
 
 TEST_F(ParserTest, NoReturnInBranch) {
@@ -491,7 +345,7 @@ TEST_F(ParserTest, NoReturnInBranch) {
       {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
       {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
       {TOKEN_ARROW, KW_UNKNOWN, "->", 2},
-      {TOKEN_KEYWORD, KW_INT, "Int?", 4, 1},
+      {TOKEN_KEYWORD, KW_INT, "String", 7},
       {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
       {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
       {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
@@ -506,8 +360,8 @@ TEST_F(ParserTest, NoReturnInBranch) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_CALL), "Semantic error.*");
+  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_CALL),
+              "Semantic error.*");
 }
 
 TEST_F(ParserTest, NoReturnInBranchNested) {
@@ -517,7 +371,7 @@ TEST_F(ParserTest, NoReturnInBranchNested) {
       {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
       {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
       {TOKEN_ARROW, KW_UNKNOWN, "->", 2},
-      {TOKEN_KEYWORD, KW_INT, "Int?", 4, 1},
+      {TOKEN_KEYWORD, KW_INT, "String", 7},
       {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
       {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
       {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
@@ -541,8 +395,8 @@ TEST_F(ParserTest, NoReturnInBranchNested) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_CALL), "Semantic error.*");
+  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_CALL),
+              "Semantic error.*");
 }
 
 TEST_F(ParserTest, NoReturnInBranchButInFuncBody) {
@@ -552,7 +406,7 @@ TEST_F(ParserTest, NoReturnInBranchButInFuncBody) {
       {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
       {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
       {TOKEN_ARROW, KW_UNKNOWN, "->", 2},
-      {TOKEN_KEYWORD, KW_INT, "Int?", 4, 1},
+      {TOKEN_KEYWORD, KW_INT, "String", 7},
       {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
       {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
       {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
@@ -569,7 +423,7 @@ TEST_F(ParserTest, NoReturnInBranchButInFuncBody) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, NoReturnInBranchButInFuncBody2) {
@@ -579,7 +433,7 @@ TEST_F(ParserTest, NoReturnInBranchButInFuncBody2) {
       {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
       {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
       {TOKEN_ARROW, KW_UNKNOWN, "->", 2},
-      {TOKEN_KEYWORD, KW_INT, "Int?", 4, 1},
+      {TOKEN_KEYWORD, KW_INT, "String", 7},
       {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
       {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
       {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
@@ -594,7 +448,7 @@ TEST_F(ParserTest, NoReturnInBranchButInFuncBody2) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, NoReturnInBranchNestedVoidFunc) {
@@ -614,50 +468,44 @@ TEST_F(ParserTest, NoReturnInBranchNestedVoidFunc) {
       {TOKEN_KEYWORD, KW_ELSE, "else", 4},
       {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
       {TOKEN_KEYWORD, KW_RETURN, "return", 6, 0, 1},
+      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
       {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
       {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
       {TOKEN_KEYWORD, KW_ELSE, "else", 4},
       {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
       {TOKEN_KEYWORD, KW_RETURN, "return", 6, 0, 1},
+      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
       {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
       {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, VariableRedeclaration) {
   std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
-      {TOKEN_COLON, KW_UNKNOWN, ":", 1},
-      {TOKEN_KEYWORD, KW_INT, "Int", 3},
-      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
-      {TOKEN_COLON, KW_UNKNOWN, ":", 1},
-      {TOKEN_KEYWORD, KW_INT, "Int", 3},
+      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1}, {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
+      {TOKEN_COLON, KW_UNKNOWN, ":", 1},       {TOKEN_KEYWORD, KW_INT, "Int", 3},
+      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1}, {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
+      {TOKEN_COLON, KW_UNKNOWN, ":", 1},       {TOKEN_KEYWORD, KW_INT, "Int", 3},
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC), "Semantic error.*");
+  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC),
+              "Semantic error.*");
 }
 
 TEST_F(ParserTest, MultipleVariables) {
   std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
-      {TOKEN_COLON, KW_UNKNOWN, ":", 1},
-      {TOKEN_KEYWORD, KW_INT, "Int", 3},
-      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj2", 4},
-      {TOKEN_COLON, KW_UNKNOWN, ":", 1},
-      {TOKEN_KEYWORD, KW_INT, "Int", 3},
+      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1}, {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
+      {TOKEN_COLON, KW_UNKNOWN, ":", 1},       {TOKEN_KEYWORD, KW_INT, "Int", 3},
+      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1}, {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj2", 4},
+      {TOKEN_COLON, KW_UNKNOWN, ":", 1},       {TOKEN_KEYWORD, KW_INT, "Int", 3},
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, FuncRedeclaration) {
@@ -677,8 +525,8 @@ TEST_F(ParserTest, FuncRedeclaration) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC), "Semantic error.*");
+  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC),
+              "Semantic error.*");
 }
 
 TEST_F(ParserTest, MultipleFuncDeclaration) {
@@ -698,7 +546,7 @@ TEST_F(ParserTest, MultipleFuncDeclaration) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, FuncParamsInOutSameName) {
@@ -716,8 +564,8 @@ TEST_F(ParserTest, FuncParamsInOutSameName) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC), "Semantic error.*");
+  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC),
+              "Semantic error.*");
 }
 
 TEST_F(ParserTest, FuncParamsInvalidName) {
@@ -735,8 +583,8 @@ TEST_F(ParserTest, FuncParamsInvalidName) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SYNTAX_ERR), "Syntax error.*");
+  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
+              "Syntax error.*");
 }
 
 TEST_F(ParserTest, TopLevelReturn) {
@@ -746,8 +594,8 @@ TEST_F(ParserTest, TopLevelReturn) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SYNTAX_ERR), "Syntax error.*");
+  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
+              "Syntax error.*");
 }
 
 TEST_F(ParserTest, SimpleIf) {
@@ -759,29 +607,22 @@ TEST_F(ParserTest, SimpleIf) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, NestedIf) {
   std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_KEYWORD, KW_ELSE, "else", 4},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_KEYWORD, KW_ELSE, "else", 4},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
+      {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1}, {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},    {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
+      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},     {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},    {TOKEN_KEYWORD, KW_ELSE, "else", 4},
+      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},    {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},    {TOKEN_KEYWORD, KW_ELSE, "else", 4},
+      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},    {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, SimpleIfWithoutElseBranch) {
@@ -791,52 +632,38 @@ TEST_F(ParserTest, SimpleIfWithoutElseBranch) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SYNTAX_ERR), "Syntax error.*");
+  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
+              "Syntax error.*");
 }
 
 TEST_F(ParserTest, NestedIfWithoutElseBranch) {
   std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_KEYWORD, KW_ELSE, "else", 4},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_EOF, KW_UNKNOWN, "", 0},
+      {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1}, {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},    {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
+      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},     {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},    {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
+      {TOKEN_KEYWORD, KW_ELSE, "else", 4},   {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},    {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SYNTAX_ERR), "Syntax error.*");
+  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
+              "Syntax error.*");
 }
 
 TEST_F(ParserTest, IfLet) {
   std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_LET, "let", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_KEYWORD, KW_LET, "let", 3, 0, 1},   {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
+      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
 
-      {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
-      {TOKEN_KEYWORD, KW_LET, "let", 3},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_KEYWORD, KW_ELSE, "else", 4},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_EOF, KW_UNKNOWN, "", 0},
+      {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},     {TOKEN_KEYWORD, KW_LET, "let", 3},
+      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4}, {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
+      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},         {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},        {TOKEN_KEYWORD, KW_ELSE, "else", 4},
+      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},        {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, IfLetWithoutExpr) {
@@ -858,44 +685,34 @@ TEST_F(ParserTest, IfLetWithoutExpr) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_EXPR), "Semantic error.*");
+  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
+              "Syntax error.*");
 }
 
 TEST_F(ParserTest, IfWithoutExpr) {
   std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_KEYWORD, KW_ELSE, "else", 4},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_EOF, KW_UNKNOWN, "", 0},
+      {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1}, {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},    {TOKEN_KEYWORD, KW_ELSE, "else", 4},
+      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},    {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},    {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_EXPR), "Semantic error.*");
+  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
+              "Syntax error.*");
 }
 
 TEST_F(ParserTest, IfVar) {
   std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
-      {TOKEN_KEYWORD, KW_VAR, "var", 3},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_KEYWORD, KW_ELSE, "else", 4},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_EOF, KW_UNKNOWN, "", 0},
+      {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},     {TOKEN_KEYWORD, KW_VAR, "var", 3},
+      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4}, {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
+      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},         {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},        {TOKEN_KEYWORD, KW_ELSE, "else", 4},
+      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},        {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SYNTAX_ERR), "Syntax error.*");
+  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
+              "Syntax error.*");
 }
 
 TEST_F(ParserTest, SimpleWhile) {
@@ -907,20 +724,17 @@ TEST_F(ParserTest, SimpleWhile) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, WhileWithBody) {
   std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_WHILE, "while", 5, 0, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_EOF, KW_UNKNOWN, "", 0},
+      {TOKEN_KEYWORD, KW_WHILE, "while", 5, 0, 1}, {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},          {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},          {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, WhileWithoutExpression) {
@@ -932,8 +746,8 @@ TEST_F(ParserTest, WhileWithoutExpression) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_EXPR), "Semantic error.*");
+  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
+              "Syntax error.*");
 }
 
 TEST_F(ParserTest, FuncDeclarMissingParameterType) {
@@ -957,8 +771,8 @@ TEST_F(ParserTest, FuncDeclarMissingParameterType) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SYNTAX_ERR), "Syntax error.*");
+  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SYNTAX_ERR),
+              "Syntax error.*");
 }
 
 TEST_F(ParserTest, FuncDeclarationMultipleParamsWithSameIdentifier) {
@@ -984,8 +798,8 @@ TEST_F(ParserTest, FuncDeclarationMultipleParamsWithSameIdentifier) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC), "Semantic error.*");
+  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC),
+              "Semantic error.*");
 }
 
 TEST_F(ParserTest, FuncDeclarationMultipleParamsWithSameName) {
@@ -1004,15 +818,14 @@ TEST_F(ParserTest, FuncDeclarationMultipleParamsWithSameName) {
       {TOKEN_KEYWORD, KW_INT, "Int", 3},
       {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
       {TOKEN_ARROW, KW_UNKNOWN, "->", 2},
-      {TOKEN_KEYWORD, KW_INT, "Int?", 4, 1},
+      {TOKEN_KEYWORD, KW_INT, "String?", 7},
       {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
       {TOKEN_KEYWORD, KW_RETURN, "return", 6, 0, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
       {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, ConstantModification) {
@@ -1027,8 +840,8 @@ TEST_F(ParserTest, ConstantModification) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR), "Semantic error.*");
+  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR),
+              "Semantic error.*");
 }
 
 TEST_F(ParserTest, MutableVariableModification) {
@@ -1043,7 +856,7 @@ TEST_F(ParserTest, MutableVariableModification) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, SameVariableNameDifferentScopes) {
@@ -1071,7 +884,7 @@ TEST_F(ParserTest, SameVariableNameDifferentScopes) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, SameVariableNameDifferentScopesGlobal) {
@@ -1093,59 +906,40 @@ TEST_F(ParserTest, SameVariableNameDifferentScopesGlobal) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, RedeclarationInDifferentScope) {
   std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "y", 1},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "y", 1},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_KEYWORD, KW_ELSE, "else", 4},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_EOF, KW_UNKNOWN, "", 0},
+      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1}, {TOKEN_IDENTIFIER, KW_UNKNOWN, "y", 1},
+      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},   {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
+      {TOKEN_IDENTIFIER, KW_UNKNOWN, "y", 1},  {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
+      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},       {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
+      {TOKEN_KEYWORD, KW_ELSE, "else", 4},     {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},      {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, RedeclarationInDifferentScope2) {
   std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_FUNC, "func", 4, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "pepa", 4},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "y", 1},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "y", 1},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_KEYWORD, KW_ELSE, "else", 4},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_EOF, KW_UNKNOWN, "", 0},
+      {TOKEN_KEYWORD, KW_FUNC, "func", 4, 0, 1}, {TOKEN_IDENTIFIER, KW_UNKNOWN, "pepa", 4},
+      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},        {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
+      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},        {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
+      {TOKEN_IDENTIFIER, KW_UNKNOWN, "y", 1},    {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
+      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},         {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
+      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},         {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},   {TOKEN_IDENTIFIER, KW_UNKNOWN, "y", 1},
+      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},        {TOKEN_KEYWORD, KW_ELSE, "else", 4},
+      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},        {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},        {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, DeclareVariableWithSameNameAsFuncParam) {
@@ -1167,239 +961,19 @@ TEST_F(ParserTest, DeclareVariableWithSameNameAsFuncParam) {
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  check_tokens(tokens, parse(&parser_, tokens.data()));
 }
 
 TEST_F(ParserTest, IfLetWithoutDefinition) {
   std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
-      {TOKEN_KEYWORD, KW_LET, "let", 3},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_KEYWORD, KW_ELSE, "else", 4},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_EOF, KW_UNKNOWN, "", 0},
+      {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},     {TOKEN_KEYWORD, KW_LET, "let", 3},
+      {TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4}, {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
+      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},         {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},        {TOKEN_KEYWORD, KW_ELSE, "else", 4},
+      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},        {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},        {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC), "Semantic error.*");
-}
-
-TEST_F(ParserTest, VariableAssignmentFuncCallWithoutType) {
-  std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_FUNC, "func", 4, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "b", 1},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
-      {TOKEN_ARROW, KW_UNKNOWN, "->", 2},
-      {TOKEN_KEYWORD, KW_INT, "Int?", 4, 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_KEYWORD, KW_RETURN, "return", 6, 0, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "a", 1},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "b", 1},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
-      {TOKEN_EOF, KW_UNKNOWN, "", 0},
-  };
-
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
-}
-
-TEST_F(ParserTest, VariableAssignmentFuncCallWithType) {
-  std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_FUNC, "func", 4, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "b", 1},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
-      {TOKEN_ARROW, KW_UNKNOWN, "->", 2},
-      {TOKEN_KEYWORD, KW_INT, "Int?", 4, 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_KEYWORD, KW_RETURN, "return", 6, 0, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "a", 1},
-      {TOKEN_COLON, KW_UNKNOWN, ":", 1},
-      {TOKEN_KEYWORD, KW_INT, "Int?", 4, 1},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "b", 1},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
-      {TOKEN_EOF, KW_UNKNOWN, "", 0},
-  };
-
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
-}
-
-TEST_F(ParserTest, VariableAssignmentFuncCallWithWrongType) {
-  std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_FUNC, "func", 4, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "b", 1},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
-      {TOKEN_ARROW, KW_UNKNOWN, "->", 2},
-      {TOKEN_KEYWORD, KW_STRING, "String?", 7},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_KEYWORD, KW_RETURN, "return", 6, 0, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "a", 1},
-      {TOKEN_COLON, KW_UNKNOWN, ":", 1},
-      {TOKEN_KEYWORD, KW_INT, "Int", 3, 1},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "b", 1},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
-      {TOKEN_EOF, KW_UNKNOWN, "", 0},
-  };
-
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_EXPR), "Semantic error.*");
-}
-
-TEST_F(ParserTest, VariableAssignmentFuncCallVoidFunc) {
-  std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_FUNC, "func", 4, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "b", 4},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "a", 1},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-
-      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "a", 1},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "b", 1},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
-      {TOKEN_EOF, KW_UNKNOWN, "", 0},
-  };
-
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_EXPR), "Semantic error.*");
-}
-
-TEST_F(ParserTest, FuncCallWithoutAssignment) {
-  std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_FUNC, "func", 4, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "b", 4},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
-      {TOKEN_ARROW, KW_UNKNOWN, "->", 2},
-      {TOKEN_KEYWORD, KW_INT, "Int?", 7, 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_KEYWORD, KW_RETURN, "return", 6, 0, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "b", 1, 0, 1},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
-      {TOKEN_EOF, KW_UNKNOWN, "", 0},
-  };
-
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
-}
-
-TEST_F(ParserTest, UndefinedFuncCallWithoutAssignment) {
-  std::vector<Token> tokens{
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "b", 1, 0, 1},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
-      {TOKEN_EOF, KW_UNKNOWN, "", 0},
-  };
-
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC), "Semantic error.*");
-}
-
-TEST_F(ParserTest, VariableAssignmentFuncCallAfterDefinition) {
-  std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "a", 1},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "b", 1},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
-      {TOKEN_KEYWORD, KW_FUNC, "func", 4, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "b", 4},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
-      {TOKEN_ARROW, KW_UNKNOWN, "->", 2},
-      {TOKEN_KEYWORD, KW_INT, "Int?", 4, 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_KEYWORD, KW_RETURN, "return", 6, 0, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_EOF, KW_UNKNOWN, "", 0},
-  };
-
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
-}
-
-TEST_F(ParserTest, VariableAssignmentFuncCallAfterDefinitionWrongReturnType) {
-  std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "a", 1},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "b", 1},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
-      {TOKEN_KEYWORD, KW_FUNC, "func", 4, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "b", 4},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
-      {TOKEN_ARROW, KW_UNKNOWN, "->", 2},
-      {TOKEN_KEYWORD, KW_STRING, "String?", 7, 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_KEYWORD, KW_RETURN, "return", 6, 0, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_EOF, KW_UNKNOWN, "", 0},
-  };
-
-  EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_EXPR), "Semantic error.*");
-}
-
-TEST_F(ParserTest, VariableAssignmentFuncCallAfterDefinitionWithParams) {
-  std::vector<Token> tokens{
-      {TOKEN_KEYWORD, KW_VAR, "var", 3, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "a", 1},
-      {TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "b", 1},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-      {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "1", 1},
-      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
-      {TOKEN_KEYWORD, KW_FUNC, "func", 4, 0, 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "b", 4},
-      {TOKEN_LPAREN, KW_UNKNOWN, "(", 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "_", 1},
-      {TOKEN_IDENTIFIER, KW_UNKNOWN, "y", 1},
-      {TOKEN_COLON, KW_UNKNOWN, ":", 1},
-      {TOKEN_KEYWORD, KW_INT, "Int", 3},
-      {TOKEN_RPAREN, KW_UNKNOWN, ")", 1},
-      {TOKEN_ARROW, KW_UNKNOWN, "->", 2},
-      {TOKEN_KEYWORD, KW_INT, "Int?", 4, 1},
-      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
-      {TOKEN_KEYWORD, KW_RETURN, "return", 6, 0, 1},
-      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
-      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
-      {TOKEN_EOF, KW_UNKNOWN, "", 0},
-  };
-
-  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+  EXPECT_EXIT(parse(&parser_, tokens.data()), ::testing::ExitedWithCode(SEMANTIC_ERR_FUNC),
+              "Semantic error.*");
 }

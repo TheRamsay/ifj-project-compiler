@@ -30,14 +30,16 @@ typedef struct SymtableParam SymtableParam;
 typedef struct SymtableReturn SymtableReturn;
 typedef struct SymtableData SymtableData;
 
-typedef enum { SYMTABLE_VARIABLE, SYMTABLE_FUNCTION } SymtableValueType;
+typedef enum {
+  SYMTABLE_VARIABLE,
+  SYMTABLE_FUNCTION
+} SymtableValueType;
 
 typedef enum {
   UNKNOWN_TYPE,
   INT_TYPE,
   DOUBLE_TYPE,
   STRING_TYPE,
-  BOOL_TYPE,
   VOID_TYPE
 } SymtableDataType;
 
@@ -111,13 +113,11 @@ void symtable_dispose(Symtable *table);
 
 void symtable_clear(Symtable *table);
 
-SymtableItem *symtable_add_symbol(Symtable *table, char *key,
-                                  SymtableValueType type, bool defined,
+SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType type, bool defined,
                                   bool constant, bool param);
 SymtableItem *symtable_insert(Symtable *table, char *key, SymtableData *data);
 
-bool symtable_add_param(SymtableItem *item, char *out_identifier,
-                        char *in_identifier,
+bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_identifier,
                         SymtableIdentifierType identifier_type);
 
 bool symtable_add_return(SymtableItem *item, SymtableIdentifierType type);
