@@ -2,6 +2,14 @@
 
 #include "string.h"
 
+#ifdef PARSER_TEST
+#define DEFAULT_EXPRESION_TYPE \
+	(SymtableIdentifierType) { .data_type = INT_TYPE, .nullable = true }
+
+#define DEFAULT_IF_EXPRESION_TYPE \
+	(SymtableIdentifierType) { .data_type = BOOL_TYPE, .nullable = false }
+#endif
+
 #define TOKEN_BUFFER_LEN 2
 #define LUFAK_JE_PEPIK_TODO_PREPSAT_NA_DYNAMICKEJ_STACK \
 	42069 + 2 // Special prime number that is optimal for this use case
@@ -157,6 +165,11 @@ Token *peek(Parser *parser)
 	// 	parser->buffer_active = true;
 	// 	return parser->token_buffer + 1;
 
+	if (parser->tokens->next == NULL)
+	{
+		return NULL;
+	}
+
 	return parser->tokens->next->token;
 }
 
@@ -225,9 +238,6 @@ Token *advance(Parser *parser)
 
 	parser->tokens = parser->tokens->next;
 
-#ifdef PARSER_TEST
-	parser->output_tokens[parser->output_index++] = *parser->tokens->token;
-#endif
 	return parser->tokens->token;
 }
 
@@ -641,9 +651,13 @@ bool return_t(Parser *parser)
 		exit_with_error(SEMANTIC_ERR_RETURN, "Void function can't have an <expression> in return statement");
 	}
 
+#ifdef PARSER_TEST
+	SymtableIdentifierType expression_type = expression(parser, DEFAULT_EXPRESION_TYPE);
+#else
 	SymtableIdentifierType expression_type = expression(parser);
+#endif
 
-	printf("%d %d\n", func->data->function._return->identifier_type.data_type, expression_type.data_type);
+	// printf("%d %d\n", func->data->function._return->identifier_type.data_type, expression_type.data_type);
 
 	if (!compare_symtable_item_types(func->data->function._return->identifier_type, expression_type))
 	{
@@ -681,7 +695,7 @@ bool if_statement(Parser *parser)
 	// If var is a little somarek, we don't support him
 	if (match_keyword(parser, KW_VAR, false))
 	{
-		exit_with_error(SYNTAX_ERR, "If var is not supported :P, use 'let' instead");
+		exit_with_error(SYNTAX_ERR, "If var is not supported 😝, use 'let' instead");
 	}
 
 	// if_cond -> <expr> | VAR_DEFINITION_KW IDENTIFIER '=' <expr>
@@ -696,11 +710,25 @@ bool if_statement(Parser *parser)
 			exit_with_error(SEMANTIC_ERR_FUNC, "Variable %s has to be defined", var_id);
 		}
 
+		// TODO: toto je naozaj mysteriozne todo, krivka si vyfukal v zadani rit a neni som si isty ak toto handlovat zatial
+		if (!result->data->variable.constant)
+		{
+			exit_with_error(SEMANTIC_ERR_FUNC, "Variable %s is constant", var_id);
+		}
+
 		consume(parser, TOKEN_ASSIGN, "Expected '='");
 	}
 
+#ifdef PARSER_TEST
+	SymtableIdentifierType expression_type = expression(parser, DEFAULT_IF_EXPRESION_TYPE);
+#else
 	SymtableIdentifierType expression_type = expression(parser);
-	(void)expression_type;
+#endif
+
+	if (expression_type.data_type != BOOL_TYPE)
+	{
+		exit_with_error(SEMANTIC_ERR_EXPR, "Expression in if statement must be boolean");
+	}
 
 #ifdef PARSER_TEST
 	if (expression_type.data_type == VOID_TYPE)
@@ -763,8 +791,16 @@ bool statement(Parser *parser)
 		Symtable *local_table = symtable_new(LUFAK_JE_PEPIK_TODO_PREPSAT_NA_DYNAMICKEJ_STACK);
 		stack_push(parser->local_tables_stack, local_table);
 
+#ifdef PARSER_TEST
+		SymtableIdentifierType expression_type = expression(parser, DEFAULT_IF_EXPRESION_TYPE);
+#else
 		SymtableIdentifierType expression_type = expression(parser);
-		(void)expression_type;
+#endif
+
+		if (expression_type.data_type != BOOL_TYPE)
+		{
+			exit_with_error(SEMANTIC_ERR_EXPR, "Expression in while statement must be boolean");
+		}
 
 #ifdef PARSER_TEST
 		if (expression_type.data_type == VOID_TYPE)
@@ -840,7 +876,11 @@ bool statement(Parser *parser)
 			{
 				// TODO: get value from expression parser and
 				//   generator_var_set(parser->gen, variable_id, current_token(parser)->val);
+#ifdef PARSER_TEST
+				SymtableIdentifierType expression_type = expression(parser, DEFAULT_EXPRESION_TYPE);
+#else
 				SymtableIdentifierType expression_type = expression(parser);
+#endif
 
 				if (identifier_type.data_type == UNKNOWN_TYPE)
 				{
@@ -929,7 +969,11 @@ bool statement(Parser *parser)
 			}
 			else
 			{
+#ifdef PARSER_TEST
+				SymtableIdentifierType expression_type = expression(parser, DEFAULT_EXPRESION_TYPE);
+#else
 				SymtableIdentifierType expression_type = expression(parser);
+#endif
 
 				if (!compare_symtable_item_types(identifier_item->data->variable.identifier_type, expression_type))
 				{
@@ -939,20 +983,28 @@ bool statement(Parser *parser)
 			}
 		}
 		// statement -> func_call
-		if (peek(parser)->type == TOKEN_LPAREN)
+		if (peek(parser) != NULL && peek(parser)->type == TOKEN_LPAREN)
 		{
 			func_call(parser);
 		}
 		// statement -> expression that starts with identifier
 		else
 		{
+#ifdef PARSER_TEST
+			expression(parser, DEFAULT_EXPRESION_TYPE);
+#else
 			expression(parser);
+#endif
 		}
 	}
 	// statement -> <expression> rule
 	else
 	{
+#ifdef PARSER_TEST
+		expression(parser, DEFAULT_EXPRESION_TYPE);
+#else
 		expression(parser);
+#endif
 	}
 
 	// If current paths leads to valid return or if rest of the body leads to valid return, return
@@ -983,7 +1035,6 @@ void program(Parser *parser)
 		// First pass only checkes function definitions
 		else
 		{
-			printf("Juuuu");
 			Token *token = current_token(parser);
 
 			// CHrhh mnam mnam zchroustal jsem vsecky tokeny ktere nejsou func
@@ -1017,12 +1068,10 @@ Token *parser_start(Parser *parser, Token *input_tokens)
 
 	DLL_Token *first_token = parser->tokens;
 
-	printf("Starting first pass\n");
 	// First pass
 	parse(parser);
 	parser->semantic_enabled = true;
 
-	printf("Starting second pass\n");
 	// Second pass
 	parser->tokens = first_token;
 
@@ -1037,17 +1086,23 @@ Token *parser_start(Parser *parser, Token *input_tokens)
 #endif
 }
 
+#ifdef PARSER_TEST
+SymtableIdentifierType expression(Parser *parser, SymtableIdentifierType return_type)
+#else
 SymtableIdentifierType expression(Parser *parser)
+#endif
 {
+
 #ifdef PARSER_TEST
 	if (current_token(parser)->type != TOKEN_COMMA)
 	{
 		return (SymtableIdentifierType){.data_type = VOID_TYPE, .nullable = false};
 	}
-#endif
 	consume(parser, TOKEN_COMMA, "Expected an expression");
-	return (SymtableIdentifierType){.data_type = INT_TYPE, .nullable = true};
-	// return parse_expression(parser);
+	return return_type;
+#else
+	consume(parser, TOKEN_COMMA, "Expected an expression");
+#endif
 }
 
 void scanner_consume(Parser *parser)
@@ -1061,6 +1116,7 @@ void scanner_consume(Parser *parser)
 		get_next_token(&token);
 #else
 		Token token = parser->input_tokens[parser->input_index++];
+		parser->output_tokens[parser->output_index++] = token;
 #endif
 
 		DLL_Token *dll_token = dll_token_new(token);

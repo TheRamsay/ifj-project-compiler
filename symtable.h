@@ -40,6 +40,7 @@ typedef enum {
   INT_TYPE,
   DOUBLE_TYPE,
   STRING_TYPE,
+  BOOL_TYPE,
   VOID_TYPE
 } SymtableDataType;
 
