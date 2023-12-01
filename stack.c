@@ -64,7 +64,9 @@ void_stack_t *stack_new(int size) {
  *
  * @returns true v případě, že je zásobník prázdný, jinak false
  */
-bool stack_is_empty(const void_stack_t *stack) { return stack->top_index == -1; }
+bool stack_is_empty(const void_stack_t *stack) {
+  return stack->top_index == -1;
+}
 
 /**
  * Vrací nenulovou hodnotu, je-li zásobník plný, jinak vrací hodnotu 0.
@@ -73,7 +75,9 @@ bool stack_is_empty(const void_stack_t *stack) { return stack->top_index == -1; 
  *
  * @returns true v případě, že je zásobník plný, jinak false
  */
-bool stack_is_full(const void_stack_t *stack) { return stack->top_index == stack->size - 1; }
+bool stack_is_full(const void_stack_t *stack) {
+  return stack->top_index == stack->size - 1;
+}
 
 /**
  * Vrací znak z vrcholu zásobníku prostřednictvím parametru dataPtr.

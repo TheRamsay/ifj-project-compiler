@@ -585,7 +585,8 @@ TEST(GeneratorTest, FunAndGames) {
   str *name = str_new_from_cstr("a");
   generator_var_create(gen, name);
 
-  generator_if_begin(gen, str_new_from_cstr("int@1"), true, str_new_from_cstr("int@1"));
+  generator_if_begin(gen, str_new_from_cstr("int@1"), true,
+                     str_new_from_cstr("int@1"));
   generator_if_else(gen);
   generator_var_create(gen, name);
   generator_if_end(gen);
@@ -593,13 +594,15 @@ TEST(GeneratorTest, FunAndGames) {
   generator_function_begin(gen, str_new_from_cstr("test1"), NULL);
   generator_var_create(gen, name);
   generator_var_set(gen, name, str_new_from_cstr("int@1"));
-  generator_if_begin(gen, str_new_from_cstr("a"), true, str_new_from_cstr("int@1"));
+  generator_if_begin(gen, str_new_from_cstr("a"), true,
+                     str_new_from_cstr("int@1"));
   generator_var_create(gen, name);
   generator_var_set(gen, name, str_new_from_cstr("int@1"));
   generator_if_else(gen);
   generator_var_create(gen, name);
   generator_if_end(gen);
-  generator_if_begin(gen, str_new_from_cstr("a"), true, str_new_from_cstr("int@1"));
+  generator_if_begin(gen, str_new_from_cstr("a"), true,
+                     str_new_from_cstr("int@1"));
   generator_if_else(gen);
   generator_if_end(gen);
   generator_function_end(gen, NULL);
@@ -623,7 +626,8 @@ TEST(GeneratorTest, FunAndGames) {
 
   stack_push(args, str_new_from_cstr("arg1"));
   generator_function_begin(gen, str_new_from_cstr("test-return"), args);
-  generator_if_begin(gen, str_new_from_cstr("arg1"), false, str_new_from_cstr("int@1"));
+  generator_if_begin(gen, str_new_from_cstr("arg1"), false,
+                     str_new_from_cstr("int@1"));
   generator_function_return(gen, str_new_from_cstr("arg1"));
   generator_if_else(gen);
   generator_function_return(gen, str_new_from_cstr("int@0"));

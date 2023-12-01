@@ -5,8 +5,8 @@
 #include <stdlib.h>
 
 // #include "builtin.h"
-#include "generator.h"
 #include "error.h"
+#include "generator.h"
 #include "scanner.h"
 #include "symtable.h"
 
@@ -17,15 +17,13 @@
 
 typedef struct DLL_Token DLL_Token;
 
-struct DLL_Token
-{
+struct DLL_Token {
   Token *token;
   DLL_Token *next;
   DLL_Token *prev;
 };
 
-typedef struct
-{
+typedef struct {
   Symtable *global_table;
   void_stack_t *local_tables_stack; // Stack of local tables
   Token *token_buffer;
@@ -64,16 +62,20 @@ Token *advance(Parser *parser);
 // Returns true if current token is of the expected type
 bool check_type(Parser *parser, TokenType token_type);
 
-// Consumes next token, if it is not of the expected type, prints error message and exits
+// Consumes next token, if it is not of the expected type, prints error message
+// and exits
 Token consume(Parser *parser, TokenType token_type, char *error_msg);
 
 void return_def(Parser *parser, SymtableItem *item);
 
-void func_params_n(Parser *parser, SymtableItem *item, Symtable *table, void_stack_t *stack);
+void func_params_n(Parser *parser, SymtableItem *item, Symtable *table,
+                   void_stack_t *stack);
 
-void func_params(Parser *parser, SymtableItem *item, Symtable *table, void_stack_t *stack);
+void func_params(Parser *parser, SymtableItem *item, Symtable *table,
+                 void_stack_t *stack);
 
-// function_def -> func FUNC_ID ( <func_params> ) <return_def> { <statement_list> }
+// function_def -> func FUNC_ID ( <func_params> ) <return_def> {
+// <statement_list> }
 void func_def(Parser *parser);
 
 // call_params_n -> , <call_params_kw> <term> <call_params_n>
@@ -90,7 +92,8 @@ void program(Parser *parser);
 void parse(Parser *parser);
 
 #ifdef PARSER_TEST
-SymtableIdentifierType expression(Parser *parser, SymtableIdentifierType return_type);
+SymtableIdentifierType expression(Parser *parser,
+                                  SymtableIdentifierType return_type);
 #else
 SymtableIdentifierType expression(Parser *parser);
 #endif

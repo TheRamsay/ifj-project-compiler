@@ -169,7 +169,8 @@ bool symtable_search(Symtable *table, const char *key) {
 
 /**
  *
- * Deletes and frees the allocated memory of the symtable and all of it's allocated items
+ * Deletes and frees the allocated memory of the symtable and all of it's
+ * allocated items
  *
  * @param table Pointer to the symtable structure
  *
@@ -199,7 +200,8 @@ void symtable_dispose(Symtable *table) {
   table->error_code = 0;
 }
 
-SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType type, bool defined,
+SymtableItem *symtable_add_symbol(Symtable *table, char *key,
+                                  SymtableValueType type, bool defined,
                                   bool constant, bool param) {
   SymtableItem *item = symtable_get(table, key);
   // Item already exists
@@ -271,8 +273,8 @@ SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType 
     item->data->function.params = NULL;
     item->data->function._return = NULL;
   } else {
-    item->data->variable.identifier_type
-        = (SymtableIdentifierType){.data_type = UNKNOWN_TYPE, .nullable = false};
+    item->data->variable.identifier_type =
+        (SymtableIdentifierType){.data_type = UNKNOWN_TYPE, .nullable = false};
     item->data->variable.initialized = defined;
     item->data->variable.constant = constant;
     item->data->variable.param = param;
@@ -282,7 +284,8 @@ SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType 
   return item;
 }
 
-bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_identifier,
+bool symtable_add_param(SymtableItem *item, char *out_identifier,
+                        char *in_identifier,
                         SymtableIdentifierType identifier_type) {
   if (item == NULL) {
     // Its over Anakin, I have the high ground
@@ -290,7 +293,8 @@ bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_ident
   }
 
   if (strcmp(in_identifier, out_identifier) == 0) {
-    exit_with_error(SEMANTIC_ERR_FUNC, "Parameter name cannot be the same as the function name");
+    exit_with_error(SEMANTIC_ERR_FUNC,
+                    "Parameter name cannot be the same as the function name");
   }
 
   if (strcmp(in_identifier, "_") == 0) {
@@ -386,7 +390,8 @@ bool check_if_all_functions_defined(Symtable *table) {
     SymtableItem *current = table->items[i];
 
     while (current != NULL) {
-      if (current->data->type == SYMTABLE_FUNCTION && !current->data->function.defined) {
+      if (current->data->type == SYMTABLE_FUNCTION &&
+          !current->data->function.defined) {
         return false;
       }
 
