@@ -12,7 +12,7 @@ int token_count = 0;
 void scanner_init(FILE *file) { // Initialize the scanner
   source_file = file;           // Set the source file to the file passed in
   if (source_file == NULL) {
-    printf("Error opening file\n");
+    printf(stderr, "Error opening file\n");
     exit(1);
   }
 }
@@ -120,7 +120,7 @@ void determine_token_type(Token *token) {
         buffer_size += 64;                                                // Allocate 64 more bytes
         char *new_buffer = (char *)realloc(buffer, buffer_size);          // Reallocate the buffer
         if (new_buffer == NULL) {
-          printf("Error allocating memory for string token\n");
+          printf(stderr, "Error allocating memory for string token\n");
           exit(99);
         }
         buffer = new_buffer;
@@ -266,7 +266,7 @@ void char_to_token(Token *token, char c) {
   if (token->val == NULL) {
     new_val = (char *)malloc(2 * sizeof(char)); // Allocate memory for the token value
     if (new_val == NULL) {
-      printf("Error allocating memory for token value\n");
+      printf(stderr, "Error allocating memory for token value\n");
       exit(99);
     }
     new_val[0] = c;
@@ -274,7 +274,7 @@ void char_to_token(Token *token, char c) {
   } else {
     new_val = (char *)realloc(token->val, (token->length + 2) * sizeof(char));
     if (new_val == NULL) {
-      printf("Error reallocating memory for token value\n");
+      printf(stderr, "Error reallocating memory for token value\n");
       exit(99);
     }
     new_val[token->length] = c;
@@ -324,7 +324,7 @@ int get_next_token(Token *token) {
       char_to_token(token, c);
       c = fgetc(source_file);
       if (!isalpha(c) && !isdigit(c) && c != ' ') {
-        printf("Invalid identifier: %s\n", token->val);
+        printf(stderr, "Invalid identifier: %s\n", token->val);
         exit(1);
       }
     }
@@ -334,11 +334,11 @@ int get_next_token(Token *token) {
         char_to_token(token, c);
       }
       if (c == 'e' || c == 'E') {
-        printf("Invalid decimal literal: %s\n", token->val);
+        printf(stderr, "Invalid decimal literal: %s\n", token->val);
         exit(1);
       }
       if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.') {
-        printf("Invalid integer literal: %s\n", token->val);
+        printf(stderr, "Invalid integer literal: %s\n", token->val);
         exit(1);
       }
       //   ungetc(c, source_file);              // Put the last character back into the source file
@@ -350,7 +350,7 @@ int get_next_token(Token *token) {
         c = fgetc(source_file);
 
         if (!isdigit(c) && c != 'e' && c != 'E') {
-          printf("Invalid decimal literal: %s\n", token->val);
+          printf(stderr, "Invalid decimal literal: %s\n", token->val);
           exit(1);
         }
         while (isdigit(c)) {
@@ -369,7 +369,7 @@ int get_next_token(Token *token) {
             // ungetc(c, source_file); // Put the character back into the source file
           }
           if (!isdigit(c)) {
-            printf("Invalid decimal literal: %s\n", token->val);
+            printf(stderr, "Invalid decimal literal: %s\n", token->val);
             exit(1);
           }
           while (isdigit(c)) { // Exponent value
@@ -378,7 +378,7 @@ int get_next_token(Token *token) {
           }
 
           if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.') {
-            printf("Invalid decimal literal: %s\n", token->val);
+            printf(stderr, "Invalid decimal literal: %s\n", token->val);
             exit(1);
           }
 
@@ -402,7 +402,7 @@ int get_next_token(Token *token) {
         if (k == '"' && j == '"') {
           multiline = false;
           if (token->val[strlen(token->val) - 1] != '\n') {
-            printf("Invalid string literal: %s\n", token->val);
+            printf(stderr, "Invalid string literal: %s\n", token->val);
             exit(1);
           } else {
             token->val[strlen(token->val) - 1] = '\0';
@@ -433,7 +433,7 @@ int get_next_token(Token *token) {
           }
           char *unicode = (char *)malloc(8 * sizeof(char));
           if (unicode == NULL) {
-            printf("Error allocating memory for unicode character\n");
+            printf(stderr, "Error allocating memory for unicode character\n");
             exit(99);
           }
           for (int i = 0; i < 8; i++) {
@@ -444,7 +444,7 @@ int get_next_token(Token *token) {
               break;
             }
             if (!isxdigit(unicode[i])) {
-              printf("Invalid unicode character: %s\n", unicode);
+              printf(stderr, "Invalid unicode character: %s\n", unicode);
               exit(1);
             }
           }
