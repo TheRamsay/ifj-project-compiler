@@ -33,10 +33,9 @@ typedef struct {
   char *current_function_name;
   DLL_Token *tokens;
   bool semantic_enabled;
-
-#ifndef PARSER_TEST
   gen_t *gen;
-#else
+
+#ifdef PARSER_TEST
   Token *input_tokens;
   int input_index;
   Token *output_tokens;
