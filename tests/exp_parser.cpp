@@ -144,11 +144,41 @@ TEST_F(ExpParserTest, VykricnikyTests) {
     ASSERT_EQ(parse_expression(expresion1, 3, &parser_).type, TOKEN_EXPRESSION);
 }
 
+// Nil  tests
+TEST_F(ExpParserTest, NilTests) {
+     Token expresion1[] = { {TOKEN_KEYWORD, KW_NIL, "nil", 2}, {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0},};
+
+
+    ASSERT_EQ(parse_expression(expresion1, 2, &parser_).type, TOKEN_EXPRESSION);
+
+     Token expresion2[] = { {TOKEN_KEYWORD, KW_NIL, "nil", 2},{TOKEN_NOT, KW_UNKNOWN, "!", 1}, {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0},};
+
+    ASSERT_EQ(parse_expression(expresion2, 3, &parser_).type, TOKEN_EXPRESSION);
+    Token expresion3[] = {  {TOKEN_KEYWORD, KW_NIL, "nil", 2}, {TOKEN_NULL_COALESCING, KW_UNKNOWN, "??", 2} , {TOKEN_STRING_LITERAL, KW_UNKNOWN, "ahoj", 2} ,  {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
+
+    ASSERT_EQ(parse_expression(expresion3, 4, &parser_).type, TOKEN_EXPRESSION);
+
+    Token expresion4[] = { {TOKEN_STRING_LITERAL, KW_UNKNOWN, "ahoj", 2}  , {TOKEN_NULL_COALESCING, KW_UNKNOWN, "??", 2} , {TOKEN_KEYWORD, KW_NIL, "nil", 2} ,  {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
+
+    ASSERT_EQ(parse_expression(expresion4, 4, &parser_).type, TOKEN_EXPRESSION);
+}
+
+
 //Basic tests
 TEST_F(ExpParserTest, BasicTests2) { 
     //Should return true
 
-    Token expresion2[] = {{TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_PLUS, KW_UNKNOWN, "+", 0} , {TOKEN_STRING_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
+    Token expresion2[] = {{TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_PLUS, KW_UNKNOWN, "+", 0} , {TOKEN_STRING_LITERAL, KW_UNKNOWN, "ahoj", 2}, {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
     EXPECT_EXIT(parse_expression(expresion2, 4, &parser_), ::testing::ExitedWithCode(SEMANTIC_ERR_EXPR), ".*");
     // parse_expression(expresion2, 4, &parser_);
+}
+
+//Jarda tests
+TEST_F(ExpParserTest, JardaPepik) { 
+    //Should return true
+
+        Token expresion1[] = { {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_LPAREN, KW_UNKNOWN, "(", 2} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_PLUS, KW_UNKNOWN, "+", 2} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2} , {TOKEN_RPAREN, KW_UNKNOWN, ")", 2}, {TOKEN_RPAREN, KW_UNKNOWN, ")", 2} ,  {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
+
+    EXPECT_EXIT(parse_expression(expresion1, 8, &parser_), ::testing::ExitedWithCode(SYNTAX_ERR), ".*");
+    // parse_expression(expresion1, 4, &parser_);
 }

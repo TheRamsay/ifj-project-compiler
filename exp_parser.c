@@ -93,6 +93,7 @@ int get_operator_index(TokenType op) {
   case TOKEN_STRING_LITERAL:
   case TOKEN_INTEGER_LITERAL:
   case TOKEN_DECIMAL_LITERAL:
+  case TOKEN_KEYWORD:
     return 14;
   case TOKEN_STACK_BOTTOM:
     return 15;
@@ -126,6 +127,9 @@ Stack_token_t evaluate_rule(Stack_token_t token, SymtableIdentifierType type) {
     return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = STRING_TYPE, .nullable = false}};
   case TOKEN_IDENTIFIER: {
     break;
+  }
+  case TOKEN_KEYWORD: {
+    return (Stack_token_t){.token = {TOKEN_EXPRESSION, token.token.keyword, "E", 1}, .precedence = None, .type = type};
   }
   case TOKEN_PLUS:
   case TOKEN_MINUS:
@@ -165,7 +169,9 @@ Stack_token_t get_next_token_wrap(TokenType previousToken, Parser *parser) {
     int tokenIndex = get_operator_index(array[index].type);
 
     if (tokenIndex == -1) {
-      return (Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None};
+      exit_with_error(SEMANTIC_ERR_EXPR, "bad token");
+
+      // return (Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None};
     }
 
     Token token = array[index];
@@ -179,7 +185,9 @@ Stack_token_t get_next_token_wrap(TokenType previousToken, Parser *parser) {
   int tokenIndex = get_operator_index(peakToken->type);
 
   if (tokenIndex == -1) {
-    return (Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None};
+    exit_with_error(SEMANTIC_ERR_EXPR, "bad token");
+
+    // return (Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None};
   }
 
   // Identifier check
@@ -219,7 +227,14 @@ int handle_reduce_case(void_stack_t *stack, Stack_token_t token, Stack_token_t p
 
       // E+E
       if (firstToken.token.type == TOKEN_EXPRESSION && thirdToken.token.type == TOKEN_EXPRESSION) {
-        if (firstToken.type.data_type != thirdToken.type.data_type) {
+        // Check nil type and ??
+        if (firstToken.token.keyword == KW_NIL && secondToken.token.type == TOKEN_NULL_COALESCING) {
+          *ruleProduct = (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = thirdToken.type};
+
+        } else if (thirdToken.token.keyword == KW_NIL && secondToken.token.type == TOKEN_NULL_COALESCING) {
+          *ruleProduct = (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = firstToken.type};
+
+        } else if (firstToken.type.data_type != thirdToken.type.data_type) {
           exit_with_error(SEMANTIC_ERR_EXPR, "Cannot use operator on different types");
         }
         *ruleProduct = evaluate_rule(secondToken, firstToken.type);
