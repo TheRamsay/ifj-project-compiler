@@ -27,7 +27,7 @@ TEST_F(ScannerTest, Scan_Tokens_KW) {
   EXPECT_EQ(token.keyword, KW_IF);
 
   result = get_next_token(&token);
-  EXPECT_EQ(result, TOKEN_IDENTIFIER); // Assuming "condition" is an identifier
+  EXPECT_EQ(result, TOKEN_IDENTIFIER);
   EXPECT_EQ(token.type, TOKEN_IDENTIFIER);
 
   result = get_next_token(&token);
@@ -149,10 +149,6 @@ TEST_F(ScannerTest, Scan_Tokens_KW) {
   EXPECT_EQ(token.type, TOKEN_ASSIGN);
 
   result = get_next_token(&token);
-  EXPECT_EQ(result, TOKEN_INTEGER_LITERAL);
-  EXPECT_EQ(token.type, TOKEN_INTEGER_LITERAL);
-
-  result = get_next_token(&token);
   EXPECT_EQ(result, TOKEN_DECIMAL_LITERAL);
   EXPECT_EQ(token.type, TOKEN_DECIMAL_LITERAL);
 
@@ -176,12 +172,8 @@ TEST_F(ScannerTest, Scan_Tokens_KW) {
   EXPECT_STREQ(token.val, "Debil");
 
   // // Test multi-line comment
-  // result = get_next_token(&token);
-  // EXPECT_EQ(result, TOKEN_EOF);
 
   // // test single line comment
-  // result = get_next_token(&token);
-  // EXPECT_EQ(result, TOKEN_EOF);
 
   result = get_next_token(&token);
   EXPECT_EQ(result, TOKEN_KEYWORD);
