@@ -24,9 +24,9 @@ const int precedence_table[TABLE_SIZE][TABLE_SIZE] = {
     {L, L, L, L, L, L, L, L, L, L, L, E, L, L, L, X, E}, // (
     {R, R, R, R, R, R, R, R, R, R, X, R, X, X, X, R, L}, // )
     {L, L, L, L, X, X, X, X, X, X, L, R, X, X, L, R, L}, // ??
-    {R, R, R, R, X, X, X, X, X, X, X, R, X, X, R, L, X}, // !
-    {R, R, R, R, R, R, R, R, R, R, X, R, R, L, L, R, X}, // i
-    {L, L, L, L, L, L, L, L, L, L, L, X, L, L, L, X, L}, // $
+    {R, R, R, R, X, X, X, X, X, X, X, R, X, X, R, R, X}, // !
+    {R, R, R, R, R, R, R, R, R, R, X, R, R, R, R, R, X}, // i
+    {L, L, L, L, L, L, L, L, L, L, L, X, L, R, L, X, L}, // $
     {E, E, E, E, E, E, E, E, E, E, L, R, L, L, X, R, X}  // E
 };
 
@@ -168,7 +168,8 @@ Stack_token_t get_next_token_wrap(TokenType previousToken, Parser *parser) {
       return (Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None};
     }
 
-    return (Stack_token_t){.precedence = None, .token = array[index]};
+    Token token = array[index];
+    return (Stack_token_t){.precedence = None, .token = token};
   }
   return (Stack_token_t){.token = TOKEN_STACK_BOTTOM, .precedence = None};
 #else
@@ -227,6 +228,9 @@ int handle_reduce_case(void_stack_t *stack, Stack_token_t token, Stack_token_t p
           *ruleProduct = (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = INT_TYPE, .nullable = false}};
         }
       }
+      if (secondToken.token.type == TOKEN_NOT && (firstToken.token.type == TOKEN_INTEGER_LITERAL || firstToken.token.type == TOKEN_DECIMAL_LITERAL || firstToken.token.type == TOKEN_STRING_LITERAL)) {
+        *ruleProduct = (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = firstToken.type};
+      }
     }
 
     stack_push(stack, ruleProduct);
@@ -260,7 +264,7 @@ void handle_equals_case(void_stack_t *stack, Stack_token_t token) {
 Token parse_expression(Token *testExpressionToParse, int inputSize, Parser *parser) {
   int expIndex = 0;
 #else
-Token parse_expression(Parser *parser) {
+SymtableIdentifierType parse_expression(Parser *parser) {
 #endif
 
   void_stack_t *stack = stack_new(8192);
@@ -273,9 +277,20 @@ Token parse_expression(Parser *parser) {
   Stack_token_t token = get_next_token_wrap(token.token.type, parser);
 #endif
 
-  expIndex++;
   while (420 == 420) {
     Stack_token_t stackTop = *(Stack_token_t *)stack_top(stack);
+
+    // Empty expresion
+    if (token.token.type == TOKEN_STACK_BOTTOM && stackTop.token.type == TOKEN_STACK_BOTTOM) {
+
+      Stack_token_t *token = malloc(sizeof(Stack_token_t));
+
+      *token = (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = VOID_TYPE, .nullable = false}};
+
+      stack_push(stack, token);
+
+      break;
+    }
 
     if (token.token.type == TOKEN_STACK_BOTTOM && stackTop.token.type == TOKEN_EXPRESSION) {
       Stack_token_t top_token = *(Stack_token_t *)stack_pop(stack);
@@ -300,11 +315,6 @@ Token parse_expression(Parser *parser) {
       // Push the top token back onto the stack
       stack_push(stack, &tempToken);
     }
-
-    // if (token.token.type == TOKEN_STACK_BOTTOM && stackTop.token.type == TOKEN_EXPRESSION) {
-
-    //   break;
-    // }
 
     Stack_token_t action = get_precedence(stackTop, token);
     if (action.precedence == X) {
@@ -353,12 +363,21 @@ Token parse_expression(Parser *parser) {
     }
   }
 
+#ifdef PARSER_TEST
   Token *result = malloc(sizeof(Token));
   *result = ((Stack_token_t *)stack_top(stack))->token;
 
   stack_dispose(stack);
   free(stack);
   return *result;
+#else
+  SymtableIdentifierType *result = malloc(sizeof(SymtableIdentifierType));
+  *result = ((Stack_token_t *)stack_top(stack))->type;
+
+  stack_dispose(stack);
+  free(stack);
+  return *result;
+#endif
 }
 
 // Runs thought the stack until it finds an L precedence, returns the array of tokens to be reduced
