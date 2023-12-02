@@ -1,7 +1,8 @@
 #include "scanner.h"
-#include "stdio.h"
+#include "error.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -323,7 +324,7 @@ int get_next_token(Token *token) {
       char_to_token(token, c);
       c = fgetc(source_file);
       if (!isalpha(c) && !isdigit(c)) {
-        fprintf(stderr, "Invalid identifier: %s\n", token->val);
+        printf("Invalid identifier: %s\n", token->val);
         exit(1);
       }
     }
@@ -333,11 +334,11 @@ int get_next_token(Token *token) {
         char_to_token(token, c);
       }
       if (c == 'e' || c == 'E') {
-        fprintf(stderr, "Invalid integer literal");
+        printf("Invalid decimal literal: %s\n", token->val);
         exit(1);
       }
       if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.') {
-        fprintf(stderr, "Invalid integer literal");
+        printf("Invalid integer literal: %s\n", token->val);
         exit(1);
       }
       //   ungetc(c, source_file);              // Put the last character back into the source file
@@ -349,7 +350,7 @@ int get_next_token(Token *token) {
         c = fgetc(source_file);
 
         if (!isdigit(c) && c != 'e' && c != 'E') {
-          fprintf(stderr, "Invalid decimal literal: %s\n", token->val);
+          printf("Invalid decimal literal: %s\n", token->val);
           exit(1);
         }
         while (isdigit(c)) {
@@ -368,7 +369,7 @@ int get_next_token(Token *token) {
             // ungetc(c, source_file); // Put the character back into the source file
           }
           if (!isdigit(c)) {
-            fprintf(stderr, "Invalid exponent in literal: %s\n", token->val);
+            printf("Invalid decimal literal: %s\n", token->val);
             exit(1);
           }
           while (isdigit(c)) { // Exponent value
@@ -377,7 +378,7 @@ int get_next_token(Token *token) {
           }
 
           if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.') {
-            fprintf(stderr, "Invalid numeric literal: %s\n", token->val);
+            printf("Invalid decimal literal: %s\n", token->val);
             exit(1);
           }
 
@@ -401,6 +402,7 @@ int get_next_token(Token *token) {
         if (k == '"' && j == '"') {
           multiline = false;
           if (token->val[strlen(token->val) - 1] != '\n') {
+            printf("Invalid string literal: %s\n", token->val);
             exit(1);
           } else {
             token->val[strlen(token->val) - 1] = '\0';
@@ -442,6 +444,7 @@ int get_next_token(Token *token) {
               break;
             }
             if (!isxdigit(unicode[i])) {
+              printf("Invalid unicode character: %s\n", unicode);
               exit(1);
             }
           }
