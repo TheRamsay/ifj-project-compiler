@@ -121,7 +121,7 @@ void determine_token_type(Token *token) {
         char *new_buffer = (char *)realloc(buffer, buffer_size);          // Reallocate the buffer
         if (new_buffer == NULL) {
           printf("Error allocating memory for string token\n");
-          exit(1);
+          exit(99);
         }
         buffer = new_buffer;
       }
@@ -267,7 +267,7 @@ void char_to_token(Token *token, char c) {
     new_val = (char *)malloc(2 * sizeof(char)); // Allocate memory for the token value
     if (new_val == NULL) {
       printf("Error allocating memory for token value\n");
-      exit(1);
+      exit(99);
     }
     new_val[0] = c;
     new_val[1] = '\0';
@@ -275,7 +275,7 @@ void char_to_token(Token *token, char c) {
     new_val = (char *)realloc(token->val, (token->length + 2) * sizeof(char));
     if (new_val == NULL) {
       printf("Error reallocating memory for token value\n");
-      exit(1);
+      exit(99);
     }
     new_val[token->length] = c;
     new_val[token->length + 1] = '\0';
