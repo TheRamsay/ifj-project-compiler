@@ -26,7 +26,7 @@ const int precedence_table[TABLE_SIZE][TABLE_SIZE] = {
     {L, L, L, L, X, X, X, X, X, X, L, R, X, X, L, R, L}, // ??
     {R, R, R, R, X, X, X, X, X, X, X, R, X, X, R, R, X}, // !
     {R, R, R, R, R, R, R, R, R, R, X, R, R, R, R, R, X}, // i
-    {L, L, L, L, L, L, L, L, L, L, L, X, L, R, L, X, L}, // $
+    {L, L, L, L, L, L, L, L, L, L, L, X, L, L, L, X, L}, // $
     {E, E, E, E, E, E, E, E, E, E, L, R, L, L, X, R, X}  // E
 };
 
@@ -113,7 +113,7 @@ Stack_token_t get_precedence(Stack_token_t stack_top, Stack_token_t input) {
   return (Stack_token_t){.precedence = precedence_table[stack_index][input_index]};
 }
 
-Stack_token_t evaluate_rule(Stack_token_t token) {
+Stack_token_t evaluate_rule(Stack_token_t token, SymtableIdentifierType type) {
 
   switch (token.token.type) {
   case TOKEN_INTEGER_LITERAL:
@@ -138,11 +138,11 @@ Stack_token_t evaluate_rule(Stack_token_t token) {
   case TOKEN_EQ:
   case TOKEN_NEQ: {
     // TODO type check
-    return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = INT_TYPE, .nullable = false}};
+    return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = type};
   }
   case TOKEN_NULL_COALESCING: {
     // TODO type check
-    return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = INT_TYPE, .nullable = false}};
+    return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = type};
   }
 
   default:
@@ -210,27 +210,36 @@ int handle_reduce_case(void_stack_t *stack, Stack_token_t token, Stack_token_t p
 
     Stack_token_t *ruleProduct = malloc(sizeof(Stack_token_t));
 
-    *ruleProduct = evaluate_rule(firstToken);
+    *ruleProduct = evaluate_rule(firstToken, firstToken.type);
 
+    // Not a simple reduction, find in the rest of the rules
     if (ruleProduct->token.type == TOKEN_EOF) {
       Stack_token_t secondToken = *(Stack_token_t *)stack_pop(stack);
       Stack_token_t thirdToken = *(Stack_token_t *)stack_pop(stack);
 
+      // E+E
       if (firstToken.token.type == TOKEN_EXPRESSION && thirdToken.token.type == TOKEN_EXPRESSION) {
         if (firstToken.type.data_type != thirdToken.type.data_type) {
           exit_with_error(SEMANTIC_ERR_EXPR, "Cannot use operator on different types");
         }
-        *ruleProduct = evaluate_rule(secondToken);
+        *ruleProduct = evaluate_rule(secondToken, firstToken.type);
       }
-
+      //(E)
       if (firstToken.token.type == TOKEN_RPAREN && thirdToken.token.type == TOKEN_LPAREN) {
         if (secondToken.token.type == TOKEN_EXPRESSION) {
           *ruleProduct = (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = INT_TYPE, .nullable = false}};
         }
       }
-      if (secondToken.token.type == TOKEN_NOT && (firstToken.token.type == TOKEN_INTEGER_LITERAL || firstToken.token.type == TOKEN_DECIMAL_LITERAL || firstToken.token.type == TOKEN_STRING_LITERAL)) {
+      // E!
+      if (firstToken.token.type == TOKEN_NOT && (secondToken.token.type == TOKEN_EXPRESSION)) {
         *ruleProduct = (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = firstToken.type};
+        // Return third token
+        stack_push(stack, &thirdToken);
       }
+    }
+
+    if (ruleProduct->token.type == TOKEN_EOF) {
+      exit_with_error(SYNTAX_ERR, "No rule found");
     }
 
     stack_push(stack, ruleProduct);
@@ -326,7 +335,7 @@ SymtableIdentifierType parse_expression(Parser *parser) {
         //   break;
         // }
       }
-      printf("Invalid relation between %d and %d\n", stackTop.token.val, token.token.val);
+      fprintf(stderr, "Invalid relation between %d and %d\n", stackTop.token.val, token.token.val);
       exit_with_error(SYNTAX_ERR, "Invalid expression");
     }
 
@@ -345,7 +354,7 @@ SymtableIdentifierType parse_expression(Parser *parser) {
     case R:
       // If there is no rule, expression is not valid
       if (handle_reduce_case(stack, token, action) == -1) {
-        printf("No rule for token %d\n", token.token.type);
+        fprintf(stderr, "No rule for token %d\n", token.token.type);
         exit_with_error(SYNTAX_ERR, "Invalid expression");
       }
       break;
