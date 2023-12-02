@@ -883,8 +883,6 @@ TEST_F(ParserTest, IfLet)
 		{TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
 		{TOKEN_KEYWORD, KW_LET, "let", 3},
 		{TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
-		{TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-		{TOKEN_COMMA, KW_UNKNOWN, ",", 1},
 		{TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
 		{TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
 		{TOKEN_KEYWORD, KW_ELSE, "else", 4},
@@ -906,8 +904,6 @@ TEST_F(ParserTest, IfLetWithoutExpr)
 		{TOKEN_COMMA, KW_UNKNOWN, ",", 1},
 		{TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
 		{TOKEN_KEYWORD, KW_LET, "let", 3},
-		{TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
-		{TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
 		{TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
 		{TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
 		{TOKEN_KEYWORD, KW_ELSE, "else", 4},
@@ -918,7 +914,7 @@ TEST_F(ParserTest, IfLetWithoutExpr)
 	};
 
 	EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-				::testing::ExitedWithCode(SEMANTIC_ERR_EXPR), "Semantic error.*");
+				::testing::ExitedWithCode(SYNTAX_ERR), "Syntax error.*");
 }
 
 TEST_F(ParserTest, IfWithoutExpr)
@@ -944,8 +940,6 @@ TEST_F(ParserTest, IfVar)
 		{TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
 		{TOKEN_KEYWORD, KW_VAR, "var", 3},
 		{TOKEN_IDENTIFIER, KW_UNKNOWN, "ahoj", 4},
-		{TOKEN_ASSIGN, KW_UNKNOWN, "=", 1},
-		{TOKEN_COMMA, KW_UNKNOWN, ",", 1},
 		{TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
 		{TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
 		{TOKEN_KEYWORD, KW_ELSE, "else", 4},

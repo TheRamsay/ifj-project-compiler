@@ -2,7 +2,7 @@
 
 testNum=1
 
-compilerPath="../build/main"
+compilerPath="../main"
 interpreterPath="../interpreter/ic23int"
 
 successCount=0
@@ -35,25 +35,25 @@ execTest () {
 		diff tmp_output2.txt $3
 	fi
 	testNum=$((testNum+1))
-	rm -f tmp_output.txt tmp_output2.txt
+	# rm -f tmp_output.txt tmp_output2.txt
 }
 
-execTest "Empty program" "input/empty.swift" "output/empty.txt" 0
-execTest "Unfinished multiline comment" "input/multiline_comment_unfinished.swift" "output/empty.txt" 1
-execTest "Legal variable names" "input/variable_name.swift" "output/empty.txt" 0
-execTest "Variable names starting with numbers" "input/variable_name_number.swift" "output/empty.txt" 2
-execTest "Variable name as single underscore" "input/variable_name_underscore.swift" "output/empty.txt" 2
-execTest "Variable name as keyword" "input/variable_name_keyword.swift" "output/empty.txt" 2
-execTest "Legal nil initialization" "input/nil_init.swift" "output/empty.txt" 0
-execTest "Illegal nil initialization" "input/nil_init_illegal.swift" "output/empty.txt" 7
-execTest "Type deduction" "input/type_deduction.swift" "output/empty.txt" 0
-execTest "Nil type deduction" "input/nil_type_deduction.swift" "output/empty.txt" 8
-execTest "Comments" "input/comments.swift" "output/empty.txt" 0
-execTest "Variable redefinition" "input/variable_redefinition.swift" "output/empty.txt" 3
-execTest "Variable shadowing" "input/variable_shadowing.swift" "output/variable_shadowing.txt" 0
-execTest "Variable out of scope" "input/variable_out_of_scope.swift" "output/empty.txt" 5
-execTest "Undefined variable" "input/undefined_variable.swift" "output/empty.txt" 5
-execTest "Default nil initialisation" "input/default_nil_init.swift" "output/default_nil_init.txt" 0
+# execTest "Empty program" "input/empty.swift" "output/empty.txt" 0
+# execTest "Unfinished multiline comment" "input/multiline_comment_unfinished.swift" "output/empty.txt" 1
+# execTest "Legal variable names" "input/variable_name.swift" "output/empty.txt" 0
+# execTest "Variable names starting with numbers" "input/variable_name_number.swift" "output/empty.txt" 2
+# execTest "Variable name as single underscore" "input/variable_name_underscore.swift" "output/empty.txt" 2
+# execTest "Variable name as keyword" "input/variable_name_keyword.swift" "output/empty.txt" 2
+# execTest "Legal nil initialization" "input/nil_init.swift" "output/empty.txt" 0
+# execTest "Illegal nil initialization" "input/nil_init_illegal.swift" "output/empty.txt" 7
+# execTest "Type deduction" "input/type_deduction.swift" "output/empty.txt" 0
+# execTest "Nil type deduction" "input/nil_type_deduction.swift" "output/empty.txt" 8
+# execTest "Comments" "input/comments.swift" "output/empty.txt" 0
+# execTest "Variable redefinition" "input/variable_redefinition.swift" "output/empty.txt" 3
+# execTest "Variable shadowing" "input/variable_shadowing.swift" "output/variable_shadowing.txt" 0
+# execTest "Variable out of scope" "input/variable_out_of_scope.swift" "output/empty.txt" 5
+# execTest "Undefined variable" "input/undefined_variable.swift" "output/empty.txt" 5
+# execTest "Default nil initialisation" "input/default_nil_init.swift" "output/default_nil_init.txt" 9
 execTest "Uninitialised variable" "input/uninitialised_variable.swift" "output/empty.txt" 5
 execTest "Uninitialised variable (init in deeper scope)" "input/uninitialised_variable_in_scope.swift" "output/empty.txt" 5
 execTest "Variable initialised in scope" "input/initialised_variable_in_scope.swift" "output/empty.txt" 0

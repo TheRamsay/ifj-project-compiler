@@ -774,18 +774,21 @@ bool if_statement(Parser *parser)
 
 		if (!result)
 		{
-			exit_with_error(SEMANTIC_ERR_FUNC, "Variable %s has to be defined",
-							var_id);
+			exit_with_error(SEMANTIC_ERR_FUNC, "Variable %s has to be defined", var_id);
 		}
 
 		// TODO: toto je naozaj mysteriozne todo, krivka si vyfukal v zadani rit a
 		// neni som si isty ak toto handlovat zatial
 		if (!result->data->variable.constant)
 		{
-			exit_with_error(SEMANTIC_ERR_FUNC, "Variable %s is constant", var_id);
+			exit_with_error(SEMANTIC_ERR, "Variable %s has to be defined as constant", var_id);
 		}
 
-		consume(parser, TOKEN_ASSIGN, "Expected '='");
+		SymtableItem *item = symtable_add_symbol(local_table, var_id, SYMTABLE_VARIABLE, true, true, false);
+		item->data->variable.identifier_type = result->data->variable.identifier_type;
+		item->data->variable.identifier_type.nullable = false;
+
+		goto else_branch;
 	}
 
 #ifdef PARSER_TEST
@@ -809,6 +812,7 @@ bool if_statement(Parser *parser)
 	}
 #endif
 
+else_branch:
 	consume(parser, TOKEN_LBRACE, "Expected '{'");
 	valid_return = body(parser);
 
@@ -1012,7 +1016,7 @@ bool statement(Parser *parser)
 			item->data->variable.identifier_type = identifier_type;
 		}
 
-		generator_var_create(parser->gen, variable_id);
+		generator_var_create(parser->gen, str_new_from_cstr(variable_id));
 	}
 	else if (check_type(parser, TOKEN_IDENTIFIER))
 	{
@@ -1033,6 +1037,8 @@ bool statement(Parser *parser)
 
 			SymtableItem *identifier_item =
 				symtable_get(table, current_token(parser)->val);
+
+			char *variable_id = current_token(parser)->val;
 
 			// Modifing constant variable
 			if (identifier_item->data->variable.constant &&
