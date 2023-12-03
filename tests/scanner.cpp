@@ -13,7 +13,7 @@ protected:
   void SetUp() override {
     input_file = fopen("../tests/test.swift", "r");
     if (input_file == NULL) {
-      printf("Error opening file\n");
+      fprintf(stderr, "Error opening file\n");
       exit(1);
     }
     scanner_init(input_file); 
