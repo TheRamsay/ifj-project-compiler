@@ -122,7 +122,8 @@ str *str_new_from_cstr(const char *s) {
 
 /**
  *
- * @brief Creates a string containing a number constant in the appropriate format.
+ * @brief Creates a string containing a number constant in the appropriate
+ * format.
  *
  * @param s C string containing a number.
  * @returns Pointer to the new string.
@@ -137,7 +138,8 @@ str *str_new_int_const(const char *s) {
 
 /**
  *
- * @brief Creates a string containing a float constant in the appropriate format.
+ * @brief Creates a string containing a float constant in the appropriate
+ * format.
  *
  * @param s C string containing a float.
  * @returns Pointer to the new string.
@@ -158,7 +160,8 @@ str *str_new_float_const(const char *s) {
 
 /**
  *
- * @brief Creates a string containing a string constant in the appropriate format.
+ * @brief Creates a string containing a string constant in the appropriate
+ * format.
  *
  * @param s C string containing a string.
  * @returns Pointer to the new string.
