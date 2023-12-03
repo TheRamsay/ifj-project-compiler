@@ -160,6 +160,82 @@ Stack_token_t evaluate_rule(Stack_token_t token, SymtableIdentifierType type) {
   return (Stack_token_t){.token = {TOKEN_EOF, KW_UNKNOWN, "Eof", 3}, .precedence = None, .type = {.data_type = UNKNOWN_TYPE, .nullable = false}};
 }
 
+void pushToStack(void_stack_t *expresionStack, Stack_token_t action, Stack_token_t token1, Stack_token_t token2) {
+  switch (action.token.type) {
+  case TOKEN_PLUS:
+    stack_push(expresionStack, str_new_from_cstr("+"));
+    break;
+  case TOKEN_MINUS:
+    stack_push(expresionStack, str_new_from_cstr("-"));
+    break;
+  case TOKEN_MULTIPLY:
+    stack_push(expresionStack, str_new_from_cstr("*"));
+    break;
+  case TOKEN_DIV:
+    if (token1.type.data_type == INT_TYPE && token2.type.data_type == INT_TYPE) {
+      stack_push(expresionStack, str_new_from_cstr(":"));
+    } else if (token1.type.data_type == DOUBLE_TYPE && token2.type.data_type == DOUBLE_TYPE) {
+      stack_push(expresionStack, str_new_from_cstr("/"));
+    }
+    break;
+  case TOKEN_LT:
+    stack_push(expresionStack, str_new_from_cstr("<"));
+    break;
+  case TOKEN_LE:
+    stack_push(expresionStack, str_new_from_cstr("<="));
+    break;
+  case TOKEN_GT:
+    stack_push(expresionStack, str_new_from_cstr(">"));
+    break;
+  case TOKEN_GE:
+    stack_push(expresionStack, str_new_from_cstr(">="));
+    break;
+  case TOKEN_EQ:
+    stack_push(expresionStack, str_new_from_cstr("=="));
+    break;
+  case TOKEN_NEQ:
+    stack_push(expresionStack, str_new_from_cstr("!="));
+    break;
+  case TOKEN_NULL_COALESCING:
+    stack_push(expresionStack, str_new_from_cstr("??"));
+    break;
+    // TODO NOT
+    // case TOKEN_NOT:
+    //   stack_push(expresionStack, str_new_from_cstr("!"));
+    //   break;
+
+  default:
+    break;
+  }
+  if (token1.token.type != TOKEN_EXPRESSION) {
+    if (token1.token.type == TOKEN_IDENTIFIER) {
+      stack_push(expresionStack, str_new_from_cstr(token1.token.val));
+    } else if (token1.token.type == TOKEN_INTEGER_LITERAL) {
+      stack_push(expresionStack, str_new_int_const(token1.token.val));
+    } else if (token1.token.type == TOKEN_DECIMAL_LITERAL) {
+      stack_push(expresionStack, str_new_double_const(token1.token.val));
+    } else if (token1.token.type == TOKEN_STRING_LITERAL) {
+      stack_push(expresionStack, str_new_string_const(token1.token.val));
+    } else if (token1.token.type == TOKEN_KEYWORD && token1.token.keyword == KW_NIL) {
+      stack_push(expresionStack, str_new_nil_const());
+    }
+  }
+
+  if (token2.token.type != TOKEN_EXPRESSION) {
+    if (token2.token.type == TOKEN_IDENTIFIER) {
+      stack_push(expresionStack, str_new_from_cstr(token2.token.val));
+    } else if (token2.token.type == TOKEN_INTEGER_LITERAL) {
+      stack_push(expresionStack, str_new_int_const(token2.token.val));
+    } else if (token2.token.type == TOKEN_DECIMAL_LITERAL) {
+      stack_push(expresionStack, str_new_double_const(token2.token.val));
+    } else if (token2.token.type == TOKEN_STRING_LITERAL) {
+      stack_push(expresionStack, str_new_string_const(token2.token.val));
+    } else if (token2.token.type == TOKEN_KEYWORD && token2.token.keyword == KW_NIL) {
+      stack_push(expresionStack, str_new_nil_const());
+    }
+  }
+}
+
 #ifdef PARSER_TEST
 Stack_token_t get_next_token_wrap(Token array[], int index, int size) {
 #else
@@ -244,7 +320,7 @@ void handle_shift_case(void_stack_t *stack, Stack_token_t token) {
   stack_push(stack, new_token);
 }
 
-int handle_reduce_case(void_stack_t *stack, Stack_token_t token, Stack_token_t precedence) {
+int handle_reduce_case(void_stack_t *stack, Stack_token_t token, Stack_token_t precedence, void_stack_t *expresionStack) {
   while (precedence.precedence == R) {
     Stack_token_t firstToken = *(Stack_token_t *)stack_pop(stack);
 
@@ -269,12 +345,12 @@ int handle_reduce_case(void_stack_t *stack, Stack_token_t token, Stack_token_t p
         } else if (firstToken.type.data_type != thirdToken.type.data_type) {
           if (firstToken.type.data_type == INT_TYPE && thirdToken.type.data_type == DOUBLE_TYPE || firstToken.type.data_type == DOUBLE_TYPE && thirdToken.type.data_type == INT_TYPE) {
             *ruleProduct = evaluate_rule(secondToken, (SymtableIdentifierType){.data_type = DOUBLE_TYPE, .nullable = false});
-
           } else {
             exit_with_error(SYNTAX_ERR, "Cannot use operator on different types");
           }
         }
         *ruleProduct = evaluate_rule(secondToken, firstToken.type);
+        pushToStack(expresionStack, secondToken, firstToken, thirdToken);
       }
       //(E)
       if (firstToken.token.type == TOKEN_RPAREN && thirdToken.token.type == TOKEN_LPAREN) {
@@ -321,10 +397,10 @@ void handle_equals_case(void_stack_t *stack, Stack_token_t token) {
   stack_push(stack, new_token);
 }
 #ifdef PARSER_TEST
-Token parse_expression(Token *testExpressionToParse, int inputSize, Parser *parser) {
+Token parse_expression(Token *testExpressionToParse, int inputSize, Parser *parser, void_stack_t *expresionStack) {
   int expIndex = 0;
 #else
-SymtableIdentifierType parse_expression(Parser *parser) {
+SymtableIdentifierType parse_expression(Parser *parser, void_stack_t *expresionStack) {
 #endif
 
   void_stack_t *stack = stack_new(8192);
@@ -391,7 +467,7 @@ SymtableIdentifierType parse_expression(Parser *parser) {
 
     case R:
       // If there is no rule, expression is not valid
-      if (handle_reduce_case(stack, token, action) == -1) {
+      if (handle_reduce_case(stack, token, action, expresionStack) == -1) {
         fprintf(stderr, "No rule for token %d\n", token.token.type);
         exit_with_error(SYNTAX_ERR, "Invalid expression");
       }
@@ -430,6 +506,7 @@ SymtableIdentifierType parse_expression(Parser *parser) {
   Token *result = malloc(sizeof(Token));
   *result = ((Stack_token_t *)stack_top(stack))->token;
 
+  y_eet(expresionStack);
   stack_dispose(stack);
   free(stack);
   return *result;
@@ -440,6 +517,7 @@ SymtableIdentifierType parse_expression(Parser *parser) {
   // Advance to next token to end the expreison
   advance(parser);
 
+  y_eet(expresionStack);
   stack_dispose(stack);
   free(stack);
   return *result;
@@ -478,43 +556,4 @@ void y_eet(void_stack_t *stack) {
   }
 
   stack_dispose(temp_stack);
-}
-
-// Runs thought the stack until it finds an L precedence, returns the array of tokens to be reduced
-Stack_token_t *arrayFromStack(void_stack_t *stack, int *index) {
-  // Check if the stack is empty
-  if (stack->top_index == -1) {
-    return NULL;
-  }
-
-  // Allocate memory for the array
-  Stack_token_t *resultArray = (Stack_token_t *)malloc((stack->top_index + 1) * sizeof(Stack_token_t)); // +1 for the null terminator
-
-  if (resultArray == NULL) {
-    fprintf(stderr, "Memory allocation failed\n");
-    return NULL;
-  }
-
-  Stack_token_t stackTop = *(Stack_token_t *)stack_top(stack);
-
-  while (stackTop.precedence != L && stack->top_index >= 0) {
-    resultArray[*index] = stackTop;
-    stack_pop(stack);
-    stackTop = *(Stack_token_t *)stack_top(stack);
-    *index = *index + 1;
-  }
-
-  return resultArray;
-}
-
-Stack_token_t *extract_tokens_from_stack(Stack_token_t *stack_tokens, size_t size) {
-  Stack_token_t *result = malloc(size * sizeof(Stack_token_t));
-
-  if (result != NULL) {
-    for (size_t i = 0; i < size; ++i) {
-      result[i] = stack_tokens[i];
-    }
-  }
-
-  return result;
 }
