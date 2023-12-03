@@ -15,6 +15,13 @@
 #define LUFAK_JE_PEPIK_TODO_PREPSAT_NA_DYNAMICKEJ_STACK \
 	42069 + 2 // Special prime number that is optimal for this use case
 
+void check_identifier(char *identifier) {
+	if (strcmp(identifier, "_") == 0)
+	{
+		exit_with_error(SYNTAX_ERR, "Identifier cannot be '_'");
+	}
+}
+
 bool parser_init(Parser *parser)
 {
 	parser->global_table =
@@ -220,19 +227,6 @@ Token *current_token(Parser *parser) { return parser->tokens->token; }
 
 Token *peek(Parser *parser)
 {
-	// 	if (parser->buffer_active)
-	// 	{
-	// 		return parser->token_buffer + 1;
-	// 	}
-
-	// #ifndef PARSER_TEST
-	// 	get_next_token(parser->token_buffer + 1);
-	// #else
-	// 	*(parser->token_buffer + 1) =
-	// parser->input_tokens[parser->input_index++];
-	// 	parser->output_tokens[parser->output_index++] = *(parser->token_buffer +
-	// 1); #endif 	parser->buffer_active = true; 	return parser->token_buffer + 1;
-
 	if (parser->tokens->next == NULL)
 	{
 		return NULL;
@@ -286,23 +280,6 @@ bool check_keyword(Parser *parser, KeywordType keyword)
 // Advance to next token
 Token *advance(Parser *parser)
 {
-	// 	if (parser->buffer_active)
-	// 	{
-	// 		parser->token_buffer[0] = parser->token_buffer[1];
-	// 		parser->buffer_active = false;
-	// 	}
-	// 	else
-	// 	{
-	// #ifndef PARSER_TEST
-	// 		get_next_token(parser->token_buffer);
-	// #else
-	// 		*(parser->token_buffer) =
-	// parser->input_tokens[parser->input_index++];
-	// 		parser->output_tokens[parser->output_index++] =
-	// *(parser->token_buffer); #endif
-	// 	}
-	// 	return *(parser->token_buffer);
-
 	if (parser->tokens->next == NULL)
 	{
 		return NULL;
@@ -848,6 +825,7 @@ bool if_statement(Parser *parser)
 	if (match_keyword(parser, KW_LET, false))
 	{
 		char *var_id = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
+		check_identifier(var_id);
 
 		SymtableItem *result = search_var_in_tables(parser, var_id);
 
@@ -1011,6 +989,8 @@ bool statement(Parser *parser)
 		char *variable_id =
 			consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
 
+		check_identifier(variable_id);
+
 		// Variable type definition
 		if (match(parser, TOKEN_COLON, false))
 		{
@@ -1051,6 +1031,8 @@ bool statement(Parser *parser)
 					exit_with_error(SEMANTIC_ERR_EXPR, "Cannot assign %s to %s",
 									"<returned_type>", "<identifier_type>");
 				}
+
+				check_identifier(current_token(parser)->val);
 
 				stack_reverse(&params_stack);
 				generator_function_call(parser->gen, str_new_from_cstr(current_token(parser)->val), params_stack, str_new_from_cstr(variable_id));
@@ -1170,6 +1152,8 @@ bool statement(Parser *parser)
 					exit_with_error(SEMANTIC_ERR_EXPR, "Cannot assign %s to %s",
 									"<returned_type>", "<identifier_type>");
 				}
+
+				check_identifier(current_token(parser)->val);
 
 				stack_reverse(&params_stack);
 				generator_function_call(parser->gen, str_new_from_cstr(current_token(parser)->val), params_stack, str_new_from_cstr(variable_id));
