@@ -423,11 +423,11 @@ int get_next_token(Token *token) {
         inString = false;
         token->type = TOKEN_STRING_LITERAL;
         break;
-      } else if (c == ' ') {
+      } else if (c <= 32 || c == 35 || c == 92) {
         char_to_token(token, '\\');
         char_to_token(token, '0');
-        char_to_token(token, '3');
-        char_to_token(token, '2');
+        char_to_token(token, (c / 10) + '0');
+        char_to_token(token, (c % 10) + '0');
       } else if (c == '\\') {
         c = fgetc(source_file);
         if (c == 'n') {
