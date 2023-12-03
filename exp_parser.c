@@ -53,10 +53,10 @@ Rule_t rules[] = {
     {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_DIV, TOKEN_EXPRESSION}},
     {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_EQ, TOKEN_EXPRESSION}},
     {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_GT, TOKEN_EXPRESSION}},
-    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_GE, TOKEN_EXPRESSION}},
+    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_GTE, TOKEN_EXPRESSION}},
     {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_LT, TOKEN_EXPRESSION}},
-    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_LE, TOKEN_EXPRESSION}},
-    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_NEQ, TOKEN_EXPRESSION}},
+    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_LTE, TOKEN_EXPRESSION}},
+    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_NE, TOKEN_EXPRESSION}},
     {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_NULL_COALESCING, TOKEN_EXPRESSION}},
     {TOKEN_EXPRESSION, 3, {TOKEN_LPAREN, TOKEN_EXPRESSION, TOKEN_RPAREN}},
     {TOKEN_EXPRESSION, 5, {TOKEN_LPAREN, TOKEN_EXPRESSION, TOKEN_PLUS, TOKEN_EXPRESSION, TOKEN_RPAREN}},
@@ -75,15 +75,15 @@ int get_operator_index(TokenType op) {
     return 3;
   case TOKEN_LT:
     return 4;
-  case TOKEN_LE:
+  case TOKEN_LTE:
     return 5;
   case TOKEN_GT:
     return 6;
-  case TOKEN_GE:
+  case TOKEN_GTE:
     return 7;
   case TOKEN_EQ:
     return 8;
-  case TOKEN_NEQ:
+  case TOKEN_NE:
     return 9;
   case TOKEN_LPAREN:
     return 10;
@@ -141,11 +141,11 @@ Stack_token_t evaluate_rule(Stack_token_t token, SymtableIdentifierType type) {
   case TOKEN_MULTIPLY:
   case TOKEN_DIV:
   case TOKEN_LT:
-  case TOKEN_LE:
+  case TOKEN_LTE:
   case TOKEN_GT:
-  case TOKEN_GE:
+  case TOKEN_GTE:
   case TOKEN_EQ:
-  case TOKEN_NEQ: {
+  case TOKEN_NE: {
     // TODO type check
     return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = type};
   }
@@ -197,19 +197,19 @@ void push_two_token_expresion(void_stack_t *expresionStack, Stack_token_t action
   case TOKEN_LT:
     stack_push(expresionStack, str_new_from_cstr("<"));
     break;
-  case TOKEN_LE:
+  case TOKEN_LTE:
     stack_push(expresionStack, str_new_from_cstr("<="));
     break;
   case TOKEN_GT:
     stack_push(expresionStack, str_new_from_cstr(">"));
     break;
-  case TOKEN_GE:
+  case TOKEN_GTE:
     stack_push(expresionStack, str_new_from_cstr(">="));
     break;
   case TOKEN_EQ:
     stack_push(expresionStack, str_new_from_cstr("=="));
     break;
-  case TOKEN_NEQ:
+  case TOKEN_NE:
     stack_push(expresionStack, str_new_from_cstr("!="));
     break;
   case TOKEN_NULL_COALESCING:
