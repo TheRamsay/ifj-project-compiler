@@ -282,7 +282,8 @@ Stack_token_t get_next_token_wrap(TokenType previousToken, Parser *parser) {
   // Check if the token is valid
   int tokenIndex = get_operator_index(peakToken->type);
 
-  if (tokenIndex == -1) {
+  if (tokenIndex == -1 || (peakToken->type == TOKEN_KEYWORD && peakToken->keyword != KW_NIL) || peakToken->after_newline) {
+
     // exit_with_error(SYNTAX_ERR, "bad token");
 
     return (Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None};
@@ -292,10 +293,19 @@ Stack_token_t get_next_token_wrap(TokenType previousToken, Parser *parser) {
   if (peakToken->type == TOKEN_IDENTIFIER && previousToken == TOKEN_IDENTIFIER) {
     return (Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None};
   }
+
+  if (get_operator_index(previousToken) == get_operator_index(peakToken->type)) {
+    return (Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None};
+  }
+
   // Peaked token is valid, consume it
   advance(parser);
 
   if (check_type(parser, TOKEN_IDENTIFIER)) {
+
+    if (strcmp(peakToken->val, "_") == 0) {
+      exit_with_error(SYNTAX_ERR, "_ is not a valid identifier name");
+    }
     // Get type
     SymtableItem *result = search_var_in_tables(parser, peakToken->val);
 
