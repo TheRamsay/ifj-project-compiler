@@ -156,12 +156,10 @@ void stack_dispose(void_stack_t *stack) {
   stack->size = 0;
   stack->top_index = -1;
 }
-void stack_reverse(void_stack_t **stack)
-{
+void stack_reverse(void_stack_t **stack) {
   void_stack_t *stack_reversed = stack_new((*stack)->size);
 
-  while (!stack_is_empty(*stack))
-  {
+  while (!stack_is_empty(*stack)) {
     stack_push(stack_reversed, stack_pop(*stack));
   }
 

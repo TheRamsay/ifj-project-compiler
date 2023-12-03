@@ -16,7 +16,7 @@ protected:
       printf("Error opening file\n");
       exit(1);
     }
-    scanner_init(input_file); 
+    scanner_init(input_file);
   }
 };
 
