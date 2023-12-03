@@ -332,6 +332,16 @@ Stack_token_t get_current_token_wrap(Parser *parser) {
 
     return (Stack_token_t){.token = *token, .precedence = None, .type = result->data->variable.identifier_type};
   }
+
+  int tokenIndex = get_operator_index(token->type);
+
+  if (tokenIndex == -1 || token->after_newline) {
+
+    // exit_with_error(SYNTAX_ERR, "bad token");
+
+    return (Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None};
+  }
+
   return (Stack_token_t){.token = *token, .precedence = None, .type = {.data_type = UNKNOWN_TYPE, .nullable = false}};
 }
 
