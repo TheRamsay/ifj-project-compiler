@@ -323,9 +323,15 @@ int get_next_token(Token *token) {
     if (c == '_') {
       char_to_token(token, c);
       c = fgetc(source_file);
-      if (!isalpha(c) && !isdigit(c) && c != ' ' && c != EOF) {
+      if (!isalpha(c) && !isdigit(c) && c != ' ' && c != EOF && c != '=') {
         fprintf(stderr, "Invalid identifier: %s\n", token->val);
         exit(1);
+      }
+
+      if (c == EOF || c == ' ' || c == '\n' || c == '=') {
+        token->type = TOKEN_IDENTIFIER;
+        ungetc(c, source_file);
+        break;
       }
     }
     if (isdigit(c)) {
@@ -508,10 +514,13 @@ int get_next_token(Token *token) {
         continue;
       } else if (c == '*') { // Block comment
         if (nested_block_comment > 0) {
+          printf("viac\n");
           goto loop; // If we are in a nested block comment, skip the comment
         } else {
+          printf("nula\n");
           nested_block_comment++; // Otherwise, increment the nested block comment counter
         loop:
+          printf("loop\n");
           next_char = fgetc(source_file);
           while (next_char != '*') {
             if (next_char == EOF) {
@@ -521,11 +530,14 @@ int get_next_token(Token *token) {
             next_char = fgetc(source_file); // Read until the end of the block comment
           }
           if (fgetc(source_file) == '/') { // If the block comment is over, decrement the nested block comment counter
+            printf("if\n");
             if (--nested_block_comment > 0) {
+              printf("menej\n");
               goto loop;
             }
             continue;
           } else {
+            printf("else\n");
             goto loop; // Otherwise, continue reading the block comment
           }
         }
