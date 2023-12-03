@@ -35,10 +35,39 @@ TEST(StackTest, Push) {
   ASSERT_EQ(stack->top_index, 1);
   ASSERT_EQ(stack->error_code, 0);
 
-  stack_push(stack, (void *)3);
+  delete_stack(stack);
+}
+
+TEST(StackTest, PushResize) {
+  void_stack_t *stack = stack_new(2);
+
+  stack_push(stack, (void *)1);
+  ASSERT_EQ(stack_top(stack), (void *)1);
+  ASSERT_EQ(stack->top_index, 0);
+  ASSERT_EQ(stack->error_code, 0);
+
+  stack_push(stack, (void *)2);
   ASSERT_EQ(stack_top(stack), (void *)2);
-  ASSERT_NE(stack->top_index, 2);
-  ASSERT_EQ(stack->error_code, STACK_SERR_PUSH);
+  ASSERT_EQ(stack->top_index, 1);
+  ASSERT_EQ(stack->error_code, 0);
+
+  stack_push(stack, (void *)3);
+  ASSERT_EQ(stack_top(stack), (void *)3);
+  ASSERT_EQ(stack->top_index, 2);
+  ASSERT_EQ(stack->size, 4);
+  ASSERT_EQ(stack->error_code, 0);
+
+  stack_push(stack, (void *)4);
+  ASSERT_EQ(stack_top(stack), (void *)4);
+  ASSERT_EQ(stack->top_index, 3);
+  ASSERT_EQ(stack->size, 4);
+  ASSERT_EQ(stack->error_code, 0);
+
+  stack_push(stack, (void *)5);
+  ASSERT_EQ(stack_top(stack), (void *)5);
+  ASSERT_EQ(stack->top_index, 4);
+  ASSERT_EQ(stack->size, 8);
+  ASSERT_EQ(stack->error_code, 0);
 
   delete_stack(stack);
 }
