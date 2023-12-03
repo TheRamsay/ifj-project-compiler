@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-typedef enum keyword_t {
+typedef enum {
   NONE,
   KW_IF,
   KW_ELSE,
@@ -24,7 +24,7 @@ typedef enum keyword_t {
   KW_FUNC,
 } KeywordType;
 
-typedef enum token_t {
+typedef enum {
   TOKEN_KEYWORD,
   TOKEN_STRING_LITERAL,
   TOKEN_COLON,
@@ -50,7 +50,7 @@ typedef enum token_t {
   TOKEN_MOD,
   // TOKEN_AND,
   // TOKEN_OR,
-  // TOKEN_NOT,
+  TOKEN_NOT,
   TOKEN_LBRACKET,
   TOKEN_RBRACKET,
   TOKEN_NULL_COALESCING,

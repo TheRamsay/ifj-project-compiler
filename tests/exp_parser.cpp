@@ -30,11 +30,21 @@ TEST_F(ExpParserTest, BasicTests) {
     Token expresion1[] = { {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2},    {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0},};
     ASSERT_EQ(parse_expression(expresion1, 2, &parser_, stack1).type, TOKEN_EXPRESSION);
 
-    char *result = ((str*)stack_top(stack1))->data;
-    ASSERT_EQ(strcmp(result, "int@42"), 0);
+    char *result0 = ((str*)stack_top(stack1))->data;
+    ASSERT_EQ(strcmp(result0, "int@42"), 0);
+
+    void_stack_t *stack2 = stack_new(50);
 
     Token expresion2[] = {{TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_PLUS, KW_UNKNOWN, "+", 0} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
-    ASSERT_EQ(parse_expression(expresion2, 4, &parser_, stack_new(50)).type, TOKEN_EXPRESSION);
+    ASSERT_EQ(parse_expression(expresion2, 4, &parser_, stack2).type, TOKEN_EXPRESSION);
+
+    // char *result = ((str*)stack_pop(stack1))->data;
+    // ASSERT_EQ(strcmp(result, "int@42"), 0);
+    // char *result1 = ((str*)stack_pop(stack1))->data;
+    // ASSERT_EQ(strcmp(result1, "int@42"), 0);
+    // char *result2 = ((str*)stack_pop(stack1))->data;
+    // ASSERT_EQ(strcmp(result2, "+"), 0);
+
 
     Token expresion3[] = {{TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2},{TOKEN_PLUS, KW_UNKNOWN, "+", 0} , {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
     EXPECT_EXIT(parse_expression(expresion3, 3, &parser_, stack_new(50)), ::testing::ExitedWithCode(SYNTAX_ERR), ".*");
@@ -42,6 +52,9 @@ TEST_F(ExpParserTest, BasicTests) {
      Token expresion4[] = { {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
     // EXPECT_EXIT(parse_expression(expresion4, 1, &parser_), ::testing::ExitedWithCode(SYNTAX_ERR), ".*");
     ASSERT_EQ(parse_expression(expresion4, 4, &parser_, stack_new(50)).type, TOKEN_EXPRESSION);
+
+    stack_dispose(stack1);
+    stack_dispose(stack2);
 
 }
 
@@ -93,10 +106,10 @@ TEST_F(ExpParserTest, LowerTests) {
 
 // Lower or EQ tests
 TEST_F(ExpParserTest, LowerOrEqualsTests) {
-    Token expresion1[] = {{TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_LE, KW_UNKNOWN, "<=", 0} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
+    Token expresion1[] = {{TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_LTE, KW_UNKNOWN, "<=", 0} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
     ASSERT_EQ(parse_expression(expresion1, 4, &parser_, stack_new(50)).type, TOKEN_EXPRESSION);
 
-    Token expresion2[] = {{TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2},{TOKEN_LE, KW_UNKNOWN, "<=", 0} , {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
+    Token expresion2[] = {{TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2},{TOKEN_LTE, KW_UNKNOWN, "<=", 0} , {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
     EXPECT_EXIT(parse_expression(expresion2, 3, &parser_, stack_new(50)), ::testing::ExitedWithCode(SYNTAX_ERR), ".*");
 }
 
@@ -113,10 +126,10 @@ TEST_F(ExpParserTest, HigherTests) {
 
 // Greater or EQ tests
 TEST_F(ExpParserTest, GreaterOrEqualsTests) {
-    Token expresion1[] = {{TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2},{TOKEN_GE, KW_UNKNOWN, "<=", 1}, {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0},};
+    Token expresion1[] = {{TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2},{TOKEN_GTE, KW_UNKNOWN, "<=", 1}, {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0},};
     ASSERT_EQ(parse_expression(expresion1, 4, &parser_, stack_new(50)).type, TOKEN_EXPRESSION);
 
-        Token expresion2[] = {{TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2},{TOKEN_GE, KW_UNKNOWN, "<=", 1},  {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0},};
+        Token expresion2[] = {{TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2},{TOKEN_GTE, KW_UNKNOWN, "<=", 1},  {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0},};
 
     EXPECT_EXIT(parse_expression(expresion2, 3, &parser_, stack_new(50)), ::testing::ExitedWithCode(SYNTAX_ERR), ".*"); 
 }
