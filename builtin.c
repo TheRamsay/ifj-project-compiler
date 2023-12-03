@@ -17,8 +17,7 @@ void builtin_add_to_symtable(Symtable *symtable) {
   SymtableIdentifierType identifier_type;
 
   /*                              readString() -> String? */
-  item = symtable_add_symbol(symtable, "readString", SYMTABLE_FUNCTION, true,
-                             false, false);
+  item = symtable_add_symbol(symtable, "readString", SYMTABLE_FUNCTION, true, false, false);
 
   identifier_type.data_type = STRING_TYPE;
   identifier_type.nullable = true;
@@ -26,8 +25,7 @@ void builtin_add_to_symtable(Symtable *symtable) {
   /* ------------------------------------------------------------------------ */
 
   /*                             readInt() -> Int? */
-  item = symtable_add_symbol(symtable, "readInt", SYMTABLE_FUNCTION, true,
-                             false, false);
+  item = symtable_add_symbol(symtable, "readInt", SYMTABLE_FUNCTION, true, false, false);
 
   identifier_type.data_type = INT_TYPE;
   identifier_type.nullable = true;
@@ -36,8 +34,7 @@ void builtin_add_to_symtable(Symtable *symtable) {
    */
 
   /*                            readDouble() -> Double? */
-  item = symtable_add_symbol(symtable, "readDouble", SYMTABLE_FUNCTION, true,
-                             false, false);
+  item = symtable_add_symbol(symtable, "readDouble", SYMTABLE_FUNCTION, true, false, false);
 
   identifier_type.data_type = DOUBLE_TYPE;
   identifier_type.nullable = true;
@@ -46,16 +43,16 @@ void builtin_add_to_symtable(Symtable *symtable) {
    */
 
   /*                         write(term1, term2, ..., termn) */
-  item = symtable_add_symbol(symtable, "write", SYMTABLE_FUNCTION, true, false,
-                             false);
+  item = symtable_add_symbol(symtable, "write", SYMTABLE_FUNCTION, true, false, false);
 
-  // ????? args
+  identifier_type.data_type = VOID_TYPE;
+  identifier_type.nullable = false;
+  symtable_add_return(item, identifier_type);
   /* -------------------------------------------------------------------------
    */
 
   /*                       Int2Double(_ term: Int) -> Double */
-  item = symtable_add_symbol(symtable, "Int2Double", SYMTABLE_FUNCTION, true,
-                             false, false);
+  item = symtable_add_symbol(symtable, "Int2Double", SYMTABLE_FUNCTION, true, false, false);
 
   identifier_type.data_type = INT_TYPE;
   identifier_type.nullable = false;
@@ -68,8 +65,7 @@ void builtin_add_to_symtable(Symtable *symtable) {
    */
 
   /*                     Double2Int(_ term: Double) -> Int */
-  item = symtable_add_symbol(symtable, "Double2Int", SYMTABLE_FUNCTION, true,
-                             false, false);
+  item = symtable_add_symbol(symtable, "Double2Int", SYMTABLE_FUNCTION, true, false, false);
 
   identifier_type.data_type = DOUBLE_TYPE;
   identifier_type.nullable = false;
@@ -82,8 +78,7 @@ void builtin_add_to_symtable(Symtable *symtable) {
    */
 
   /*                       Length(_ s: String) -> Int */
-  item = symtable_add_symbol(symtable, "length", SYMTABLE_FUNCTION, true, false,
-                             false);
+  item = symtable_add_symbol(symtable, "length", SYMTABLE_FUNCTION, true, false, false);
 
   identifier_type.data_type = STRING_TYPE;
   identifier_type.nullable = false;
@@ -97,8 +92,7 @@ void builtin_add_to_symtable(Symtable *symtable) {
 
   /* substring(of s: String, startingAt i: Int, endingBefore j: Int) -> String
    */
-  item = symtable_add_symbol(symtable, "substring", SYMTABLE_FUNCTION, true,
-                             false, false);
+  item = symtable_add_symbol(symtable, "substring", SYMTABLE_FUNCTION, true, false, false);
 
   identifier_type.data_type = STRING_TYPE;
   identifier_type.nullable = false;
@@ -119,8 +113,7 @@ void builtin_add_to_symtable(Symtable *symtable) {
    */
 
   /*                       ord(_ c: String) -> Int */
-  item = symtable_add_symbol(symtable, "ord", SYMTABLE_FUNCTION, true, false,
-                             false);
+  item = symtable_add_symbol(symtable, "ord", SYMTABLE_FUNCTION, true, false, false);
 
   identifier_type.data_type = STRING_TYPE;
   identifier_type.nullable = false;
@@ -133,8 +126,7 @@ void builtin_add_to_symtable(Symtable *symtable) {
    */
 
   /*                         chr(_ i: Int) -> String */
-  item = symtable_add_symbol(symtable, "chr", SYMTABLE_FUNCTION, true, false,
-                             false);
+  item = symtable_add_symbol(symtable, "chr", SYMTABLE_FUNCTION, true, false, false);
 
   identifier_type.data_type = INT_TYPE;
   identifier_type.nullable = false;

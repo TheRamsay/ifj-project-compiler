@@ -451,7 +451,7 @@ void check_call_param(Parser *parser, SymtableParam *param, Token *first, Token 
   push_param_to_stack(params_stack, first, second);
 }
 
-void check_call_param_write(Parser *parser, SymtableParam *param, Token *first, Token *second, void_stack_t *params_stack) {
+void check_call_param_write(Parser *parser, Token *first, Token *second, void_stack_t *params_stack) {
   // Parameter is a variable
   if (first->type == TOKEN_IDENTIFIER) {
     SymtableItem *param_variable = search_var_in_tables(parser, first->val);
@@ -467,12 +467,6 @@ void check_call_param_write(Parser *parser, SymtableParam *param, Token *first, 
     if (param_variable->data->type == SYMTABLE_FUNCTION) {
       exit_with_error(SEMANTIC_ERR_CALL, "Cannot pass function as parameter");
     }
-  } else if (is_literal(parser)) {
-    if (!compare_symtable_item_with_token(first, param->identifier_type)) {
-      exit_with_error(SEMANTIC_ERR_CALL, "Parameter %s type doesn't match the definition", first->val);
-    }
-  } else {
-    exit_with_error(SEMANTIC_ERR_CALL, "Parameter %s is weird", first->val);
   }
 
   push_param_to_stack(params_stack, first, second);
@@ -506,7 +500,7 @@ int call_params_n(Parser *parser, SymtableItem *item, SymtableParam *param, void
   if (strcmp(item->key, "write") != 0) {
     check_call_param(parser, param, &first, second, params_stack);
   } else {
-    check_call_param_write(parser, param, &first, second, params_stack);
+    check_call_param_write(parser, &first, second, params_stack);
   }
 
   advance(parser);
@@ -545,18 +539,16 @@ int call_params(Parser *parser, SymtableItem *item, SymtableParam *param, void_s
   if (strcmp(item->key, "write") != 0) {
     check_call_param(parser, param, &first, second, params_stack);
   } else {
-    check_call_param_write(parser, param, &first, second, params_stack);
+    check_call_param_write(parser, &first, second, params_stack);
   }
   // printf("after, %d | '%s'\n", current_token(parser)->type,
   // current_token(parser)->val);
 
   advance(parser);
-  return 1 + call_params_n(parser, item, param->next, params_stack);
+  return 1 + call_params_n(parser, item, param == NULL ? NULL : param->next, params_stack);
 }
 
-SymtableIdentifierType func_call(Parser *parser, void_stack_t *params_stack) {
-  char *func_id = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
-
+SymtableIdentifierType func_call(Parser *parser, char *func_id, void_stack_t *params_stack) {
   SymtableItem *item = symtable_get(parser->global_table, func_id);
 
   if (item == NULL || item->data->type != SYMTABLE_FUNCTION) {
@@ -567,9 +559,9 @@ SymtableIdentifierType func_call(Parser *parser, void_stack_t *params_stack) {
   int params_count = call_params(parser, item, item->data->function.params, params_stack);
 
   if (strcmp(func_id, "write") == 0) {
-    char buffer[100] = {0};
-    sprintf(buffer, "%d", params_count);
-    stack_push(params_stack, str_new_from_cstr(buffer));
+    str *params_count_str = str_new_int_const("");
+    str_append_int(params_count_str, params_count);
+    stack_push(params_stack, params_count_str);
   }
 
   consume(parser, TOKEN_RPAREN, "Expected ')'");
@@ -697,7 +689,6 @@ bool if_statement(Parser *parser) {
 #endif
 
 else_branch:
-  generator_if_else(parser->gen);
   consume(parser, TOKEN_LBRACE, "Expected '{'");
   valid_return = body(parser);
 
@@ -708,6 +699,8 @@ else_branch:
   if (!match_keyword(parser, KW_ELSE, false)) {
     exit_with_error(SYNTAX_ERR, "Expected 'else'");
   }
+
+  generator_if_else(parser->gen);
 
   stack_pop(parser->local_tables_stack);
   local_table = symtable_new(LUFAK_JE_PEPIK_TODO_PREPSAT_NA_DYNAMICKEJ_STACK);
@@ -821,7 +814,9 @@ bool statement(Parser *parser) {
       var_initialized = true;
       if (check_type(parser, TOKEN_IDENTIFIER) && peek(parser)->type == TOKEN_LPAREN) {
         void_stack_t *params_stack = stack_new(100);
-        SymtableIdentifierType returned_type = func_call(parser, params_stack);
+
+        char *func_id = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
+        SymtableIdentifierType returned_type = func_call(parser, func_id, params_stack);
 
         if (returned_type.data_type == VOID_TYPE) {
           exit_with_error(SEMANTIC_ERR_EXPR, "Cannot assign void to variable");
@@ -856,6 +851,9 @@ bool statement(Parser *parser) {
         generator_expr(parser->gen, expr_stack);
 #endif
       }
+    } else if (identifier_type.nullable) {
+      generator_var_set(parser->gen, str_new_from_cstr(variable_id), str_new_nil_const());
+      var_initialized = true;
     }
     // Variable definition without initialization
     else {
@@ -898,7 +896,9 @@ bool statement(Parser *parser) {
 
       if (check_type(parser, TOKEN_IDENTIFIER) && peek(parser)->type == TOKEN_LPAREN) {
         void_stack_t *params_stack = stack_new(100);
-        SymtableIdentifierType returned_type = func_call(parser, params_stack);
+
+        char *func_id = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
+        SymtableIdentifierType returned_type = func_call(parser, func_id, params_stack);
 
         if (returned_type.data_type == VOID_TYPE) {
           exit_with_error(SEMANTIC_ERR_EXPR, "Cannot assign void to variable");
@@ -933,10 +933,11 @@ bool statement(Parser *parser) {
     }
     // statement -> func_call
     if (peek(parser) != NULL && peek(parser)->type == TOKEN_LPAREN) {
-      void_stack_t *params_stack = stack_new(100);
-      func_call(parser, params_stack);
+      void_stack_t *params_stack = stack_new(128);
+      char *func_id = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
+      func_call(parser, func_id, params_stack);
       stack_reverse(&params_stack);
-      generator_function_call(parser->gen, str_new_from_cstr(current_token(parser)->val), params_stack, NULL);
+      generator_function_call(parser->gen, str_new_from_cstr(func_id), params_stack, NULL);
     }
     // statement -> expression that starts with identifier
     else {
@@ -1025,6 +1026,7 @@ Token *parser_start(Parser *parser, Token *input_tokens)
   // prog rule
   parse(parser);
   generator_footer(parser->gen);
+  generator_print(parser->gen);
   generator_dispose(parser->gen);
 
 #ifdef PARSER_TEST

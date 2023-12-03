@@ -160,8 +160,7 @@ str *str_new_float_const(const char *s) {
 
 /**
  *
- * @brief Creates a string containing a string constant in the appropriate
- * format.
+ * @brief Creates a string containing a string constant in the appropriate format.
  *
  * @param s C string containing a string.
  * @returns Pointer to the new string.
