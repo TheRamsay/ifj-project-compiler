@@ -151,7 +151,7 @@ str *str_new_float_const(const char *s) {
 
   float flt;
   sscanf(s, "%a", &flt);
-  snprintf(str->data, str->alloc_size, "%f\n", flt);
+  snprintf(str->data, str->alloc_size, "%a", flt);
 
   return str;
 };
