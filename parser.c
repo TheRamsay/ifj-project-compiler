@@ -149,7 +149,7 @@ bool compare_symtable_item_types(SymtableIdentifierType left, SymtableIdentifier
 {
 	if (left.nullable)
 	{
-		return left.data_type == right.data_type;
+		return left.data_type == right.data_type || right.data_type == VOID_TYPE;
 	}
 	else
 	{
