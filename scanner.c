@@ -512,35 +512,45 @@ int get_next_token(Token *token) {
           c = fgetc(source_file);
         }; // Read until the end of the line
         continue;
-      } else if (c == '*') { // Block comment
+      } else if (c == '*') {
         if (nested_block_comment > 0) {
-          printf("viac\n");
-          goto loop; // If we are in a nested block comment, skip the comment
+          while (1) {
+            c = fgetc(source_file);
+            if (c == EOF) {
+              fprintf(stderr, "Error: Unterminated block comment\n");
+              exit(1);
+            } else if (c == '*') {
+              if ((c = fgetc(source_file)) == '/') {
+                if (nested_block_comment > 0) {
+                  nested_block_comment--; // Exit nested block comment
+                  break;
+                }
+              }
+            }
+          }
         } else {
-          printf("nula\n");
-          nested_block_comment++; // Otherwise, increment the nested block comment counter
-        loop:
-          printf("loop\n");
-          next_char = fgetc(source_file);
-          while (next_char != '*') {
-            if (next_char == EOF) {
+          nested_block_comment++; // Increment the nested block comment counter
+          while (1) {
+            next_char = fgetc(source_file);
+            if (next_char == '*') {
+              if ((next_char = fgetc(source_file)) == '/') {
+                nested_block_comment--; // Decrement the nested block comment counter
+                if (nested_block_comment == 0) {
+                  break; // Exit the outer block comment loop
+                }
+              }
+            } else if (next_char == '/') {
+              if ((next_char = fgetc(source_file)) == '*') {
+                nested_block_comment++; // Increment the nested block comment counter
+              }
+            } else if (next_char == EOF) {
               fprintf(stderr, "Error: Unterminated block comment\n");
               exit(1);
             }
-            next_char = fgetc(source_file); // Read until the end of the block comment
-          }
-          if (fgetc(source_file) == '/') { // If the block comment is over, decrement the nested block comment counter
-            printf("if\n");
-            if (--nested_block_comment > 0) {
-              printf("menej\n");
-              goto loop;
-            }
             continue;
-          } else {
-            printf("else\n");
-            goto loop; // Otherwise, continue reading the block comment
           }
         }
+        continue; // Skip the block comment
       } else {
         ungetc(c, source_file);
         char_to_token(token, '/');
@@ -559,8 +569,7 @@ int get_next_token(Token *token) {
     fprintf(stderr, "Unknown token: %s\n", token->val);
     exit(1);
   }
-  printf("Token Type: %d token: %s\n", token->type, token->val);
-
+  // printf("Token Type: %d token: %s\n", token->type, token->val);
   return token->type;
 }
 
