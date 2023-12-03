@@ -40,6 +40,15 @@ TEST(StrTest, NewFrom) {
   ASSERT_EQ(s, nullptr);
 }
 
+TEST(StrTest, Constants) {
+  EXPECT_EQ(strcmp(str_new_int_const("123")->data, "int@123"), 0);
+  EXPECT_EQ(strcmp(str_new_int_const("18945611891958")->data, "int@18945611891958"), 0);
+
+  EXPECT_EQ(strcmp(str_new_float_const("0.152391849123")->data, "float@0x1.381938p-3"), 0);
+
+  EXPECT_EQ(strcmp(str_new_string_const("iubu12asd\n\b1293[[''`]]")->data, "string@iubu12asd\n\b1293[[''`]]"), 0);
+}
+
 TEST(StrTest, SetCstr) {
   str *s = str_new(20);
 
