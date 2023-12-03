@@ -323,7 +323,7 @@ int get_next_token(Token *token) {
     if (c == '_') {
       char_to_token(token, c);
       c = fgetc(source_file);
-      if (!isalpha(c) && !isdigit(c) && c != ' ', && c != EOF) {
+      if (!isalpha(c) && !isdigit(c) && c != ' ' && c != EOF) {
         fprintf(stderr, "Invalid identifier: %s\n", token->val);
         exit(1);
       }
@@ -552,14 +552,14 @@ int get_next_token(Token *token) {
   return token->type;
 }
 
-int main() {
-  FILE *input_file = stdin;
-  Token token;
-  scanner_init(input_file);
-  while (get_next_token(&token) != TOKEN_EOF)
-    ;
+// int main() {
+//   FILE *input_file = stdin;
+//   Token token;
+//   scanner_init(input_file);
+//   while (get_next_token(&token) != TOKEN_EOF)
+//     ;
 
-  scanner_destroy();
+//   scanner_destroy();
 
-  return 0;
-}
+//   return 0;
+// }
