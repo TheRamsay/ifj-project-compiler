@@ -160,7 +160,23 @@ Stack_token_t evaluate_rule(Stack_token_t token, SymtableIdentifierType type) {
   return (Stack_token_t){.token = {TOKEN_EOF, KW_UNKNOWN, "Eof", 3}, .precedence = None, .type = {.data_type = UNKNOWN_TYPE, .nullable = false}};
 }
 
-void pushToStack(void_stack_t *expresionStack, Stack_token_t action, Stack_token_t token1, Stack_token_t token2) {
+void push_single_token_expresion(void_stack_t *expresionStack, Stack_token_t token) {
+  if (token.token.type != TOKEN_EXPRESSION) {
+    if (token.token.type == TOKEN_IDENTIFIER) {
+      stack_push(expresionStack, str_new_from_cstr(token.token.val));
+    } else if (token.token.type == TOKEN_INTEGER_LITERAL) {
+      stack_push(expresionStack, str_new_int_const(token.token.val));
+    } else if (token.token.type == TOKEN_DECIMAL_LITERAL) {
+      stack_push(expresionStack, str_new_float_const(token.token.val));
+    } else if (token.token.type == TOKEN_STRING_LITERAL) {
+      stack_push(expresionStack, str_new_string_const(token.token.val));
+    } else if (token.token.type == TOKEN_KEYWORD && token.token.keyword == KW_NIL) {
+      stack_push(expresionStack, str_new_nil_const());
+    }
+  }
+}
+
+void push_two_token_expresion(void_stack_t *expresionStack, Stack_token_t action, Stack_token_t token1, Stack_token_t token2) {
   switch (action.token.type) {
   case TOKEN_PLUS:
     stack_push(expresionStack, str_new_from_cstr("+"));
@@ -213,7 +229,7 @@ void pushToStack(void_stack_t *expresionStack, Stack_token_t action, Stack_token
     } else if (token1.token.type == TOKEN_INTEGER_LITERAL) {
       stack_push(expresionStack, str_new_int_const(token1.token.val));
     } else if (token1.token.type == TOKEN_DECIMAL_LITERAL) {
-      stack_push(expresionStack, str_new_double_const(token1.token.val));
+      stack_push(expresionStack, str_new_float_const(token1.token.val));
     } else if (token1.token.type == TOKEN_STRING_LITERAL) {
       stack_push(expresionStack, str_new_string_const(token1.token.val));
     } else if (token1.token.type == TOKEN_KEYWORD && token1.token.keyword == KW_NIL) {
@@ -227,7 +243,7 @@ void pushToStack(void_stack_t *expresionStack, Stack_token_t action, Stack_token
     } else if (token2.token.type == TOKEN_INTEGER_LITERAL) {
       stack_push(expresionStack, str_new_int_const(token2.token.val));
     } else if (token2.token.type == TOKEN_DECIMAL_LITERAL) {
-      stack_push(expresionStack, str_new_double_const(token2.token.val));
+      stack_push(expresionStack, str_new_float_const(token2.token.val));
     } else if (token2.token.type == TOKEN_STRING_LITERAL) {
       stack_push(expresionStack, str_new_string_const(token2.token.val));
     } else if (token2.token.type == TOKEN_KEYWORD && token2.token.keyword == KW_NIL) {
@@ -350,7 +366,7 @@ int handle_reduce_case(void_stack_t *stack, Stack_token_t token, Stack_token_t p
           }
         }
         *ruleProduct = evaluate_rule(secondToken, firstToken.type);
-        pushToStack(expresionStack, secondToken, firstToken, thirdToken);
+        push_two_token_expresion(expresionStack, secondToken, firstToken, thirdToken);
       }
       //(E)
       if (firstToken.token.type == TOKEN_RPAREN && thirdToken.token.type == TOKEN_LPAREN) {
@@ -364,6 +380,9 @@ int handle_reduce_case(void_stack_t *stack, Stack_token_t token, Stack_token_t p
         // Return third token
         stack_push(stack, &thirdToken);
       }
+    } else {
+      // Push simple token to expresion stack
+      push_single_token_expresion(expresionStack, firstToken);
     }
 
     if (ruleProduct->token.type == TOKEN_EOF) {

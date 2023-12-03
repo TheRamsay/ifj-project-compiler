@@ -26,9 +26,12 @@ protected:
 // Basic tests
 TEST_F(ExpParserTest, BasicTests) { 
     // Should return true
-
+    void_stack_t *stack1 = stack_new(50);
     Token expresion1[] = { {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2},    {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0},};
-    ASSERT_EQ(parse_expression(expresion1, 2, &parser_, stack_new(50)).type, TOKEN_EXPRESSION);
+    ASSERT_EQ(parse_expression(expresion1, 2, &parser_, stack1).type, TOKEN_EXPRESSION);
+
+    char *result = ((str*)stack_top(stack1))->data;
+    ASSERT_EQ(strcmp(result, "int@42"), 0);
 
     Token expresion2[] = {{TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_PLUS, KW_UNKNOWN, "+", 0} , {TOKEN_INTEGER_LITERAL, KW_UNKNOWN, "42", 2}, {TOKEN_STACK_BOTTOM, KW_UNKNOWN, NULL, 0}};
     ASSERT_EQ(parse_expression(expresion2, 4, &parser_, stack_new(50)).type, TOKEN_EXPRESSION);
