@@ -171,8 +171,8 @@ void stack_reverse(void_stack_t **stack)
     stack_push(stack_reversed, stack_pop(*stack));
   }
 
-  void_stack_t *old_stack = stack;
+  void_stack_t *old_stack = *stack;
 
-  *stack = &stack_reversed;
+  *stack = stack_reversed;
   stack_dispose(old_stack);
 }

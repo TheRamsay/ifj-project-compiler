@@ -629,11 +629,11 @@ void check_call_param(Parser *parser, SymtableParam *param, Token *first, Token 
 }
 
 // call_params_n -> , <call_params_kw> <term> <call_params_n>
-void call_params_n(Parser *parser, SymtableItem *item, SymtableParam *param, void_stack_t *params_stack)
+int call_params_n(Parser *parser, SymtableItem *item, SymtableParam *param, void_stack_t *params_stack)
 {
 	if (check_type(parser, TOKEN_RPAREN))
 	{
-		return;
+		return 0;
 	}
 
 	consume(parser, TOKEN_COMMA, "Expected ','");
@@ -657,18 +657,25 @@ void call_params_n(Parser *parser, SymtableItem *item, SymtableParam *param, voi
 		second = &(*current_token(parser));
 	}
 
-	check_call_param(parser, param, &first, second, params_stack);
+	if (strcmp(parser->current_function_name, "write") != 0)
+	{
+		check_call_param(parser, param, &first, second, params_stack);
+	}
+	else
+	{
+		push_param_to_stack(params_stack, &first, second);
+	}
 
 	advance(parser);
-	call_params_n(parser, item, param->next, params_stack);
+	return 1 + call_params_n(parser, item, param->next, params_stack);
 }
 
 // call_params -> <call_params_kw> <term> <call_params_n>
-void call_params(Parser *parser, SymtableItem *item, SymtableParam *param, void_stack_t *params_stack)
+int call_params(Parser *parser, SymtableItem *item, SymtableParam *param, void_stack_t *params_stack)
 {
 	if (check_type(parser, TOKEN_RPAREN))
 	{
-		return;
+		return 0;
 	}
 
 	if (param == NULL)
@@ -709,7 +716,7 @@ void call_params(Parser *parser, SymtableItem *item, SymtableParam *param, void_
 	// current_token(parser)->val);
 
 	advance(parser);
-	call_params_n(parser, item, param->next, params_stack);
+	return 1 + call_params_n(parser, item, param->next, params_stack);
 }
 
 SymtableIdentifierType func_call(Parser *parser, void_stack_t *params_stack)
@@ -724,7 +731,15 @@ SymtableIdentifierType func_call(Parser *parser, void_stack_t *params_stack)
 	}
 
 	consume(parser, TOKEN_LPAREN, "Expected '('");
-	call_params(parser, item, item->data->function.params, params_stack);
+	int params_count = call_params(parser, item, item->data->function.params, params_stack);
+
+	if (strcmp(func_id, "write") == 0)
+	{
+		char buffer[100] = {0};
+		sprintf(buffer, "%d", params_count);
+		stack_push(params_stack, str_new_from_cstr(buffer));
+	}
+
 	consume(parser, TOKEN_RPAREN, "Expected ')'");
 
 	return item->data->function._return->identifier_type;
@@ -1197,6 +1212,7 @@ bool statement(Parser *parser)
 			expression(parser, DEFAULT_EXPRESION_TYPE);
 #else
 			void_stack_t *expr_stack = stack_new(100);
+			stack_push(expr_stack, str_new_from_cstr("?"));
 			expression(parser, expr_stack);
 			generator_expr(parser->gen, expr_stack);
 #endif
@@ -1209,6 +1225,7 @@ bool statement(Parser *parser)
 		expression(parser, DEFAULT_EXPRESION_TYPE);
 #else
 		void_stack_t *expr_stack = stack_new(100);
+		stack_push(expr_stack, str_new_from_cstr("?"));
 		expression(parser, expr_stack);
 		generator_expr(parser->gen, expr_stack);
 #endif
