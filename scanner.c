@@ -9,11 +9,17 @@
 FILE *source_file;
 int token_count = 0;
 
+<<<<<<< HEAD
 void scanner_init(FILE *file)
 {                     // Initialize the scanner
   source_file = file; // Set the source file to the file passed in
   if (source_file == NULL)
   {
+=======
+void scanner_init(FILE *file) { // Initialize the scanner
+  source_file = file;           // Set the source file to the file passed in
+  if (source_file == NULL) {
+>>>>>>> d92f932ffd138392c4a8a180a2b86cf760e50b5a
     fprintf(stderr, "Error opening file\n");
     exit(1);
   }
@@ -167,6 +173,7 @@ void determine_token_type(Token *token)
     int buffer_size = 0;
     int i = 0;
 
+<<<<<<< HEAD
     while ((character = fgetc(source_file)) != EOF && character != '"')
     { // Read until the end of the string literal
       if (i >= buffer_size - 1)
@@ -175,6 +182,13 @@ void determine_token_type(Token *token)
         char *new_buffer = (char *)realloc(buffer, buffer_size); // Reallocate the buffer
         if (new_buffer == NULL)
         {
+=======
+    while ((character = fgetc(source_file)) != EOF && character != '"') { // Read until the end of the string literal
+      if (i >= buffer_size - 1) {                                         // If the buffer is full, reallocate it
+        buffer_size += 64;                                                // Allocate 64 more bytes
+        char *new_buffer = (char *)realloc(buffer, buffer_size);          // Reallocate the buffer
+        if (new_buffer == NULL) {
+>>>>>>> d92f932ffd138392c4a8a180a2b86cf760e50b5a
           fprintf(stderr, "Error allocating memory for string token\n");
           exit(99);
         }
@@ -342,8 +356,12 @@ void char_to_token(Token *token, char c)
   if (token->val == NULL)
   {
     new_val = (char *)malloc(2 * sizeof(char)); // Allocate memory for the token value
+<<<<<<< HEAD
     if (new_val == NULL)
     {
+=======
+    if (new_val == NULL) {
+>>>>>>> d92f932ffd138392c4a8a180a2b86cf760e50b5a
       fprintf(stderr, "Error allocating memory for token value\n");
       exit(99);
     }
@@ -353,8 +371,12 @@ void char_to_token(Token *token, char c)
   else
   {
     new_val = (char *)realloc(token->val, (token->length + 2) * sizeof(char));
+<<<<<<< HEAD
     if (new_val == NULL)
     {
+=======
+    if (new_val == NULL) {
+>>>>>>> d92f932ffd138392c4a8a180a2b86cf760e50b5a
       fprintf(stderr, "Error reallocating memory for token value\n");
       exit(99);
     }
@@ -377,9 +399,14 @@ int get_next_token(Token *token)
   bool newline = false;
   bool multiline = false;
   bool multiline_string = false;
+<<<<<<< HEAD
 
   while (true)
   {
+=======
+  int next_char;
+  while (true) {
+>>>>>>> d92f932ffd138392c4a8a180a2b86cf760e50b5a
 
     c = fgetc(source_file); // Get the next character from the source file
     if (c == EOF)
@@ -415,10 +442,20 @@ int get_next_token(Token *token)
     {
       char_to_token(token, c);
       c = fgetc(source_file);
+<<<<<<< HEAD
       if (!isalpha(c) && !isdigit(c) && c != ' ')
       {
+=======
+      if (!isalpha(c) && !isdigit(c) && c != ' ' && c != EOF && c != '=') {
+>>>>>>> d92f932ffd138392c4a8a180a2b86cf760e50b5a
         fprintf(stderr, "Invalid identifier: %s\n", token->val);
         exit(1);
+      }
+
+      if (c == EOF || c == ' ' || c == '\n' || c == '=') {
+        token->type = TOKEN_IDENTIFIER;
+        ungetc(c, source_file);
+        break;
       }
     }
     if (isdigit(c))
@@ -428,6 +465,7 @@ int get_next_token(Token *token)
       { // Read until the end of the literal
         char_to_token(token, c);
       }
+<<<<<<< HEAD
       if (c == 'e' || c == 'E')
       {
         fprintf(stderr, "Invalid decimal literal: %s\n", token->val);
@@ -435,6 +473,13 @@ int get_next_token(Token *token)
       }
       if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.')
       {
+=======
+      if (c == 'e' || c == 'E') {
+        fprintf(stderr, "Invalid decimal literal: %s\n", token->val);
+        exit(1);
+      }
+      if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.') {
+>>>>>>> d92f932ffd138392c4a8a180a2b86cf760e50b5a
         fprintf(stderr, "Invalid integer literal: %s\n", token->val);
         exit(1);
       }
@@ -447,8 +492,12 @@ int get_next_token(Token *token)
         char_to_token(token, c);
         c = fgetc(source_file);
 
+<<<<<<< HEAD
         if (!isdigit(c) && c != 'e' && c != 'E')
         {
+=======
+        if (!isdigit(c) && c != 'e' && c != 'E') {
+>>>>>>> d92f932ffd138392c4a8a180a2b86cf760e50b5a
           fprintf(stderr, "Invalid decimal literal: %s\n", token->val);
           exit(1);
         }
@@ -472,8 +521,12 @@ int get_next_token(Token *token)
           {
             // ungetc(c, source_file); // Put the character back into the source file
           }
+<<<<<<< HEAD
           if (!isdigit(c))
           {
+=======
+          if (!isdigit(c)) {
+>>>>>>> d92f932ffd138392c4a8a180a2b86cf760e50b5a
             fprintf(stderr, "Invalid decimal literal: %s\n", token->val);
             exit(1);
           }
@@ -483,8 +536,12 @@ int get_next_token(Token *token)
             c = fgetc(source_file);
           }
 
+<<<<<<< HEAD
           if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.')
           {
+=======
+          if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.') {
+>>>>>>> d92f932ffd138392c4a8a180a2b86cf760e50b5a
             fprintf(stderr, "Invalid decimal literal: %s\n", token->val);
             exit(1);
           }
@@ -513,8 +570,12 @@ int get_next_token(Token *token)
         if (k == '"' && j == '"')
         {
           multiline = false;
+<<<<<<< HEAD
           if (token->val[strlen(token->val) - 1] != '\n')
           {
+=======
+          if (token->val[strlen(token->val) - 1] != '\n') {
+>>>>>>> d92f932ffd138392c4a8a180a2b86cf760e50b5a
             fprintf(stderr, "Invalid string literal: %s\n", token->val);
             exit(1);
           }
@@ -563,8 +624,12 @@ int get_next_token(Token *token)
             exit(1);
           }
           char *unicode = (char *)malloc(8 * sizeof(char));
+<<<<<<< HEAD
           if (unicode == NULL)
           {
+=======
+          if (unicode == NULL) {
+>>>>>>> d92f932ffd138392c4a8a180a2b86cf760e50b5a
             fprintf(stderr, "Error allocating memory for unicode character\n");
             exit(99);
           }
@@ -577,8 +642,12 @@ int get_next_token(Token *token)
               ungetc('}', source_file);
               break;
             }
+<<<<<<< HEAD
             if (!isxdigit(unicode[i]))
             {
+=======
+            if (!isxdigit(unicode[i])) {
+>>>>>>> d92f932ffd138392c4a8a180a2b86cf760e50b5a
               fprintf(stderr, "Invalid unicode character: %s\n", unicode);
               exit(1);
             }
@@ -661,6 +730,7 @@ int get_next_token(Token *token)
           c = fgetc(source_file);
         }; // Read until the end of the line
         continue;
+<<<<<<< HEAD
       }
       else if (c == '*')
       { // Block comment
@@ -678,11 +748,26 @@ int get_next_token(Token *token)
           {
             if (next_char == EOF)
             {
+=======
+      } else if (c == '*') { // Block comment
+        if (nested_block_comment > 0) {
+          printf("viac\n");
+          goto loop; // If we are in a nested block comment, skip the comment
+        } else {
+          printf("nula\n");
+          nested_block_comment++; // Otherwise, increment the nested block comment counter
+        loop:
+          printf("loop\n");
+          next_char = fgetc(source_file);
+          while (next_char != '*') {
+            if (next_char == EOF) {
+>>>>>>> d92f932ffd138392c4a8a180a2b86cf760e50b5a
               fprintf(stderr, "Error: Unterminated block comment\n");
               exit(1);
             }
             next_char = fgetc(source_file); // Read until the end of the block comment
           }
+<<<<<<< HEAD
           if (fgetc(source_file) == '/')
           { // If the block comment is over, decrement the nested block comment counter
             if (--nested_block_comment > 0)
@@ -693,6 +778,17 @@ int get_next_token(Token *token)
           }
           else
           {
+=======
+          if (fgetc(source_file) == '/') { // If the block comment is over, decrement the nested block comment counter
+            printf("if\n");
+            if (--nested_block_comment > 0) {
+              printf("menej\n");
+              goto loop;
+            }
+            continue;
+          } else {
+            printf("else\n");
+>>>>>>> d92f932ffd138392c4a8a180a2b86cf760e50b5a
             goto loop; // Otherwise, continue reading the block comment
           }
         }
@@ -726,3 +822,15 @@ int get_next_token(Token *token)
 
   return token->type;
 }
+
+// int main() {
+//   FILE *input_file = stdin;
+//   Token token;
+//   scanner_init(input_file);
+//   while (get_next_token(&token) != TOKEN_EOF)
+//     ;
+
+//   scanner_destroy();
+
+//   return 0;
+// }
