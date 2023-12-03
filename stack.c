@@ -1,20 +1,29 @@
 /* ******************************* stack.c ********************************** */
-/*  Zdroj:                                                                    */
-/*  Předmět: Algoritmy (IAL) - FIT VUT v Brně                                 */
-/*  Úkol: c202 - Zásobník znaků v poli                                        */
-/*  Referenční implementace: Petr Přikryl, 1994                               */
-/*  Vytvořil: Václav Topinka, září 2005                                       */
-/*  Úpravy: Kamil Jeřábek, září 2019                                          */
-/*          Daniel Dolejška, září 2021                                        */
-/* ************************************************************************** */
 /*                                                                            */
-/*  Zpracoval a upravil: Lukáš Witpeerd, říjen 2023
+/*  Zpracoval: Lukáš Witpeerd, říjen-listopad 2023
  **/
 
 #include "stack.h"
 
 #include <stdlib.h>
 
+/*                            Private functions                               */
+void stack_resize(void_stack_t *stack) {
+  stack->size *= 2;
+
+  void **new_items = realloc(stack->items, stack->size * sizeof(void *));
+
+  if (new_items == NULL) {
+    stack_error(stack, STACK_SERR_RESIZE);
+    return;
+  }
+
+  stack->items = new_items;
+}
+
+/* ************************************************************************** */
+
+/*                            Public functions                                */
 /**
  *
  * @param stack Pointer to the stack structure

@@ -85,53 +85,19 @@ SymtableItem *symtable_get(const Symtable *table, const char *key) {
 
   unsigned int hash = hash_function(key, table->capacity);
 
-  SymtableItem *current = table->items[hash];
+  for (unsigned int i = hash; i < table->capacity + hash; i++) {
+    SymtableItem *current = table->items[i % table->capacity];
 
-  while (current != NULL) {
+    if (current == NULL) {
+      return NULL;
+    }
+
     if (strcmp(current->key, key) == 0) {
       return current;
     }
-    current = current->next;
   }
 
   return NULL;
-}
-
-/**
- *
- * @param table Pointer to the symtable structure
- * @param key Key of the item to be deleted
- *
- */
-void symtable_delete(Symtable *table, const char *key) {
-  if (table == NULL) {
-    table->error_code = SYMTABLE_SEARCH_ERROR;
-    exit_with_error(INTERNAL_ERROR, "Symtable is NULL");
-  }
-
-  unsigned int hash = hash_function(key, table->capacity);
-
-  SymtableItem *current = table->items[hash];
-  SymtableItem *previous = NULL;
-
-  while (current->key != key && current->next != NULL) {
-    previous = current;
-    current = current->next;
-  }
-
-  if (current->key == key) {
-    if (previous == NULL) {
-      table->items[hash] = current->next;
-    } else {
-      previous->next = current->next;
-    }
-    if (current->key != NULL) {
-      free(current->key);
-    }
-    free(current);
-  } else {
-    table->error_code = SYMTABLE_SEARCH_ERROR;
-  }
 }
 
 /**
@@ -150,21 +116,19 @@ bool symtable_search(Symtable *table, const char *key) {
 
   unsigned int hash = hash_function(key, table->capacity);
 
-  SymtableItem *current = table->items[hash];
+  for (unsigned int i = hash; i < table->capacity + hash; i++) {
+    SymtableItem *current = table->items[i % table->capacity];
 
-  if (current == NULL) {
-    return false;
+    if (current == NULL) {
+      return false;
+    }
+
+    if (strcmp(current->key, key) == 0) {
+      return true;
+    }
   }
 
-  while (strcmp(current->key, key) != 0 && current->next != NULL) {
-    current = current->next;
-  }
-
-  if (strcmp(current->key, key) == 0) {
-    return true;
-  } else {
-    return false;
-  }
+  return false;
 }
 
 /**
@@ -266,7 +230,6 @@ SymtableItem *symtable_add_symbol(Symtable *table, char *key,
   strcpy(item->data->identifier, key);
 
   item->data->type = type;
-  item->next = table->items[index];
 
   if (item->data->type == SYMTABLE_FUNCTION) {
     item->data->function.param_count = 0;
@@ -390,13 +353,8 @@ bool check_if_all_functions_defined(Symtable *table) {
   for (unsigned int i = 0; i < table->capacity; i++) {
     SymtableItem *current = table->items[i];
 
-    while (current != NULL) {
-      if (current->data->type == SYMTABLE_FUNCTION &&
-          !current->data->function.defined) {
-        return false;
-      }
-
-      current = current->next;
+    if (current->data->type == SYMTABLE_FUNCTION && !current->data->function.defined) {
+      return false;
     }
   }
 
@@ -418,21 +376,43 @@ SymtableItem *symtable_insert(Symtable *table, char *key, SymtableData *data) {
 
   item->key = key;
   item->data = data;
-  item->next = NULL;
 
   unsigned int hash = hash_function(key, table->capacity);
 
-  if (table->items[hash] == NULL) {
-    table->items[hash] = item;
-  } else {
-    SymtableItem *current = table->items[hash];
+  for (unsigned int i = hash; i < table->capacity + hash; i++) {
+    SymtableItem *current = table->items[i % table->capacity];
 
-    while (current->next != NULL) {
-      current = current->next;
+    if (current == NULL) {
+      table->items[i % table->capacity] = item;
+      return item;
     }
 
-    current->next = item;
+    if (strcmp(current->key, key) == 0) {
+      current = item;
+      return item;
+    }
   }
+
+  // If we get here, the table is full
+  Symtable *new_table = symtable_new(table->capacity * 2);
+  for (unsigned int i = 0; i < table->capacity; i++) {
+    SymtableItem *current = table->items[i];
+    if (current != NULL) {
+      symtable_insert(new_table, current->key, current->data);
+    }
+  }
+
+  free(item);
+  item = symtable_insert(new_table, key, data);
+
+  SymtableItem **old_items = table->items;
+
+  table->capacity = new_table->capacity;
+  table->items = new_table->items;
+  table->error_code = new_table->error_code;
+
+  free(old_items);
+  free(new_table);
 
   return item;
 }
@@ -444,15 +424,18 @@ void symtable_clear(Symtable *table) {
 
   for (unsigned int i = 0; i < table->capacity; i++) {
     SymtableItem *current = table->items[i];
-    SymtableItem *next = NULL;
 
-    while (current != NULL) {
-      next = current->next;
+    if (current != NULL) {
+      if (current->data != NULL) {
+        if (current->data->identifier != NULL) {
+          free(current->data->identifier);
+        }
+        free(current->data);
+      }
       if (current->key != NULL) {
         free(current->key);
       }
       free(current);
-      current = next;
     }
 
     table->items[i] = NULL;

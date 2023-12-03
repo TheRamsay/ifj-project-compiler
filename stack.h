@@ -23,6 +23,8 @@
 #define STACK_SERR_TOP 2
 /** stack_pop error. */
 #define STACK_SERR_POP 3
+/** stack_resize error. */
+#define STACK_SERR_RESIZE 4
 
 /** ADT stack implemented with a static array. */
 typedef struct void_stack_t

@@ -109,3 +109,13 @@ add_executable(Test_generator
 target_link_libraries(Test_generator gtest gtest_main)
 
 add_test(generator Test_generator)
+
+add_definitions(-DPARSER_TEST)
+add_executable(ExpParserTest
+        exp_parser.h exp_parser.c stack.h stack.c scanner.h scanner.c str.h str.c
+        parser.h parser.c
+        symtable.h symtable.c
+        str.h str.c
+        error.h error.c
+        tests/exp_parser.cpp)
+target_link_libraries(ExpParserTest gtest gtest_main)
