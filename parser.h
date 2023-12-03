@@ -78,10 +78,10 @@ void func_params(Parser *parser, SymtableItem *item, Symtable *table,
 void func_def(Parser *parser);
 
 // call_params_n -> , <call_params_kw> <term> <call_params_n>
-void call_params_n(Parser *parser, SymtableItem *item, SymtableParam *param);
+void call_params_n(Parser *parser, SymtableItem *item, SymtableParam *param, void_stack_t *params_stack);
 
 // call_params -> <call_params_kw> <term> <call_params_n>
-void call_params(Parser *parser, SymtableItem *item, SymtableParam *param);
+void call_params(Parser *parser, SymtableItem *item, SymtableParam *param, void_stack_t *params_stack);
 
 bool statement(Parser *parser);
 bool body(Parser *parser);

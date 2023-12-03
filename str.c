@@ -133,7 +133,7 @@ str *str_new_int_const(const char *s) {
   str_append_cstr(str, s);
 
   return str;
-};
+}
 
 /**
  *
@@ -154,7 +154,7 @@ str *str_new_float_const(const char *s) {
   snprintf(str->data, str->alloc_size, "%a", flt);
 
   return str;
-};
+}
 
 /**
  *
@@ -169,7 +169,7 @@ str *str_new_string_const(const char *s) {
   str_append_cstr(str, s);
 
   return str;
-};
+}
 
 /**
  *
@@ -178,7 +178,7 @@ str *str_new_string_const(const char *s) {
  * @returns Pointer to the new string.
  *
  */
-str *str_new_nil_const() { return str_new_from_cstr("nil@nil"); };
+str *str_new_nil_const() { return str_new_from_cstr("nil@nil"); }
 
 /**
  * @brief Converts the string to a new C string.

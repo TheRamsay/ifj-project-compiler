@@ -187,7 +187,8 @@ void symtable_dispose(Symtable *table) {
     while (current != NULL) {
       next = current->next;
       if (current->key != NULL) {
-        free(current->key);
+        // TODO: vyresit v utery
+        // free(current->key);
       }
       free(current);
       current = next;
