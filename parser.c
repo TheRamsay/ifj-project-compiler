@@ -658,8 +658,9 @@ int call_params_n(Parser *parser, SymtableItem *item, SymtableParam *param, void
 		second = &(*current_token(parser));
 	}
 
-	if (strcmp(parser->current_function_name, "write") != 0)
+	if (strcmp(item->key, "write") != 0)
 	{
+		printf("brrefwfewfew\n");
 		check_call_param(parser, param, &first, second, params_stack);
 	}
 	else
@@ -705,7 +706,7 @@ int call_params(Parser *parser, SymtableItem *item, SymtableParam *param, void_s
 
 	// printf("%s %s\n", first->val, second->val);
 
-	if (strcmp(parser->current_function_name, "write") != 0)
+	if (strcmp(item->key, "write") != 0)
 	{
 		check_call_param(parser, param, &first, second, params_stack);
 	}
@@ -736,6 +737,7 @@ SymtableIdentifierType func_call(Parser *parser, void_stack_t *params_stack)
 
 	if (strcmp(func_id, "write") == 0)
 	{
+		printf("brr\n");
 		char buffer[100] = {0};
 		sprintf(buffer, "%d", params_count);
 		stack_push(params_stack, str_new_from_cstr(buffer));
@@ -1329,9 +1331,7 @@ SymtableIdentifierType expression(Parser *parser, void_stack_t *expr_stack)
 	consume(parser, TOKEN_COMMA, "Expected an expression");
 	return return_type;
 #else
-	(void)expr_stack;
-	consume(parser, TOKEN_COMMA, "Expected an expression");
-	return (SymtableIdentifierType){.data_type = UNKNOWN_TYPE, .nullable = false};
+	return parse_expression(parser, expr_stack);
 #endif
 }
 

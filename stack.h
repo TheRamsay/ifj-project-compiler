@@ -27,8 +27,7 @@
 #define STACK_SERR_RESIZE 4
 
 /** ADT stack implemented with a static array. */
-typedef struct void_stack_t
-{
+typedef struct void_stack_t {
   /** Array for the elements of the stack. */
   void **items;
   /** Index of the top of the stack. */
@@ -58,4 +57,5 @@ void stack_push(void_stack_t *stack, void *ptr);
 void stack_dispose(void_stack_t *stack);
 
 void stack_reverse(void_stack_t **stack);
+
 #endif

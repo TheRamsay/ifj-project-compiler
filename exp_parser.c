@@ -135,6 +135,7 @@ Stack_token_t evaluate_rule(Stack_token_t token, SymtableIdentifierType type) {
     if (token.token.keyword == KW_NIL) {
       return (Stack_token_t){.token = {TOKEN_EXPRESSION, token.token.keyword, "E", 1}, .precedence = None, .type = {.data_type = VOID_TYPE, .nullable = true}};
     }
+    break;
   }
   case TOKEN_PLUS:
   case TOKEN_MINUS:
@@ -359,7 +360,7 @@ int handle_reduce_case(void_stack_t *stack, Stack_token_t token, Stack_token_t p
           *ruleProduct = (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = firstToken.type};
 
         } else if (firstToken.type.data_type != thirdToken.type.data_type) {
-          if (firstToken.type.data_type == INT_TYPE && thirdToken.type.data_type == DOUBLE_TYPE || firstToken.type.data_type == DOUBLE_TYPE && thirdToken.type.data_type == INT_TYPE) {
+          if ((firstToken.type.data_type == INT_TYPE && thirdToken.type.data_type == DOUBLE_TYPE) || (firstToken.type.data_type == DOUBLE_TYPE && thirdToken.type.data_type == INT_TYPE)) {
             *ruleProduct = evaluate_rule(secondToken, (SymtableIdentifierType){.data_type = DOUBLE_TYPE, .nullable = false});
           } else {
             exit_with_error(SYNTAX_ERR, "Cannot use operator on different types");

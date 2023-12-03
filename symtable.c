@@ -144,20 +144,7 @@ void symtable_dispose(Symtable *table) {
     return;
   }
 
-  for (unsigned int i = 0; i < table->capacity; i++) {
-    SymtableItem *current = table->items[i];
-    SymtableItem *next = NULL;
-
-    while (current != NULL) {
-      next = current->next;
-      if (current->key != NULL) {
-        // TODO: vyresit v utery
-        // free(current->key);
-      }
-      free(current);
-      current = next;
-    }
-  }
+  symtable_clear(table);
 
   free(table->items);
   table->items = NULL;
@@ -433,7 +420,8 @@ void symtable_clear(Symtable *table) {
         free(current->data);
       }
       if (current->key != NULL) {
-        free(current->key);
+        // TODO: utery fixik
+        // free(current->key);
       }
       free(current);
     }

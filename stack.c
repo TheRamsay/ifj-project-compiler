@@ -29,10 +29,8 @@ void stack_resize(void_stack_t *stack) {
  * @param stack Pointer to the stack structure
  * @param error_code Internal error identifier
  */
-void stack_error(void_stack_t *stack, int error_code)
-{
-  if (error_code <= 0)
-  {
+void stack_error(void_stack_t *stack, int error_code) {
+  if (error_code <= 0) {
     error_code = 0;
   }
 
@@ -53,12 +51,10 @@ void stack_clear_error(void_stack_t *stack) { stack->error_code = 0; }
  *
  * @param stack Ukazatel na strukturu zásobníku
  */
-void_stack_t *stack_new(int size)
-{
+void_stack_t *stack_new(int size) {
   void_stack_t *stack = malloc(sizeof(void_stack_t));
 
-  if (stack == NULL)
-  {
+  if (stack == NULL) {
     return NULL;
   }
 
@@ -77,8 +73,7 @@ void_stack_t *stack_new(int size)
  *
  * @returns true v případě, že je zásobník prázdný, jinak false
  */
-bool stack_is_empty(const void_stack_t *stack)
-{
+bool stack_is_empty(const void_stack_t *stack) {
   return stack->top_index == -1;
 }
 
@@ -89,8 +84,7 @@ bool stack_is_empty(const void_stack_t *stack)
  *
  * @returns true v případě, že je zásobník plný, jinak false
  */
-bool stack_is_full(const void_stack_t *stack)
-{
+bool stack_is_full(const void_stack_t *stack) {
   return stack->top_index == stack->size - 1;
 }
 
@@ -102,10 +96,8 @@ bool stack_is_full(const void_stack_t *stack)
  *
  * @param stack Ukazatel na inicializovanou strukturu zásobníku
  */
-void *stack_top(void_stack_t *stack)
-{
-  if (stack_is_empty(stack))
-  {
+void *stack_top(void_stack_t *stack) {
+  if (stack_is_empty(stack)) {
     stack_error(stack, STACK_SERR_TOP);
     return 0;
   }
@@ -118,10 +110,8 @@ void *stack_top(void_stack_t *stack)
  *
  * @param stack Ukazatel na inicializovanou strukturu zásobníku
  */
-void *stack_pop(void_stack_t *stack)
-{
-  if (stack_is_empty(stack))
-  {
+void *stack_pop(void_stack_t *stack) {
+  if (stack_is_empty(stack)) {
     stack_error(stack, STACK_SERR_POP);
     return 0;
   }
@@ -136,12 +126,12 @@ void *stack_pop(void_stack_t *stack)
  * @param stack Ukazatel na inicializovanou strukturu zásobníku
  * @param data Znak k vložení
  */
-void stack_push(void_stack_t *stack, void *data)
-{
-  if (stack_is_full(stack))
-  {
-    stack_error(stack, STACK_SERR_PUSH);
-    return;
+void stack_push(void_stack_t *stack, void *data) {
+  if (stack_is_full(stack)) {
+    stack_resize(stack);
+    if (stack->error_code != 0) {
+      return;
+    }
   }
 
   stack->items[stack->top_index++ + 1] = data;
@@ -153,24 +143,19 @@ void stack_push(void_stack_t *stack, void *data)
  *
  * @param stack Ukazatel na inicializovanou strukturu zásobníku
  */
-void stack_dispose(void_stack_t *stack)
-{
-  if (stack == NULL)
-  {
+void stack_dispose(void_stack_t *stack) {
+  if (stack == NULL) {
     return;
   }
 
-  if (stack->items != NULL)
-  {
-    // TODO: dodelat v utery
-    // free(stack->items);
+  if (stack->items != NULL) {
+    free(stack->items);
     stack->items = NULL;
   }
 
   stack->size = 0;
   stack->top_index = -1;
 }
-
 void stack_reverse(void_stack_t **stack)
 {
   void_stack_t *stack_reversed = stack_new((*stack)->size);
@@ -185,3 +170,4 @@ void stack_reverse(void_stack_t **stack)
   *stack = stack_reversed;
   stack_dispose(old_stack);
 }
+/* ************************************************************************** */
