@@ -94,7 +94,7 @@ void parse(Parser *parser);
 SymtableIdentifierType expression(Parser *parser,
                                   SymtableIdentifierType return_type);
 #else
-SymtableIdentifierType expression(Parser *parser);
+SymtableIdentifierType expression(Parser *parser, void_stack_t *expr_stack);
 #endif
 
 bool return_t(Parser *parser);

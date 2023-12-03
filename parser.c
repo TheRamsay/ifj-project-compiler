@@ -666,7 +666,8 @@ SymtableIdentifierType func_call(Parser *parser)
 	consume(parser, TOKEN_LPAREN, "Expected '('");
 	call_params(parser, item, item->data->function.params);
 	consume(parser, TOKEN_RPAREN, "Expected ')'");
-	// generator_function_call(parser->gen, func_id, NULL, NULL);
+
+	generator_function_call(parser->gen, func_id, NULL, NULL);
 
 	return item->data->function._return->identifier_type;
 }
@@ -716,7 +717,9 @@ bool return_t(Parser *parser)
 	SymtableIdentifierType expression_type =
 		expression(parser, DEFAULT_EXPRESION_TYPE);
 #else
-	SymtableIdentifierType expression_type = expression(parser);
+	void_stack_t *expr_stack = stack_new(100);
+	SymtableIdentifierType expression_type = expression(parser, expr_stack);
+	generator_function_return_expr(parser->gen, expr_stack);
 #endif
 
 	// printf("%d %d\n", func->data->function._return->identifier_type.data_type,
@@ -788,6 +791,7 @@ bool if_statement(Parser *parser)
 		item->data->variable.identifier_type = result->data->variable.identifier_type;
 		item->data->variable.identifier_type.nullable = false;
 
+		generator_if_begin(parser->gen, var_id, false, NULL);
 		goto else_branch;
 	}
 
@@ -795,7 +799,8 @@ bool if_statement(Parser *parser)
 	SymtableIdentifierType expression_type =
 		expression(parser, DEFAULT_IF_EXPRESION_TYPE);
 #else
-	SymtableIdentifierType expression_type = expression(parser);
+	void_stack_t *expr_stack = stack_new(100);
+	SymtableIdentifierType expression_type = expression(parser, expr_stack);
 #endif
 
 	if (expression_type.data_type != BOOL_TYPE)
@@ -812,7 +817,10 @@ bool if_statement(Parser *parser)
 	}
 #endif
 
+	generator_if_begin_stack(parser->gen, true, expr_stack);
+
 else_branch:
+	generator_if_else(parser->gen);
 	consume(parser, TOKEN_LBRACE, "Expected '{'");
 	valid_return = body(parser);
 
@@ -838,6 +846,8 @@ else_branch:
 	{
 		exit_with_error(SYNTAX_ERR, "Expected '}'");
 	}
+
+	generator_if_end(parser->gen);
 
 	stack_pop(parser->local_tables_stack);
 	parser->in_scope = false;
@@ -874,7 +884,8 @@ bool statement(Parser *parser)
 		SymtableIdentifierType expression_type =
 			expression(parser, DEFAULT_IF_EXPRESION_TYPE);
 #else
-		SymtableIdentifierType expression_type = expression(parser);
+		void_stack_t *expr_stack = stack_new(100);
+		SymtableIdentifierType expression_type = expression(parser, expr_stack);
 #endif
 
 		if (expression_type.data_type != BOOL_TYPE)
@@ -891,6 +902,7 @@ bool statement(Parser *parser)
 		}
 #endif
 
+		generator_loop_start(parser->gen, expr_stack);
 		consume(parser, TOKEN_LBRACE, "Expected '{'");
 		// TODO: zmrd
 		body(parser);
@@ -902,6 +914,7 @@ bool statement(Parser *parser)
 
 		stack_pop(parser->local_tables_stack);
 		parser->in_scope = false;
+		generator_loop_end(parser->gen);
 	}
 	// statement -> return <return_t>
 	else if (match_keyword(parser, KW_RETURN, true))
@@ -966,7 +979,9 @@ bool statement(Parser *parser)
 				SymtableIdentifierType expression_type =
 					expression(parser, DEFAULT_EXPRESION_TYPE);
 #else
-				SymtableIdentifierType expression_type = expression(parser);
+				void_stack_t *expr_stack = stack_new(100);
+				stack_push(expr_stack, str_new_from_cstr(variable_id));
+				SymtableIdentifierType expression_type = expression(parser, expr_stack);
 #endif
 
 				if (identifier_type.data_type == UNKNOWN_TYPE)
@@ -979,6 +994,8 @@ bool statement(Parser *parser)
 					exit_with_error(SEMANTIC_ERR_EXPR, "Cannot assign %s to %s",
 									"<expression_type>", "<identifier_type>");
 				}
+
+				generator_expression(parser->gen, expr_stack);
 			}
 		}
 		// Variable definition without initialization
@@ -1077,7 +1094,10 @@ bool statement(Parser *parser)
 				SymtableIdentifierType expression_type =
 					expression(parser, DEFAULT_EXPRESION_TYPE);
 #else
-				SymtableIdentifierType expression_type = expression(parser);
+
+				void_stack_t *expr_stack = stack_new(100);
+				stack_push(expr_stack, str_new_from_cstr(variable_id));
+				SymtableIdentifierType expression_type = expression(parser, expr_stack);
 #endif
 
 				if (!compare_symtable_item_types(
@@ -1087,12 +1107,16 @@ bool statement(Parser *parser)
 					exit_with_error(SEMANTIC_ERR_EXPR, "Cannot assign %s to %s",
 									"<expression_type>", "<identifier_type>");
 				}
+
+				generator_expression(parser->gen, expr_stack);
 			}
 		}
 		// statement -> func_call
 		if (peek(parser) != NULL && peek(parser)->type == TOKEN_LPAREN)
 		{
+
 			func_call(parser);
+			generator_function_call(parser->gen, str_new_from_cstr(current_token(parser)->val), NULL, NULL);
 		}
 		// statement -> expression that starts with identifier
 		else
@@ -1100,7 +1124,9 @@ bool statement(Parser *parser)
 #ifdef PARSER_TEST
 			expression(parser, DEFAULT_EXPRESION_TYPE);
 #else
-			expression(parser);
+			void_stack_t *expr_stack = stack_new(100);
+			expression(parser, expr_stack);
+			generator_expression(parser->gen, expr_stack);
 #endif
 		}
 	}
@@ -1110,7 +1136,9 @@ bool statement(Parser *parser)
 #ifdef PARSER_TEST
 		expression(parser, DEFAULT_EXPRESION_TYPE);
 #else
-		expression(parser);
+		void_stack_t *expr_stack = stack_new(100);
+		expression(parser, expr_stack);
+		generator_expression(parser->gen, expr_stack);
 #endif
 	}
 
@@ -1199,7 +1227,7 @@ Token *parser_start(Parser *parser, Token *input_tokens)
 SymtableIdentifierType expression(Parser *parser,
 								  SymtableIdentifierType return_type)
 #else
-SymtableIdentifierType expression(Parser *parser)
+SymtableIdentifierType expression(Parser *parser, void_stack_t *expr_stack)
 #endif
 {
 
