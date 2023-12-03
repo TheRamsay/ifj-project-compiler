@@ -140,9 +140,11 @@ Stack_token_t evaluate_rule(Stack_token_t token, SymtableIdentifierType type) {
       break;
     }
     case TOKEN_KEYWORD: {
-      return (Stack_token_t){.token = {TOKEN_EXPRESSION, token.token.keyword, "E", 1},
-                             .precedence = None,
-                             .type = type};
+      if (token.token.keyword == KW_NIL) {
+        return (Stack_token_t){.token = {TOKEN_EXPRESSION, token.token.keyword, "E", 1},
+                               .precedence = None,
+                               .type = {.data_type = VOID_TYPE, .nullable = true}};
+      }
     }
     case TOKEN_PLUS:
     case TOKEN_MINUS:
@@ -218,6 +220,10 @@ Stack_token_t get_next_token_wrap(TokenType previousToken, Parser *parser) {
     // Get type
     SymtableItem *result = search_var_in_tables(parser, peakToken->val);
 
+    if (result == NULL) {
+      exit_with_error(SEMANTIC_ERR_VAR, "Variable not declared");
+    }
+
     // int result = get_next_token(token);
     return (Stack_token_t){
         .token = *peakToken, .precedence = None, .type = result->data->variable.identifier_type};
@@ -236,6 +242,10 @@ Stack_token_t get_current_token_wrap(Parser *parser) {
   if (check_type(parser, TOKEN_IDENTIFIER)) {
     // Get type
     SymtableItem *result = search_var_in_tables(parser, token->val);
+
+    if (result == NULL) {
+      exit_with_error(SEMANTIC_ERR_VAR, "Variable not declared");
+    }
 
     return (Stack_token_t){
         .token = *token, .precedence = None, .type = result->data->variable.identifier_type};
@@ -281,7 +291,15 @@ int handle_reduce_case(void_stack_t *stack, Stack_token_t token, Stack_token_t p
                                          .type = firstToken.type};
 
         } else if (firstToken.type.data_type != thirdToken.type.data_type) {
-          exit_with_error(SEMANTIC_ERR_EXPR, "Cannot use operator on different types");
+          if (firstToken.type.data_type == INT_TYPE && thirdToken.type.data_type == DOUBLE_TYPE
+              || firstToken.type.data_type == DOUBLE_TYPE
+                     && thirdToken.type.data_type == INT_TYPE) {
+            *ruleProduct = evaluate_rule(
+                secondToken, (SymtableIdentifierType){.data_type = DOUBLE_TYPE, .nullable = false});
+
+          } else {
+            exit_with_error(SEMANTIC_ERR_EXPR, "Cannot use operator on different types");
+          }
         }
         *ruleProduct = evaluate_rule(secondToken, firstToken.type);
       }
@@ -304,7 +322,7 @@ int handle_reduce_case(void_stack_t *stack, Stack_token_t token, Stack_token_t p
     }
 
     if (ruleProduct->token.type == TOKEN_EOF) {
-      exit_with_error(SYNTAX_ERR, "No rule found");
+      exit_with_error(SEMANTIC_ERR_EXPR, "No rule found");
     }
 
     stack_push(stack, ruleProduct);
@@ -410,6 +428,39 @@ SymtableIdentifierType parse_expression(Parser *parser) {
         // If there is no rule, expression is not valid
         if (handle_reduce_case(stack, token, action) == -1) {
           fprintf(stderr, "No rule for token %d\n", token.token.type);
+          exit_with_error(SEMANTIC_ERR_EXPR, "Invalid expression");
+        }
+        break;
+
+      case E:
+        handle_equals_case(stack, token);
+#ifdef PARSER_TEST
+        token = get_next_token_wrap(testExpressionToParse, expIndex, inputSize);
+        expIndex++;
+#else
+        token = get_next_token_wrap(token.token.type, parser);
+#endif
+
+        break;
+
+      case X: {
+        if (stackTop.token.type == TOKEN_STACK_BOTTOM && token.token.type == TOKEN_STACK_BOTTOM) {
+          break;
+          // Stack_token_t tempToken = *(Stack_token_t *)stack_top(stack);
+          // ;
+          // if (tempToken.token.type == TOKEN_EXPRESSION) {
+          //   break;
+          // }
+        }
+        fprintf(stderr, "Invalid relation between %s and %s\n", stackTop.token.val,
+                token.token.val);
+        exit_with_error(SEMANTIC_ERR_EXPR, "Invalid expression");
+      } break;
+
+      case R:
+        // If there is no rule, expression is not valid
+        if (handle_reduce_case(stack, token, action) == -1) {
+          fprintf(stderr, "No rule for token %d\n", token.token.type);
           exit_with_error(SYNTAX_ERR, "Invalid expression");
         }
         break;
@@ -454,6 +505,9 @@ SymtableIdentifierType parse_expression(Parser *parser) {
 #else
   SymtableIdentifierType *result = malloc(sizeof(SymtableIdentifierType));
   *result = ((Stack_token_t *)stack_top(stack))->type;
+
+  // Advance to next token to end the expreison
+  advance(parser);
 
   stack_dispose(stack);
   free(stack);
