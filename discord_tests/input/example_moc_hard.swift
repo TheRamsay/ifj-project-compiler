@@ -1,4 +1,4 @@
-// stolen from pepega007xd
+
 
 let input = "ifj projekt je moc hard"
 let mock = mock(input)

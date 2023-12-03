@@ -4,8 +4,8 @@
 
 #ifndef PARSER_TEST
 int main() {
-  // FILE *input_file = stdin;
-  FILE *input_file = fopen("./ahoj.swift", "r");
+  FILE *input_file = stdin;
+  // FILE *input_file = fopen("./ahoj.swift", "r");
   Token token;
   (void)token;
   scanner_init(input_file);

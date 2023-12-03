@@ -1,5 +1,3 @@
-// stolen from pepega007xd
-
 let cycles = 50
 
 func is_inside(_ real: Double, _ imag: Double) -> Int {

@@ -58,4 +58,6 @@ void stack_dispose(void_stack_t *stack);
 
 void stack_reverse(void_stack_t *stack);
 
+void stack_print(void_stack_t *stack);
+
 #endif
