@@ -152,9 +152,7 @@ void symtable_dispose(Symtable *table) {
   table->error_code = 0;
 }
 
-SymtableItem *symtable_add_symbol(Symtable *table, char *key,
-                                  SymtableValueType type, bool defined,
-                                  bool constant, bool param) {
+SymtableItem *symtable_add_symbol(Symtable *table, char *key, SymtableValueType type, bool defined, bool constant, bool param) {
   SymtableItem *item = symtable_get(table, key);
   // Item already exists
   if (item != NULL) {
@@ -224,8 +222,7 @@ SymtableItem *symtable_add_symbol(Symtable *table, char *key,
     item->data->function.params = NULL;
     item->data->function._return = NULL;
   } else {
-    item->data->variable.identifier_type =
-        (SymtableIdentifierType){.data_type = UNKNOWN_TYPE, .nullable = false};
+    item->data->variable.identifier_type = (SymtableIdentifierType){.data_type = UNKNOWN_TYPE, .nullable = false};
     item->data->variable.initialized = defined;
     item->data->variable.constant = constant;
     item->data->variable.param = param;
@@ -235,17 +232,14 @@ SymtableItem *symtable_add_symbol(Symtable *table, char *key,
   return item;
 }
 
-bool symtable_add_param(SymtableItem *item, char *out_identifier,
-                        char *in_identifier,
-                        SymtableIdentifierType identifier_type) {
+bool symtable_add_param(SymtableItem *item, char *out_identifier, char *in_identifier, SymtableIdentifierType identifier_type) {
   if (item == NULL) {
     // Its over Anakin, I have the high ground
     exit_with_error(INTERNAL_ERROR, "Symtable item is NULL");
   }
 
   if (strcmp(in_identifier, out_identifier) == 0) {
-    exit_with_error(SEMANTIC_ERR_FUNC,
-                    "Parameter name cannot be the same as the function name");
+    exit_with_error(SEMANTIC_ERR_FUNC, "Parameter name cannot be the same as the function name");
   }
 
   if (strcmp(in_identifier, "_") == 0) {
@@ -340,8 +334,7 @@ bool check_if_all_functions_defined(Symtable *table) {
   for (unsigned int i = 0; i < table->capacity; i++) {
     SymtableItem *current = table->items[i];
 
-    if (current->data->type == SYMTABLE_FUNCTION &&
-        !current->data->function.defined) {
+    if (current->data->type == SYMTABLE_FUNCTION && !current->data->function.defined) {
       return false;
     }
   }
