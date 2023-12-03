@@ -295,7 +295,7 @@ int get_next_token(Token *token) {
   bool newline = false;
   bool multiline = false;
   bool multiline_string = false;
-
+  int next_char;
   while (true) {
 
     c = fgetc(source_file); // Get the next character from the source file
@@ -323,7 +323,7 @@ int get_next_token(Token *token) {
     if (c == '_') {
       char_to_token(token, c);
       c = fgetc(source_file);
-      if (!isalpha(c) && !isdigit(c) && c != ' ') {
+      if (!isalpha(c) && !isdigit(c) && c != ' ', && c != EOF) {
         fprintf(stderr, "Invalid identifier: %s\n", token->val);
         exit(1);
       }
@@ -512,7 +512,7 @@ int get_next_token(Token *token) {
         } else {
           nested_block_comment++; // Otherwise, increment the nested block comment counter
         loop:
-          int next_char = fgetc(source_file);
+          next_char = fgetc(source_file);
           while (next_char != '*') {
             if (next_char == EOF) {
               fprintf(stderr, "Error: Unterminated block comment\n");
