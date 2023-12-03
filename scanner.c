@@ -115,10 +115,12 @@ void determine_token_type(Token *token) {
     int buffer_size = 0;
     int i = 0;
 
-    while ((character = fgetc(source_file)) != EOF && character != '"') { // Read until the end of the string literal
-      if (i >= buffer_size - 1) {                                         // If the buffer is full, reallocate it
-        buffer_size += 64;                                                // Allocate 64 more bytes
-        char *new_buffer = (char *)realloc(buffer, buffer_size);          // Reallocate the buffer
+    while ((character = fgetc(source_file)) != EOF &&
+           character != '"') {    // Read until the end of the string literal
+      if (i >= buffer_size - 1) { // If the buffer is full, reallocate it
+        buffer_size += 64;        // Allocate 64 more bytes
+        char *new_buffer =
+            (char *)realloc(buffer, buffer_size); // Reallocate the buffer
         if (new_buffer == NULL) {
           fprintf(stderr, "Error allocating memory for string token\n");
           exit(99);
@@ -132,7 +134,9 @@ void determine_token_type(Token *token) {
     free(buffer);               // Free the buffer
   } else {
     char c;
-    switch (token->val[0]) { // Determine the token type based on the first character
+    switch (
+        token
+            ->val[0]) { // Determine the token type based on the first character
     case '(':
       token->type = TOKEN_LPAREN;
       break;
@@ -264,7 +268,8 @@ void determine_token_type(Token *token) {
 void char_to_token(Token *token, char c) {
   char *new_val; // The new value of the token
   if (token->val == NULL) {
-    new_val = (char *)malloc(2 * sizeof(char)); // Allocate memory for the token value
+    new_val =
+        (char *)malloc(2 * sizeof(char)); // Allocate memory for the token value
     if (new_val == NULL) {
       fprintf(stderr, "Error allocating memory for token value\n");
       exit(99);
@@ -335,8 +340,9 @@ int get_next_token(Token *token) {
       }
     }
     if (isdigit(c)) {
-      char_to_token(token, c);                  // Add the character to the token value
-      while (isdigit(c = fgetc(source_file))) { // Read until the end of the literal
+      char_to_token(token, c); // Add the character to the token value
+      while (isdigit(
+          c = fgetc(source_file))) { // Read until the end of the literal
         char_to_token(token, c);
       }
       if (c == 'e' || c == 'E') {
@@ -347,9 +353,9 @@ int get_next_token(Token *token) {
         fprintf(stderr, "Invalid integer literal: %s\n", token->val);
         exit(1);
       }
-      //   ungetc(c, source_file);              // Put the last character back into the source file
-      //   token->type = TOKEN_INTEGER_LITERAL; // Set the token type to integer literal
-      //   break;
+      //   ungetc(c, source_file);              // Put the last character back
+      //   into the source file token->type = TOKEN_INTEGER_LITERAL; // Set the
+      //   token type to integer literal break;
       // }
       if (c == '.') { // Decimal literal
         char_to_token(token, c);
@@ -372,7 +378,8 @@ int get_next_token(Token *token) {
           if ((c = fgetc(source_file)) == '+' || c == '-') { // Exponent sign
             char_to_token(token, c);
           } else {
-            // ungetc(c, source_file); // Put the character back into the source file
+            // ungetc(c, source_file); // Put the character back into the source
+            // file
           }
           if (!isdigit(c)) {
             fprintf(stderr, "Invalid decimal literal: %s\n", token->val);
@@ -396,8 +403,10 @@ int get_next_token(Token *token) {
         ungetc(c, source_file);
         break;
       }
-      ungetc(c, source_file);              // Put the last character back into the source file
-      token->type = TOKEN_INTEGER_LITERAL; // Set the token type to integer literal
+      ungetc(c,
+             source_file); // Put the last character back into the source file
+      token->type =
+          TOKEN_INTEGER_LITERAL; // Set the token type to integer literal
       break;
     }
 
@@ -485,7 +494,8 @@ int get_next_token(Token *token) {
       }
     } else if (isalpha(c) || c == '_') { // Identifier
       char_to_token(token, c);
-      while (isalnum(c = fgetc(source_file)) || c == '_') { // Read until the end of the identifier
+      while (isalnum(c = fgetc(source_file)) ||
+             c == '_') { // Read until the end of the identifier
         char_to_token(token, c);
       }
 
@@ -518,7 +528,8 @@ int get_next_token(Token *token) {
           goto loop; // If we are in a nested block comment, skip the comment
         } else {
           printf("nula\n");
-          nested_block_comment++; // Otherwise, increment the nested block comment counter
+          nested_block_comment++; // Otherwise, increment the nested block
+                                  // comment counter
         loop:
           printf("loop\n");
           next_char = fgetc(source_file);
@@ -527,9 +538,12 @@ int get_next_token(Token *token) {
               fprintf(stderr, "Error: Unterminated block comment\n");
               exit(1);
             }
-            next_char = fgetc(source_file); // Read until the end of the block comment
+            next_char =
+                fgetc(source_file); // Read until the end of the block comment
           }
-          if (fgetc(source_file) == '/') { // If the block comment is over, decrement the nested block comment counter
+          if (fgetc(source_file) ==
+              '/') { // If the block comment is over, decrement the nested block
+                     // comment counter
             printf("if\n");
             if (--nested_block_comment > 0) {
               printf("menej\n");

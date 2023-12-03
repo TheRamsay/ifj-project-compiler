@@ -340,7 +340,8 @@ bool check_if_all_functions_defined(Symtable *table) {
   for (unsigned int i = 0; i < table->capacity; i++) {
     SymtableItem *current = table->items[i];
 
-    if (current->data->type == SYMTABLE_FUNCTION && !current->data->function.defined) {
+    if (current->data->type == SYMTABLE_FUNCTION &&
+        !current->data->function.defined) {
       return false;
     }
   }
