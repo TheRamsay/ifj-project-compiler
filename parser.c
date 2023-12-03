@@ -932,7 +932,7 @@ bool statement(Parser *parser) {
       }
     }
     // statement -> func_call
-    if (peek(parser) != NULL && peek(parser)->type == TOKEN_LPAREN) {
+    else if (peek(parser) != NULL && peek(parser)->type == TOKEN_LPAREN) {
       void_stack_t *params_stack = stack_new(128);
       char *func_id = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
       func_call(parser, func_id, params_stack);
