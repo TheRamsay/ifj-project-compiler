@@ -314,21 +314,26 @@ int get_next_token(Token *token) {
     token_count++;
 
     if (c == '\n') {
+      if (inString) {
+        fprintf(stderr, "Invalid string literal: %s\n", token->val);
+        exit(1);
+      }
       if (multiline) {
         char_to_token(token, '\n');
       }
       newline = true;
       continue;
     }
-    if (c == '_') {
+
+        if (c == '_') {
       char_to_token(token, c);
       c = fgetc(source_file);
-      if (!isalpha(c) && !isdigit(c) && c != ' ' && c != EOF && c != '=') {
+      if (!isalpha(c) && !isdigit(c) && c != ' ' && c != EOF && c != '=' && c != ':') {
         fprintf(stderr, "Invalid identifier: %s\n", token->val);
         exit(1);
       }
 
-      if (c == EOF || c == ' ' || c == '\n' || c == '=') {
+      if (c == EOF || c == ' ' || c == '\n' || c == '=' || c == ':') {
         token->type = TOKEN_IDENTIFIER;
         ungetc(c, source_file);
         break;
@@ -343,7 +348,7 @@ int get_next_token(Token *token) {
         fprintf(stderr, "Invalid decimal literal: %s\n", token->val);
         exit(1);
       }
-      if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.') {
+      if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.' && inString != true) {
         fprintf(stderr, "Invalid integer literal: %s\n", token->val);
         exit(1);
       }
@@ -435,6 +440,7 @@ int get_next_token(Token *token) {
         } else if (c == 'u') {
           j = fgetc(source_file);
           if (j != '{') {
+            fprintf(stderr, "Invalid unicode character: %c\n", j);
             exit(1);
           }
           char *unicode = (char *)malloc(8 * sizeof(char));
@@ -454,15 +460,20 @@ int get_next_token(Token *token) {
               exit(1);
             }
           }
+          if (strlen(unicode) == 0) {
+            fprintf(stderr, "Invalid unicode character: %s\n", unicode);
+            exit(1);
+          }
           c = strtol(unicode, NULL, 16);
           char_to_token(token, c);
 
           c = fgetc(source_file);
           if (c != '}') {
+            fprintf(stderr, "Invalid unicode character: %c\n", c);
             exit(1);
           }
-
         } else {
+          fprintf(stderr, "Invalid escape sequence: \\%c\n", c);
           exit(1);
         }
       } else {
@@ -477,7 +488,8 @@ int get_next_token(Token *token) {
       if (k == '"' && j == '"') {
         c = fgetc(source_file);
         if (c != '\n')
-          exit(1);
+          fprintf(stderr, "Invalid string literal: %c\n", c);
+        exit(1);
         multiline = true;
       } else {
         ungetc(j, source_file);
@@ -569,18 +581,18 @@ int get_next_token(Token *token) {
     fprintf(stderr, "Unknown token: %s\n", token->val);
     exit(1);
   }
-  // printf("Token Type: %d token: %s\n", token->type, token->val);
+  printf("Token Type: %d token: %s\n", token->type, token->val);
   return token->type;
 }
 
-// int main() {
-//   FILE *input_file = stdin;
-//   Token token;
-//   scanner_init(input_file);
-//   while (get_next_token(&token) != TOKEN_EOF)
-//     ;
+int main() {
+  FILE *input_file = stdin;
+  Token token;
+  scanner_init(input_file);
+  while (get_next_token(&token) != TOKEN_EOF)
+    ;
 
-//   scanner_destroy();
+  scanner_destroy();
 
-//   return 0;
-// }
+  return 0;
+}
