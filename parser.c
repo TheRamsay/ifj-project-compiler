@@ -1,6 +1,7 @@
 #include "parser.h"
 
 #include "string.h"
+#include "exp_parser.h"
 
 #ifdef PARSER_TEST
 #define DEFAULT_EXPRESION_TYPE                                                 \
@@ -1041,8 +1042,11 @@ SymtableIdentifierType expression(Parser *parser)
   consume(parser, TOKEN_COMMA, "Expected an expression");
   return return_type;
 #else
-  consume(parser, TOKEN_COMMA, "Expected an expression");
-  return (SymtableIdentifierType){.data_type = UNKNOWN_TYPE, .nullable = false};
+  // consume(parser, TOKEN_COMMA, "Expected an expression");
+  // return (SymtableIdentifierType){.data_type = UNKNOWN_TYPE, .nullable = false};
+  //TODO REMOVE
+  //EXPREISON TEST
+  return parse_expression(parser);
 #endif
 }
 

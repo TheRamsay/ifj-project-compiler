@@ -10,7 +10,15 @@
     "any": "c",
     "string_view": "c",
     "chrono": "c",
-    "functional": "c"
+    "functional": "c",
+    "*.tcc": "c"
   },
-  "C_Cpp.errorSquiggles": "disabled"
+  "C_Cpp.errorSquiggles": "disabled",
+  "makefile.launchConfigurations": [
+    {
+      "cwd": "/home/padak/Documents/school/ifj/ifj-project",
+      "binaryPath": "/home/padak/Documents/school/ifj/ifj-project/main",
+      "binaryArgs": []
+    }
+  ]
 }

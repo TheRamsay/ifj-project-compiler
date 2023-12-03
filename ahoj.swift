@@ -1,5 +1,5 @@
-func b() -> String? {
-    return ,
+func b() -> Int {
+    return 1 + 1
 }
 
 b(12321)

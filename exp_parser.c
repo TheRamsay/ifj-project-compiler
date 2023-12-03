@@ -169,9 +169,9 @@ Stack_token_t get_next_token_wrap(TokenType previousToken, Parser *parser) {
     int tokenIndex = get_operator_index(array[index].type);
 
     if (tokenIndex == -1) {
-      exit_with_error(SEMANTIC_ERR_EXPR, "bad token");
+      // exit_with_error(SEMANTIC_ERR_EXPR, "bad token");
 
-      // return (Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None};
+      return (Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None};
     }
 
     Token token = array[index];
@@ -179,30 +179,52 @@ Stack_token_t get_next_token_wrap(TokenType previousToken, Parser *parser) {
   }
   return (Stack_token_t){.token = TOKEN_STACK_BOTTOM, .precedence = None};
 #else
-  Token peakToken = peek(parser, token);
+  Token *peakToken = peek(parser);
 
   // Check if the token is valid
   int tokenIndex = get_operator_index(peakToken->type);
 
   if (tokenIndex == -1) {
-    exit_with_error(SEMANTIC_ERR_EXPR, "bad token");
+    // exit_with_error(SEMANTIC_ERR_EXPR, "bad token");
 
-    // return (Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None};
+    return (Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None};
   }
 
   // Identifier check
   if (peakToken->type == TOKEN_IDENTIFIER && previousToken == TOKEN_IDENTIFIER) {
     return (Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None};
   }
-
   // Peaked token is valid, consume it
   advance(parser);
-  Token *token = malloc(sizeof(Token));
-  token = current_token(parser);
-  // int result = get_next_token(token);
-  return (Stack_token_t){.token = token, .precedence = None};
+
+  if (check_type(parser, TOKEN_IDENTIFIER)) {
+
+    // Get type
+    SymtableItem *result = search_var_in_tables(parser, peakToken->val);
+
+    // int result = get_next_token(token);
+    return (Stack_token_t){.token = *peakToken, .precedence = None, .type = result->data->variable.identifier_type};
+  }
+  return (Stack_token_t){.token = *peakToken, .precedence = None, .type = {.data_type = UNKNOWN_TYPE, .nullable = false}};
+
 #endif
 }
+
+#ifndef PARSER_TEST
+Stack_token_t get_current_token_wrap(Parser *parser) {
+  Token *token = current_token(parser);
+
+  if (check_type(parser, TOKEN_IDENTIFIER)) {
+
+    // Get type
+    SymtableItem *result = search_var_in_tables(parser, token->val);
+
+    return (Stack_token_t){.token = *token, .precedence = None, .type = result->data->variable.identifier_type};
+  }
+  return (Stack_token_t){.token = *token, .precedence = None, .type = {.data_type = UNKNOWN_TYPE, .nullable = false}};
+}
+
+#endif
 
 void handle_shift_case(void_stack_t *stack, Stack_token_t token) {
   Stack_token_t *new_token = malloc(sizeof(Stack_token_t));
@@ -292,13 +314,13 @@ SymtableIdentifierType parse_expression(Parser *parser) {
 #endif
 
   void_stack_t *stack = stack_new(8192);
-  stack_push(stack, &(Stack_token_t){.token = TOKEN_STACK_BOTTOM, .precedence = None});
+  stack_push(stack, &(Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None, .type = {.data_type = UNKNOWN_TYPE, .nullable = false}});
 
 #ifdef PARSER_TEST
   Stack_token_t token = get_next_token_wrap(testExpressionToParse, expIndex, inputSize);
   expIndex++;
 #else
-  Stack_token_t token = get_next_token_wrap(token.token.type, parser);
+  Stack_token_t token = get_current_token_wrap(parser);
 #endif
 
   while (420 == 420) {
@@ -341,18 +363,6 @@ SymtableIdentifierType parse_expression(Parser *parser) {
     }
 
     Stack_token_t action = get_precedence(stackTop, token);
-    if (action.precedence == X) {
-      if (stackTop.token.type == TOKEN_STACK_BOTTOM && token.token.type == TOKEN_STACK_BOTTOM) {
-        break;
-        // Stack_token_t tempToken = *(Stack_token_t *)stack_top(stack);
-        // ;
-        // if (tempToken.token.type == TOKEN_EXPRESSION) {
-        //   break;
-        // }
-      }
-      fprintf(stderr, "Invalid relation between %d and %d\n", stackTop.token.val, token.token.val);
-      exit_with_error(SYNTAX_ERR, "Invalid expression");
-    }
 
     switch (action.precedence) {
     case L:
@@ -383,6 +393,22 @@ SymtableIdentifierType parse_expression(Parser *parser) {
       token = get_next_token_wrap(token.token.type, parser);
 #endif
 
+      break;
+
+    case X: {
+      if (stackTop.token.type == TOKEN_STACK_BOTTOM && token.token.type == TOKEN_STACK_BOTTOM) {
+        break;
+        // Stack_token_t tempToken = *(Stack_token_t *)stack_top(stack);
+        // ;
+        // if (tempToken.token.type == TOKEN_EXPRESSION) {
+        //   break;
+        // }
+      }
+      fprintf(stderr, "Invalid relation between %s and %s\n", stackTop.token.val, token.token.val);
+      exit_with_error(SYNTAX_ERR, "Invalid expression");
+    } break;
+
+    case None:
       break;
     }
   }

@@ -11,9 +11,7 @@
 
 #define TABLE_SIZE 17
 #define RULES_SIZE 17
-#define RULE_MAX_LENGHT 4
-
-const char operators[] = {TOKEN_PLUS, TOKEN_IDENTIFIER, TOKEN_STACK_BOTTOM, TOKEN_EXPRESSION};
+#define RULE_MAX_LENGHT 5
 
 typedef enum {
   L,    // < /SHIFT

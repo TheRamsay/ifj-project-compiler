@@ -68,11 +68,9 @@ Token consume(Parser *parser, TokenType token_type, char *error_msg);
 
 void return_def(Parser *parser, SymtableItem *item);
 
-void func_params_n(Parser *parser, SymtableItem *item, Symtable *table,
-                   void_stack_t *stack);
+void func_params_n(Parser *parser, SymtableItem *item, Symtable *table, void_stack_t *stack);
 
-void func_params(Parser *parser, SymtableItem *item, Symtable *table,
-                 void_stack_t *stack);
+void func_params(Parser *parser, SymtableItem *item, Symtable *table, void_stack_t *stack);
 
 // function_def -> func FUNC_ID ( <func_params> ) <return_def> {
 // <statement_list> }
@@ -92,13 +90,14 @@ void program(Parser *parser);
 void parse(Parser *parser);
 
 #ifdef PARSER_TEST
-SymtableIdentifierType expression(Parser *parser,
-                                  SymtableIdentifierType return_type);
+SymtableIdentifierType expression(Parser *parser, SymtableIdentifierType return_type);
 #else
 SymtableIdentifierType expression(Parser *parser);
 #endif
 
 bool return_t(Parser *parser);
+
+SymtableItem *search_var_in_tables(Parser *parser, char *key);
 
 void log_token_parsed(Parser *parser);
 
