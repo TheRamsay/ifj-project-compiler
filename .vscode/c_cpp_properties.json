@@ -1,7 +1,7 @@
 {
     "configurations": [
         {
-            "defines": ["PARSER_TEST"],
+            // "defines": ["PARSER_TEST"],
             "name": "linux-gcc-x64",
             "includePath": ["${workspaceFolder}/**"],
             "compilerPath": "/usr/bin/gcc",

@@ -4,7 +4,7 @@
 /*
  **/
 
-#ifndef _STR_H
+#ifndef _STR_H_
 #define _STR_H_
 
 #include <stdbool.h>
@@ -20,6 +20,11 @@ str *str_new(unsigned int length);
 str *str_new_from_str(str *s);
 
 str *str_new_from_cstr(const char *s);
+
+str *str_new_int_const(const char *s);
+str *str_new_float_const(const char *s);
+str *str_new_string_const(const char *s);
+str *str_new_nil_const();
 
 char *str_to_cstr(str *s);
 

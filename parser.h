@@ -4,7 +4,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-// #include "builtin.h"
+
+#include "builtin.h"
 #include "error.h"
 #include "generator.h"
 #include "scanner.h"
@@ -33,10 +34,9 @@ typedef struct {
   char *current_function_name;
   DLL_Token *tokens;
   bool semantic_enabled;
-
-#ifndef PARSER_TEST
   gen_t *gen;
-#else
+
+#ifdef PARSER_TEST
   Token *input_tokens;
   int input_index;
   Token *output_tokens;
@@ -68,21 +68,19 @@ Token consume(Parser *parser, TokenType token_type, char *error_msg);
 
 void return_def(Parser *parser, SymtableItem *item);
 
-void func_params_n(Parser *parser, SymtableItem *item, Symtable *table,
-                   void_stack_t *stack);
+void func_params_n(Parser *parser, SymtableItem *item, Symtable *table, void_stack_t *stack);
 
-void func_params(Parser *parser, SymtableItem *item, Symtable *table,
-                 void_stack_t *stack);
+void func_params(Parser *parser, SymtableItem *item, Symtable *table, void_stack_t *stack);
 
 // function_def -> func FUNC_ID ( <func_params> ) <return_def> {
 // <statement_list> }
 void func_def(Parser *parser);
 
 // call_params_n -> , <call_params_kw> <term> <call_params_n>
-void call_params_n(Parser *parser, SymtableItem *item, SymtableParam *param);
+int call_params_n(Parser *parser, SymtableItem *item, SymtableParam *param, void_stack_t *params_stack);
 
 // call_params -> <call_params_kw> <term> <call_params_n>
-void call_params(Parser *parser, SymtableItem *item, SymtableParam *param);
+int call_params(Parser *parser, SymtableItem *item, SymtableParam *param, void_stack_t *params_stack);
 
 bool statement(Parser *parser);
 bool body(Parser *parser);
@@ -92,13 +90,14 @@ void program(Parser *parser);
 void parse(Parser *parser);
 
 #ifdef PARSER_TEST
-SymtableIdentifierType expression(Parser *parser,
-                                  SymtableIdentifierType return_type);
+SymtableIdentifierType expression(Parser *parser, SymtableIdentifierType return_type);
 #else
-SymtableIdentifierType expression(Parser *parser);
+SymtableIdentifierType expression(Parser *parser, void_stack_t *expr_stack);
 #endif
 
 bool return_t(Parser *parser);
+
+SymtableItem *search_var_in_tables(Parser *parser, char *key);
 
 void log_token_parsed(Parser *parser);
 

@@ -1,20 +1,29 @@
 /* ******************************* stack.c ********************************** */
-/*  Zdroj:                                                                    */
-/*  Předmět: Algoritmy (IAL) - FIT VUT v Brně                                 */
-/*  Úkol: c202 - Zásobník znaků v poli                                        */
-/*  Referenční implementace: Petr Přikryl, 1994                               */
-/*  Vytvořil: Václav Topinka, září 2005                                       */
-/*  Úpravy: Kamil Jeřábek, září 2019                                          */
-/*          Daniel Dolejška, září 2021                                        */
-/* ************************************************************************** */
 /*                                                                            */
-/*  Zpracoval a upravil: Lukáš Witpeerd, říjen 2023
+/*  Zpracoval: Lukáš Witpeerd, říjen-listopad 2023
  **/
 
 #include "stack.h"
 
 #include <stdlib.h>
 
+/*                            Private functions                               */
+void stack_resize(void_stack_t *stack) {
+  stack->size *= 2;
+
+  void **new_items = realloc(stack->items, stack->size * sizeof(void *));
+
+  if (new_items == NULL) {
+    stack_error(stack, STACK_SERR_RESIZE);
+    return;
+  }
+
+  stack->items = new_items;
+}
+
+/* ************************************************************************** */
+
+/*                            Public functions                                */
 /**
  *
  * @param stack Pointer to the stack structure
@@ -119,8 +128,10 @@ void *stack_pop(void_stack_t *stack) {
  */
 void stack_push(void_stack_t *stack, void *data) {
   if (stack_is_full(stack)) {
-    stack_error(stack, STACK_SERR_PUSH);
-    return;
+    stack_resize(stack);
+    if (stack->error_code != 0) {
+      return;
+    }
   }
 
   stack->items[stack->top_index++ + 1] = data;
@@ -145,3 +156,18 @@ void stack_dispose(void_stack_t *stack) {
   stack->size = 0;
   stack->top_index = -1;
 }
+void stack_reverse(void_stack_t **stack)
+{
+  void_stack_t *stack_reversed = stack_new((*stack)->size);
+
+  while (!stack_is_empty(*stack))
+  {
+    stack_push(stack_reversed, stack_pop(*stack));
+  }
+
+  void_stack_t *old_stack = *stack;
+
+  *stack = stack_reversed;
+  stack_dispose(old_stack);
+}
+/* ************************************************************************** */
