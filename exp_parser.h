@@ -14,11 +14,11 @@
 #define RULE_MAX_LENGHT 5
 
 typedef enum {
-  L,    // < /SHIFT
-  R,    // > /REDUCTION
-  E,    // = /REDUCTION PREPARE
-  X,    // Invalid
-  None, // Useless but send thank you letters to ramsay
+  L,     // < /SHIFT
+  R,     // > /REDUCTION
+  E,     // = /REDUCTION PREPARE
+  X,     // Invalid
+  None,  // Useless but send thank you letters to ramsay
 } Precedence;
 
 typedef struct {
@@ -39,8 +39,10 @@ Token parse_expression(Token expressionToParse[], int inputSize, Parser *parser)
 SymtableIdentifierType parse_expression(Parser *parser);
 #endif
 
+void y_eet(void_stack_t *stack);
+
 Stack_token_t *extract_tokens_from_stack(Stack_token_t *stack_tokens, size_t size);
 
 Stack_token_t *arrayFromStack(void_stack_t *stack, int *size);
 
-#endif // _EXP_PARSER_H
+#endif  // _EXP_PARSER_H

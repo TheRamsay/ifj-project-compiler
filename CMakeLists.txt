@@ -112,7 +112,7 @@ add_test(generator Test_generator)
 
 add_definitions(-DPARSER_TEST)
 add_executable(ExpParserTest
-        exp_parser.h exp_parser.c stack.h stack.c scanner.h scanner.c
+        exp_parser.h exp_parser.c stack.h stack.c scanner.h scanner.c str.h str.c
         parser.h parser.c
         symtable.h symtable.c
         error.h error.c

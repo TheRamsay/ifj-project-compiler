@@ -54,6 +54,8 @@ gen_t *generator_new() {
   };
   stack_push(gen->frame_stack, symtable_new(128));
   symtable_insert(stack_top(gen->frame_stack), "?", NULL);
+  symtable_insert(stack_top(gen->frame_stack), "?1", NULL);
+  symtable_insert(stack_top(gen->frame_stack), "?2", NULL);
 
   // ! MAX DEPTH
   gen->construct_count_stack = stack_new(8192);
@@ -227,41 +229,41 @@ void add_indentation(gen_t *gen) {
 
 str *get_instruction(char symbol) {
   switch (symbol) {
-  case '+': {
-    return str_new_from_cstr("ADDS\n");
-  }
-  case '-': {
-    return str_new_from_cstr("SUBS\n");
-  }
-  case '*': {
-    return str_new_from_cstr("MULS\n");
-  }
-  // float / float -> float
-  case '/': {
-    return str_new_from_cstr("DIVS\n");
-  }
-  // int / int -> int
-  case ':': {
-    return str_new_from_cstr("IDIVS\n");
-  }
-  case '<': {
-    return str_new_from_cstr("LTS\n");
-  }
-  case '>': {
-    return str_new_from_cstr("GTS\n");
-  }
-  case '=': {
-    return str_new_from_cstr("EQS\n");
-  }
-  case '&': {
-    return str_new_from_cstr("ANDS\n");
-  }
-  case '|': {
-    return str_new_from_cstr("ORS\n");
-  }
-  case '!': {
-    return str_new_from_cstr("NOTS\n");
-  }
+    case '+': {
+      return str_new_from_cstr("ADDS\n");
+    }
+    case '-': {
+      return str_new_from_cstr("SUBS\n");
+    }
+    case '*': {
+      return str_new_from_cstr("MULS\n");
+    }
+    // float / float -> float
+    case '/': {
+      return str_new_from_cstr("DIVS\n");
+    }
+    // int / int -> int
+    case ':': {
+      return str_new_from_cstr("IDIVS\n");
+    }
+    case '<': {
+      return str_new_from_cstr("LTS\n");
+    }
+    case '>': {
+      return str_new_from_cstr("GTS\n");
+    }
+    case '=': {
+      return str_new_from_cstr("EQS\n");
+    }
+    case '&': {
+      return str_new_from_cstr("ANDS\n");
+    }
+    case '|': {
+      return str_new_from_cstr("ORS\n");
+    }
+    case '!': {
+      return str_new_from_cstr("NOTS\n");
+    }
   }
 
   return NULL;
@@ -288,6 +290,8 @@ void generator_header(gen_t *gen) {
   str_append_cstr(gen->out_str, ".IFJCode23\n");
   str_append_cstr(gen->out_str, "# Kanvica: The Conqueror of Worlds\n\n");
   str_append_cstr(gen->out_str, "DEFVAR GF@$?\n");
+  str_append_cstr(gen->out_str, "DEFVAR GF@$?1\n");
+  str_append_cstr(gen->out_str, "DEFVAR GF@$?2\n");
   str_append_cstr(gen->out_str, "JUMP main\n\n");
 
   FILE *builtin = fopen("../builtin.ifj23", "r");
@@ -447,7 +451,14 @@ void generator_function_return_expr(gen_t *gen, void_stack_t *expr_stack) {
     if (instruction != NULL) {
       str_append_str_dispose(gen->fn_str, &instruction);
     } else {
-      str_append_cstr(gen->fn_str, "PUSHS ");
+      // Handle special pop case
+      if (item->data[2] == '-') {
+        str_append_cstr(gen->fn_str, "POPS ");
+        item->data[2] = '\0';
+      } else {
+        str_append_cstr(gen->fn_str, "PUSHS ");
+      }
+
       str *path = get_symbol_path(gen, item);
       str_append_str_dispose(gen->fn_str, &path);
       str_append_cstr(gen->fn_str, "\n");
@@ -483,8 +494,7 @@ void generator_function_end(gen_t *gen, str *return_symbol) {
   gen->indent_depth--;
 }
 
-void generator_function_call(gen_t *gen, str *name, void_stack_t *args,
-                             str *return_var) {
+void generator_function_call(gen_t *gen, str *name, void_stack_t *args, str *return_var) {
   str *dest = get_dest(gen, false);
 
   if (args != NULL) {
@@ -492,7 +502,13 @@ void generator_function_call(gen_t *gen, str *name, void_stack_t *args,
       str *arg = stack_pop(args);
 
       add_indentation(gen);
-      str_append_cstr(dest, "PUSHS ");
+      // Handle special pop case
+      if (arg->data[2] == '-') {
+        str_append_cstr(dest, "POPS ");
+        arg->data[2] = '\0';
+      } else {
+        str_append_cstr(dest, "PUSHS ");
+      }
       str_append_str(dest, get_symbol_path(gen, arg));
       str_append_cstr(dest, "\n");
 
@@ -526,8 +542,7 @@ void generator_function_call(gen_t *gen, str *name, void_stack_t *args,
   }
 }
 
-void generator_if_begin(gen_t *gen, str *left_symbol, bool eq,
-                        str *right_symbol) {
+void generator_if_begin(gen_t *gen, str *left_symbol, bool eq, str *right_symbol) {
   generator_if_begin_base(gen);
 
   str *dest = get_dest(gen, false);
@@ -556,8 +571,7 @@ void generator_if_begin(gen_t *gen, str *left_symbol, bool eq,
   gen->indent_depth++;
 }
 
-void generator_if_begin_stack(gen_t *gen, bool is_true,
-                              void_stack_t *expr_stack) {
+void generator_if_begin_stack(gen_t *gen, bool is_true, void_stack_t *expr_stack) {
   generator_if_begin_base(gen);
 
   str *dest = get_dest(gen, false);
@@ -572,7 +586,14 @@ void generator_if_begin_stack(gen_t *gen, bool is_true,
     if (instruction != NULL) {
       str_append_str_dispose(dest, &instruction);
     } else {
-      str_append_cstr(dest, "PUSHS ");
+      // Handle special pop case
+      if (item->data[2] == '-') {
+        str_append_cstr(dest, "POPS ");
+        item->data[2] = '\0';
+      } else {
+        str_append_cstr(dest, "PUSHS ");
+      }
+
       str *path = get_symbol_path(gen, item);
       str_append_str_dispose(dest, &path);
       str_append_cstr(dest, "\n");
@@ -679,7 +700,13 @@ void generator_expr(gen_t *gen, void_stack_t *expr_stack) {
     if (instruction != NULL) {
       str_append_str_dispose(dest, &instruction);
     } else {
-      str_append_cstr(dest, "PUSHS ");
+      // Handle special pop case
+      if (item->data[2] == '-') {
+        str_append_cstr(dest, "POPS ");
+        item->data[2] = '\0';
+      } else {
+        str_append_cstr(dest, "PUSHS ");
+      }
       str *path = get_symbol_path(gen, item);
       str_append_str_dispose(dest, &path);
       str_append_cstr(dest, "\n");
@@ -720,7 +747,13 @@ void generator_loop_start(gen_t *gen, void_stack_t *expr_stack) {
     if (instruction != NULL) {
       str_append_str_dispose(dest, &instruction);
     } else {
-      str_append_cstr(dest, "PUSHS ");
+      // Handle special pop case
+      if (item->data[2] == '-') {
+        str_append_cstr(dest, "POPS ");
+        item->data[2] = '\0';
+      } else {
+        str_append_cstr(dest, "PUSHS ");
+      }
       str *path = get_symbol_path(gen, item);
       str_append_str_dispose(dest, &path);
       str_append_cstr(dest, "\n");
