@@ -135,6 +135,7 @@ Stack_token_t evaluate_rule(Stack_token_t token, SymtableIdentifierType type) {
     if (token.token.keyword == KW_NIL) {
       return (Stack_token_t){.token = {TOKEN_EXPRESSION, token.token.keyword, "E", 1}, .precedence = None, .type = {.data_type = VOID_TYPE, .nullable = true}};
     }
+    break;
   }
   case TOKEN_PLUS:
   case TOKEN_MINUS:
@@ -281,7 +282,8 @@ Stack_token_t get_next_token_wrap(TokenType previousToken, Parser *parser) {
   // Check if the token is valid
   int tokenIndex = get_operator_index(peakToken->type);
 
-  if (tokenIndex == -1) {
+  if (tokenIndex == -1 || (peakToken->type == TOKEN_KEYWORD && peakToken->keyword != KW_NIL) || peakToken->after_newline) {
+
     // exit_with_error(SYNTAX_ERR, "bad token");
 
     return (Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None};
@@ -291,10 +293,19 @@ Stack_token_t get_next_token_wrap(TokenType previousToken, Parser *parser) {
   if (peakToken->type == TOKEN_IDENTIFIER && previousToken == TOKEN_IDENTIFIER) {
     return (Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None};
   }
+
+  if (get_operator_index(previousToken) == get_operator_index(peakToken->type)) {
+    return (Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None};
+  }
+
   // Peaked token is valid, consume it
   advance(parser);
 
   if (check_type(parser, TOKEN_IDENTIFIER)) {
+
+    if (strcmp(peakToken->val, "_") == 0) {
+      exit_with_error(SYNTAX_ERR, "_ is not a valid identifier name");
+    }
     // Get type
     SymtableItem *result = search_var_in_tables(parser, peakToken->val);
 
@@ -359,7 +370,7 @@ int handle_reduce_case(void_stack_t *stack, Stack_token_t token, Stack_token_t p
           *ruleProduct = (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = firstToken.type};
 
         } else if (firstToken.type.data_type != thirdToken.type.data_type) {
-          if (firstToken.type.data_type == INT_TYPE && thirdToken.type.data_type == DOUBLE_TYPE || firstToken.type.data_type == DOUBLE_TYPE && thirdToken.type.data_type == INT_TYPE) {
+          if ((firstToken.type.data_type == INT_TYPE && thirdToken.type.data_type == DOUBLE_TYPE) || (firstToken.type.data_type == DOUBLE_TYPE && thirdToken.type.data_type == INT_TYPE)) {
             *ruleProduct = evaluate_rule(secondToken, (SymtableIdentifierType){.data_type = DOUBLE_TYPE, .nullable = false});
           } else {
             exit_with_error(SYNTAX_ERR, "Cannot use operator on different types");
