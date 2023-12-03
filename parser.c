@@ -427,11 +427,6 @@ void check_call_param(Parser *parser, SymtableParam *param, Token *first, Token 
   if (first->type == TOKEN_IDENTIFIER) {
     SymtableItem *param_variable = search_var_in_tables(parser, first->val);
 
-    // If variable is a function
-    if (param_variable->data->type == SYMTABLE_FUNCTION) {
-      exit_with_error(SEMANTIC_ERR_CALL, "Cannot pass function as parameter");
-    }
-
     // If variable is not defined
     if (param_variable == NULL) {
       exit_with_error(SEMANTIC_ERR_VAR, "Variable %s is not defined", first->val);
@@ -439,6 +434,11 @@ void check_call_param(Parser *parser, SymtableParam *param, Token *first, Token 
       exit_with_error(SEMANTIC_ERR_VAR, "Variable %s is not initialized", first->val);
     } else if (!compare_symtable_item_types(param_variable->data->variable.identifier_type, param->identifier_type)) {
       exit_with_error(SEMANTIC_ERR_CALL, "Variable %s is not of the expected type", first->val);
+    }
+
+    // If variable is a function
+    if (param_variable->data->type == SYMTABLE_FUNCTION) {
+      exit_with_error(SEMANTIC_ERR_CALL, "Cannot pass function as parameter");
     }
   } else if (is_literal(parser)) {
     if (!compare_symtable_item_with_token(first, param->identifier_type)) {
@@ -456,16 +456,16 @@ void check_call_param_write(Parser *parser, SymtableParam *param, Token *first, 
   if (first->type == TOKEN_IDENTIFIER) {
     SymtableItem *param_variable = search_var_in_tables(parser, first->val);
 
-    // If variable is a function
-    if (param_variable->data->type == SYMTABLE_FUNCTION) {
-      exit_with_error(SEMANTIC_ERR_CALL, "Cannot pass function as parameter");
-    }
-
     // If variable is not defined
     if (param_variable == NULL) {
       exit_with_error(SEMANTIC_ERR_VAR, "Variable %s is not defined", first->val);
     } else if (!param_variable->data->variable.initialized) {
       exit_with_error(SEMANTIC_ERR_VAR, "Variable %s is not initialized", first->val);
+    }
+
+    // If variable is a function
+    if (param_variable->data->type == SYMTABLE_FUNCTION) {
+      exit_with_error(SEMANTIC_ERR_CALL, "Cannot pass function as parameter");
     }
   } else if (is_literal(parser)) {
     if (!compare_symtable_item_with_token(first, param->identifier_type)) {
