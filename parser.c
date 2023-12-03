@@ -864,6 +864,8 @@ bool statement(Parser *parser) {
       // Type was not defined
       if (identifier_type.data_type == UNKNOWN_TYPE) {
         exit_with_error(SEMANTIC_ERR_INFER, "Cannot infer type of variable '%s'", variable_id);
+      } else {
+        item->data->variable.identifier_type = identifier_type;
       }
     }
 
@@ -879,17 +881,12 @@ bool statement(Parser *parser) {
   } else if (check_type(parser, TOKEN_IDENTIFIER)) {
     // statement -> <identifier> <var_definition_value>
     if (peek(parser)->type == TOKEN_ASSIGN) {
-      Symtable *table;
-
-      if (!parser->in_function && !parser->in_scope) {
-        table = parser->global_table;
-      } else {
-        table = parser->local_tables_stack->items[parser->local_tables_stack->top_index];
-      }
-
-      SymtableItem *identifier_item = symtable_get(table, current_token(parser)->val);
-
+      SymtableItem *identifier_item = search_var_in_tables(parser, current_token(parser)->val);
       char *variable_id = current_token(parser)->val;
+
+      if (identifier_item == NULL) {
+        exit_with_error(SEMANTIC_ERR_VAR, "Variable %s is not defined", variable_id);
+      }
 
       // Modifing constant variable
       if (identifier_item->data->variable.constant && identifier_item->data->variable.initialized) {
