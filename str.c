@@ -121,6 +121,66 @@ str *str_new_from_cstr(const char *s) {
 }
 
 /**
+ *
+ * @brief Creates a string containing a number constant in the appropriate format.
+ *
+ * @param s C string containing a number.
+ * @returns Pointer to the new string.
+ *
+ */
+str *str_new_int_const(const char *s) {
+  str *str = str_new_from_cstr("int@");
+  str_append_cstr(str, s);
+
+  return str;
+};
+
+/**
+ *
+ * @brief Creates a string containing a float constant in the appropriate format.
+ *
+ * @param s C string containing a float.
+ * @returns Pointer to the new string.
+ *
+ */
+str *str_new_float_const(const char *s) {
+  str *str = str_new(128);
+
+  str_append_cstr(str, "float@");
+  str_append_cstr(str, s);
+
+  float flt;
+  sscanf(s, "%a", &flt);
+  snprintf(str->data, str->alloc_size, "%f\n", flt);
+
+  return str;
+};
+
+/**
+ *
+ * @brief Creates a string containing a string constant in the appropriate format.
+ *
+ * @param s C string containing a string.
+ * @returns Pointer to the new string.
+ *
+ */
+str *str_new_string_const(const char *s) {
+  str *str = str_new_from_cstr("string@");
+  str_append_cstr(str, s);
+
+  return str;
+};
+
+/**
+ *
+ * @brief Creates a string containing a nil constant in the appropriate format.
+ *
+ * @returns Pointer to the new string.
+ *
+ */
+str *str_new_nil_const() { return str_new_from_cstr("nil@nil"); };
+
+/**
  * @brief Converts the string to a new C string.
  *
  * @param s The string.
