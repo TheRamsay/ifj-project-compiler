@@ -336,11 +336,7 @@ int get_next_token(Token *token) {
 
         token->type = TOKEN_EXPONENT;
       }
-      if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.' && c != ')') {
-        fprintf(stderr, "Invalid integer literal: %s\n", token->val);
-        exit(1);
-      }
-
+   
       if (c == '.') { // Decimal literal
         char_to_token(token, c);
         c = fgetc(source_file);
@@ -570,18 +566,18 @@ int get_next_token(Token *token) {
     fprintf(stderr, "Unknown token: %s\n", token->val);
     exit(1);
   }
-  // printf("Token Type: %d token: %s\n", token->type, token->val);
+  printf("Token Type: %d token: %s\n", token->type, token->val);
   return token->type;
 }
 
-// int main() {
-//   FILE *input_file = stdin;
-//   Token token;
-//   scanner_init(input_file);
-//   while (get_next_token(&token) != TOKEN_EOF)
-//     ;
+int main() {
+  FILE *input_file = stdin;
+  Token token;
+  scanner_init(input_file);
+  while (get_next_token(&token) != TOKEN_EOF)
+    ;
 
-//   scanner_destroy();
+  scanner_destroy();
 
-//   return 0;
-// }
+  return 0;
+}
