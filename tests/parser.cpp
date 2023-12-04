@@ -761,6 +761,21 @@ TEST_F(ParserTest, SimpleIf) {
 
   check_tokens(tokens, parser_start(&parser_, tokens.data()));
 }
+TEST_F(ParserTest, SimpleIf2) {
+  std::vector<Token> tokens{
+      {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
+      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
+      {TOKEN_KEYWORD, KW_ELSE, "else", 4, 0, 1},
+      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1, 0, 1},
+      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
+      {TOKEN_EOF, KW_UNKNOWN, "", 0},
+  };
+
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+}
 
 TEST_F(ParserTest, NestedIf) {
   std::vector<Token> tokens{
