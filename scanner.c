@@ -208,6 +208,9 @@ void determine_token_type(Token *token) {
       if (c == '=') {
         token->val[1] = '=';
         token->type = TOKEN_NE;
+      } else {
+        ungetc(c, source_file);
+        token->type = TOKEN_NOT;
       }
       break;
     case '?':

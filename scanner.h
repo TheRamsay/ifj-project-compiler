@@ -64,6 +64,7 @@ typedef enum {
   TOKEN_EXPONENT,
   TOKEN_DECIMAL_LITERAL,
   TOKEN_INTEGER_LITERAL,
+  TOKEN_NOT
 } TokenType;
 
 typedef struct {
