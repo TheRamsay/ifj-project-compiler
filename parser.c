@@ -849,6 +849,9 @@ bool statement(Parser *parser) {
 #endif
 
         if (identifier_type.data_type == UNKNOWN_TYPE) {
+          if (expression_type.data_type == VOID_TYPE && expression_type.nullable) {
+            exit_with_error(SEMANTIC_ERR_INFER, "Cannot infer type of variable '%s'", variable_id);
+          }
           identifier_type = expression_type;
         } else if (!compare_symtable_item_types(identifier_type, expression_type)) {
           exit_with_error(SEMANTIC_ERR_EXPR, "Cannot assign %s to %s", "<expression_type>", "<identifier_type>");
