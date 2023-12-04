@@ -149,8 +149,12 @@ bool compare_symtable_item_with_token(Token *token, SymtableIdentifierType ident
   return false;
 }
 
-bool compare_symtable_item_types(SymtableIdentifierType identifier_type1, SymtableIdentifierType identifier_type2) {
-  return (identifier_type1.data_type == identifier_type2.data_type && identifier_type1.nullable == identifier_type2.nullable);
+bool compare_symtable_item_types(SymtableIdentifierType left, SymtableIdentifierType right) {
+  if (left.nullable) {
+    return left.data_type == right.data_type || right.data_type == VOID_TYPE;
+  } else {
+    return left.data_type == right.data_type && right.nullable == left.nullable;
+  }
 }
 
 // Checks if current statement stars on new line
@@ -368,7 +372,7 @@ void func_def(Parser *parser) {
     // generator_function_begin(parser->gen, key, stack);
     consume(parser, TOKEN_RPAREN, "Expected ')'");
     return_def(parser, item);
-    // generator_function_begin(parser->gen, key, stack);
+    // generator_function_begin(parser->gen, str_new_from_cstr(key), stack);
     consume(parser, TOKEN_LBRACE, "Expected '{'");
 
     Token *token = current_token(parser);
@@ -529,7 +533,7 @@ int call_params(Parser *parser, SymtableItem *item, SymtableParam *param, void_s
 
   Token *second = NULL;
 
-  if (match(parser, TOKEN_IDENTIFIER, false) && strcmp(item->key, "write") != 0) {
+  if (strcmp(item->key, "write") != 0 && match(parser, TOKEN_IDENTIFIER, false)) {
     consume(parser, TOKEN_COLON, "Expected ':'");
     second = &(*current_token(parser));
   }
@@ -809,6 +813,8 @@ bool statement(Parser *parser) {
     // Preemptively create
     SymtableItem *item = symtable_add_symbol(table, variable_id, SYMTABLE_VARIABLE, false, false, false);
 
+    generator_var_create(parser->gen, str_new_from_cstr(variable_id));
+
     // Variable initialization
     if (match(parser, TOKEN_ASSIGN, false)) {
       var_initialized = true;
@@ -830,7 +836,7 @@ bool statement(Parser *parser) {
 
         check_identifier(current_token(parser)->val);
 
-        stack_reverse(&params_stack);
+        stack_reverse(params_stack);
         generator_function_call(parser->gen, str_new_from_cstr(current_token(parser)->val), params_stack, str_new_from_cstr(variable_id));
       } else {
 #ifdef PARSER_TEST
@@ -839,6 +845,7 @@ bool statement(Parser *parser) {
         void_stack_t *expr_stack = stack_new(128);
         stack_push(expr_stack, str_new_from_cstr(variable_id));
         SymtableIdentifierType expression_type = expression(parser, expr_stack);
+        stack_reverse(expr_stack);
 #endif
 
         if (identifier_type.data_type == UNKNOWN_TYPE) {
@@ -874,8 +881,6 @@ bool statement(Parser *parser) {
     if (var_initialized) {
       item->data->variable.identifier_type = identifier_type;
     }
-
-    generator_var_create(parser->gen, str_new_from_cstr(variable_id));
   } else if (check_type(parser, TOKEN_IDENTIFIER)) {
     // statement -> <identifier> <var_definition_value>
     if (peek(parser)->type == TOKEN_ASSIGN) {
@@ -910,7 +915,7 @@ bool statement(Parser *parser) {
 
         check_identifier(current_token(parser)->val);
 
-        stack_reverse(&params_stack);
+        stack_reverse(params_stack);
         generator_function_call(parser->gen, str_new_from_cstr(current_token(parser)->val), params_stack, str_new_from_cstr(variable_id));
       } else {
 #ifdef PARSER_TEST
@@ -920,6 +925,7 @@ bool statement(Parser *parser) {
         void_stack_t *expr_stack = stack_new(100);
         stack_push(expr_stack, str_new_from_cstr(variable_id));
         SymtableIdentifierType expression_type = expression(parser, expr_stack);
+        stack_reverse(expr_stack);
 #endif
 
         if (!compare_symtable_item_types(identifier_item->data->variable.identifier_type, expression_type)) {
@@ -936,7 +942,7 @@ bool statement(Parser *parser) {
       void_stack_t *params_stack = stack_new(128);
       char *func_id = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
       func_call(parser, func_id, params_stack);
-      stack_reverse(&params_stack);
+      stack_reverse(params_stack);
       generator_function_call(parser->gen, str_new_from_cstr(func_id), params_stack, NULL);
     }
     // statement -> expression that starts with identifier
@@ -1015,6 +1021,8 @@ Token *parser_start(Parser *parser, Token *input_tokens)
 
   DLL_Token *first_token = parser->tokens;
 
+  generator_header(parser->gen);
+
   // First pass
   parse(parser);
   parser->semantic_enabled = true;
@@ -1022,7 +1030,6 @@ Token *parser_start(Parser *parser, Token *input_tokens)
   // Second pass
   parser->tokens = first_token;
 
-  generator_header(parser->gen);
   // prog rule
   parse(parser);
   generator_footer(parser->gen);

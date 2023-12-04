@@ -175,7 +175,7 @@ str *get_dest(gen_t *gen, bool is_var) {
 }
 
 int get_closest_var_depth(gen_t *gen, str *name) {
-  for (int i = gen->frame_stack->top_index; i >= 0; i--) {
+  for (int i = gen->frame_stack->top_index; i != -1; i--) {
     Symtable *frame = gen->frame_stack->items[i];
 
     if (symtable_search(frame, name->data)) {
@@ -452,7 +452,7 @@ void generator_function_return_expr(gen_t *gen, void_stack_t *expr_stack) {
       str_append_str_dispose(gen->fn_str, &instruction);
     } else {
       // Handle special pop case
-      if (item->data[2] == '-') {
+      if (item->alloc_size > 4 && item->data[2] == '-') {
         str_append_cstr(gen->fn_str, "POPS ");
         item->data[2] = '\0';
       } else {
@@ -503,7 +503,7 @@ void generator_function_call(gen_t *gen, str *name, void_stack_t *args, str *ret
 
       add_indentation(gen);
       // Handle special pop case
-      if (arg->data[2] == '-') {
+      if (arg->alloc_size > 4 && arg->data[2] == '-') {
         str_append_cstr(dest, "POPS ");
         arg->data[2] = '\0';
       } else {
@@ -587,7 +587,7 @@ void generator_if_begin_stack(gen_t *gen, bool is_true, void_stack_t *expr_stack
       str_append_str_dispose(dest, &instruction);
     } else {
       // Handle special pop case
-      if (item->data[2] == '-') {
+      if (item->alloc_size > 4 && item->data[2] == '-') {
         str_append_cstr(dest, "POPS ");
         item->data[2] = '\0';
       } else {
@@ -701,7 +701,7 @@ void generator_expr(gen_t *gen, void_stack_t *expr_stack) {
       str_append_str_dispose(dest, &instruction);
     } else {
       // Handle special pop case
-      if (item->data[2] == '-') {
+      if (item->alloc_size > 4 && item->data[2] == '-') {
         str_append_cstr(dest, "POPS ");
         item->data[2] = '\0';
       } else {
@@ -748,7 +748,7 @@ void generator_loop_start(gen_t *gen, void_stack_t *expr_stack) {
       str_append_str_dispose(dest, &instruction);
     } else {
       // Handle special pop case
-      if (item->data[2] == '-') {
+      if (item->alloc_size > 4 && item->data[2] == '-') {
         str_append_cstr(dest, "POPS ");
         item->data[2] = '\0';
       } else {
