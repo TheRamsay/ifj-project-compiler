@@ -215,9 +215,6 @@ void determine_token_type(Token *token) {
       if (c == '?') {
         token->val[1] = '?';
         token->type = TOKEN_NULL_COALESCING;
-      } else {
-        ungetc(c, source_file);
-        token->type = TOKEN_OPTIONAL_TYPE;
       }
       break;
     default:
@@ -267,6 +264,10 @@ int get_next_token(Token *token) {
 
     c = fgetc(source_file); // Get the next character from the source file
     if (c == EOF) {
+      if (inString) {
+        fprintf(stderr, "Invalid string literal: %s\n", token->val);
+        exit(1);
+      }
       break;
     }
 
@@ -355,19 +356,22 @@ int get_next_token(Token *token) {
           char_to_token(token, c);
           if ((c = fgetc(source_file)) == '+' || c == '-') { // Exponent sign
             char_to_token(token, c);
+            c = fgetc(source_file);
           } else {
             // ungetc(c, source_file); // Put the character back into the source file
           }
-          if (!isdigit(c)) {
+          if (!isdigit(c) && c != '+' && c != '-') {
+            printf("char: %c\n", c);
             fprintf(stderr, "Invalid decimal literal: %s\n", token->val);
             exit(1);
           }
+
           while (isdigit(c)) { // Exponent value
             char_to_token(token, c);
             c = fgetc(source_file);
           }
 
-          if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.') {
+          if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.' && c != '+' && c != '-') {
             fprintf(stderr, "Invalid decimal literal: %s\n", token->val);
             exit(1);
           }
@@ -563,18 +567,18 @@ int get_next_token(Token *token) {
     fprintf(stderr, "Unknown token: %s\n", token->val);
     exit(1);
   }
-  printf("Token Type: %d token: %s\n", token->type, token->val);
+  // printf("Token Type: %d token: %s\n", token->type, token->val);
   return token->type;
 }
 
-int main() {
-  FILE *input_file = stdin;
-  Token token;
-  scanner_init(input_file);
-  while (get_next_token(&token) != TOKEN_EOF)
-    ;
+// int main() {
+//   FILE *input_file = stdin;
+//   Token token;
+//   scanner_init(input_file);
+//   while (get_next_token(&token) != TOKEN_EOF)
+//     ;
 
-  scanner_destroy();
+//   scanner_destroy();
 
-  return 0;
-}
+//   return 0;
+// }
