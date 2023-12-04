@@ -1,5 +1,2 @@
-" !#$%&'()**+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~"
-
-
-
-
+if (b < 0) 
+        
