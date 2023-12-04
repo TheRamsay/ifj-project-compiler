@@ -56,6 +56,6 @@ void stack_push(void_stack_t *stack, void *ptr);
 
 void stack_dispose(void_stack_t *stack);
 
-void stack_reverse(void_stack_t **stack);
+void stack_reverse(void_stack_t *stack);
 
 #endif
