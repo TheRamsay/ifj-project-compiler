@@ -175,4 +175,6 @@ echo "\n\n"
 echo "Successes: $successCount"
 echo "Fails: $failCount"
 
+rm 0
+
 # rm -f tmp_output.txt tmp_output2.txt
