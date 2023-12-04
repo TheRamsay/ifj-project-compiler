@@ -145,9 +145,6 @@ void determine_token_type(Token *token) {
     case '}':
       token->type = TOKEN_RBRACE;
       break;
-    case ';':
-      token->type = TOKEN_SEMICOLON;
-      break;
     case ',':
       token->type = TOKEN_COMMA;
       break;
@@ -319,6 +316,7 @@ int get_next_token(Token *token) {
         char_to_token(token, c);
         if ((c = fgetc(source_file)) == '+' || c == '-') { // Exponent sign
           char_to_token(token, c);
+          c = fgetc(source_file);
         }
         if (!isdigit(c)) {
           fprintf(stderr, "Invalid decimal literal: %s\n", token->val);
@@ -336,7 +334,7 @@ int get_next_token(Token *token) {
 
         token->type = TOKEN_EXPONENT;
       }
-   
+
       if (c == '.') { // Decimal literal
         char_to_token(token, c);
         c = fgetc(source_file);
@@ -360,7 +358,6 @@ int get_next_token(Token *token) {
             // ungetc(c, source_file); // Put the character back into the source file
           }
           if (!isdigit(c) && c != '+' && c != '-') {
-            printf("char: %c\n", c);
             fprintf(stderr, "Invalid decimal literal: %s\n", token->val);
             exit(1);
           }
