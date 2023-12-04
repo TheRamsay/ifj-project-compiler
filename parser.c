@@ -180,7 +180,8 @@ bool compare_symtable_item_with_token(Token *token,
   return false;
 }
 
-bool compare_symtable_item_types(SymtableIdentifierType left, SymtableIdentifierType right) {
+bool compare_symtable_item_types(SymtableIdentifierType left,
+                                 SymtableIdentifierType right) {
   if (left.nullable) {
     return left.data_type == right.data_type || right.data_type == VOID_TYPE;
   } else {
@@ -415,6 +416,26 @@ void func_def(Parser *parser) {
     if (current_token(parser)->type == TOKEN_LBRACE) {
       advance(parser);
     }
+
+    SymtableItem *func_item = search_var_in_tables(parser, key);
+
+    if (func_item == NULL) {
+      exit_with_error(INTERNAL_ERROR,
+                      "Function wasn't parsed by first pass (🙃)");
+    }
+
+    void_stack_t *stack =
+        stack_new(LUFAK_JE_PEPIK_TODO_PREPSAT_NA_DYNAMICKEJ_STACK);
+
+    SymtableParam *param = func_item->data->function.params;
+
+    while (param != NULL) {
+      stack_push(stack, str_new_from_cstr(param->in_name));
+      param = param->next;
+    }
+
+    generator_function_begin(parser->gen, str_new_from_cstr(key), stack);
+
   } else if (!parser->semantic_enabled) {
     SymtableItem *item = symtable_add_symbol(
         parser->global_table, key, SYMTABLE_FUNCTION, true, false, false);
@@ -422,10 +443,8 @@ void func_def(Parser *parser) {
         stack_new(LUFAK_JE_PEPIK_TODO_PREPSAT_NA_DYNAMICKEJ_STACK);
     consume(parser, TOKEN_LPAREN, "Expected '('");
     func_params(parser, item, local_table, stack);
-    // generator_function_begin(parser->gen, key, stack);
     consume(parser, TOKEN_RPAREN, "Expected ')'");
     return_def(parser, item);
-    // generator_function_begin(parser->gen, str_new_from_cstr(key), stack);
     consume(parser, TOKEN_LBRACE, "Expected '{'");
 
     Token *token = current_token(parser);
@@ -457,6 +476,7 @@ void func_def(Parser *parser) {
   stack_pop(parser->local_tables_stack);
   parser->in_function = false;
   parser->current_function_name = NULL;
+  generator_function_end(parser->gen, NULL);
 }
 
 void check_call_param(Parser *parser, SymtableParam *param, Token *first,
@@ -473,7 +493,7 @@ void check_call_param(Parser *parser, SymtableParam *param, Token *first,
   }
   // Parameter out identifier doesn't match the call
   else if (strcmp(param->out_name, "_") != 0 && second == NULL) {
-    exit_with_error(SEMANTIC_ERR_CALL,
+    exit_with_error(SEMANTIC_ERR,
                     "Parameter %s doesn't match the out definition",
                     first->val);
   } else if (strcmp(param->out_name, "_") != 0 &&
@@ -597,11 +617,11 @@ int call_params_n(Parser *parser, SymtableItem *item, SymtableParam *param,
   // Disable some semantic checks for write function
   if (strcmp(item->key, "write") != 0) {
     check_call_param(parser, param, &first, second, params_stack);
+    return 1 + call_params_n(parser, item, param->next, params_stack);
   } else {
     check_call_param_write(parser, &first, second, params_stack);
+    return 1 + call_params_n(parser, item, NULL, params_stack);
   }
-
-  return 1 + call_params_n(parser, item, param->next, params_stack);
 }
 
 // call_params -> <call_params_kw> <term> <call_params_n>
@@ -726,10 +746,11 @@ bool return_t(Parser *parser) {
 
   if (!compare_symtable_item_types(
           func->data->function._return->identifier_type, expression_type)) {
-    exit_with_error(SEMANTIC_ERR_EXPR,
+    exit_with_error(SEMANTIC_ERR_CALL,
                     "Return type doesn't match the function definition");
   }
 
+  //   generator_function_end(parser->gen, NULL);
   return true;
 }
 
@@ -798,6 +819,8 @@ bool if_statement(Parser *parser) {
 #else
   void_stack_t *expr_stack = stack_new(100);
   SymtableIdentifierType expression_type = expression(parser, expr_stack);
+  fprintf(stderr, "Padacek bahnacek vratil typ %d\n",
+          expression_type.data_type);
 #endif
 
   if (expression_type.data_type != BOOL_TYPE) {
@@ -975,7 +998,9 @@ bool statement(Parser *parser) {
         check_identifier(current_token(parser)->val);
 
         stack_reverse(params_stack);
-        generator_function_call(parser->gen, str_new_from_cstr(current_token(parser)->val), params_stack, str_new_from_cstr(variable_id));
+        generator_function_call(parser->gen,
+                                str_new_from_cstr(current_token(parser)->val),
+                                params_stack, str_new_from_cstr(variable_id));
       } else {
 #ifdef PARSER_TEST
         SymtableIdentifierType expression_type =
@@ -1028,6 +1053,9 @@ bool statement(Parser *parser) {
 
     if (var_initialized) {
       item->data->variable.identifier_type = identifier_type;
+      if (identifier_type.nullable) {
+        item->data->variable.initialized = true;
+      }
     }
   } else if (check_type(parser, TOKEN_IDENTIFIER)) {
     // statement -> <identifier> <var_definition_value>
@@ -1039,6 +1067,11 @@ bool statement(Parser *parser) {
       if (identifier_item == NULL) {
         exit_with_error(SEMANTIC_ERR_VAR, "Variable %s is not defined",
                         variable_id);
+      }
+
+      if (identifier_item->data->variable.param) {
+        exit_with_error(SEMANTIC_ERR, "Cannot reassign function parameter '%s'",
+                        identifier_item->key);
       }
 
       // Modifing constant variable
@@ -1074,7 +1107,9 @@ bool statement(Parser *parser) {
         check_identifier(current_token(parser)->val);
 
         stack_reverse(params_stack);
-        generator_function_call(parser->gen, str_new_from_cstr(current_token(parser)->val), params_stack, str_new_from_cstr(variable_id));
+        generator_function_call(parser->gen,
+                                str_new_from_cstr(current_token(parser)->val),
+                                params_stack, str_new_from_cstr(variable_id));
       } else {
 #ifdef PARSER_TEST
         SymtableIdentifierType expression_type =
@@ -1094,6 +1129,8 @@ bool statement(Parser *parser) {
                           "<expression_type>", "<identifier_type>");
         }
 
+        identifier_item->data->variable.initialized = true;
+
 #ifndef PARSER_TEST
         generator_expr(parser->gen, expr_stack);
 #endif
@@ -1106,7 +1143,10 @@ bool statement(Parser *parser) {
           consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
       func_call(parser, func_id, params_stack);
       stack_reverse(params_stack);
-      generator_function_call(parser->gen, str_new_from_cstr(func_id), params_stack, NULL);
+
+      //   printf("generator_function_call %s \n", func_id);
+      generator_function_call(parser->gen, str_new_from_cstr(func_id),
+                              params_stack, NULL);
     }
     // statement -> expression that starts with identifier
     else {
