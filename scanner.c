@@ -210,6 +210,9 @@ void determine_token_type(Token *token) {
       if (c == '=') {
         token->val[1] = '=';
         token->type = TOKEN_NE;
+      } else {
+        ungetc(c, source_file);
+        token->type = TOKEN_NOT;
       }
       break;
     case '?':
@@ -334,11 +337,7 @@ int get_next_token(Token *token) {
 
         token->type = TOKEN_EXPONENT;
       }
-      if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.' && c != ')') {
-        fprintf(stderr, "Invalid integer literal: %s\n", token->val);
-        exit(1);
-      }
-
+   
       if (c == '.') { // Decimal literal
         char_to_token(token, c);
         c = fgetc(source_file);
