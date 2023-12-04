@@ -325,7 +325,7 @@ int get_next_token(Token *token) {
       continue;
     }
 
-        if (c == '_') {
+        if (c == '_' && inString != true) {
       char_to_token(token, c);
       c = fgetc(source_file);
       if (!isalpha(c) && !isdigit(c) && c != ' ' && c != EOF && c != '=' && c != ':') {
@@ -339,7 +339,7 @@ int get_next_token(Token *token) {
         break;
       }
     }
-    if (isdigit(c)) {
+    if (isdigit(c) && inString != true ) {
       char_to_token(token, c);                  // Add the character to the token value
       while (isdigit(c = fgetc(source_file))) { // Read until the end of the literal
         char_to_token(token, c);
@@ -348,7 +348,7 @@ int get_next_token(Token *token) {
         fprintf(stderr, "Invalid decimal literal: %s\n", token->val);
         exit(1);
       }
-      if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.' && inString != true) {
+      if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.' ) {
         fprintf(stderr, "Invalid integer literal: %s\n", token->val);
         exit(1);
       }
