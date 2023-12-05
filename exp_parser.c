@@ -214,10 +214,10 @@ void push_two_token_expresion(void_stack_t *expresionStack, Stack_token_t action
     stack_push(expresionStack, str_new_from_cstr(">="));
     break;
   case TOKEN_EQ:
-    stack_push(expresionStack, str_new_from_cstr("=="));
+    stack_push(expresionStack, str_new_from_cstr("="));
     break;
   case TOKEN_NE:
-    stack_push(expresionStack, str_new_from_cstr("!="));
+    stack_push(expresionStack, str_new_from_cstr("!"));
     break;
   case TOKEN_NULL_COALESCING:
     stack_push(expresionStack, str_new_from_cstr("??"));
@@ -229,33 +229,6 @@ void push_two_token_expresion(void_stack_t *expresionStack, Stack_token_t action
 
   default:
     break;
-  }
-  if (token1.token.type != TOKEN_EXPRESSION) {
-    if (token1.token.type == TOKEN_IDENTIFIER) {
-      stack_push(expresionStack, str_new_from_cstr(token1.token.val));
-    } else if (token1.token.type == TOKEN_INTEGER_LITERAL) {
-      stack_push(expresionStack, str_new_int_const(token1.token.val));
-    } else if (token1.token.type == TOKEN_DECIMAL_LITERAL) {
-      stack_push(expresionStack, str_new_float_const(token1.token.val));
-    } else if (token1.token.type == TOKEN_STRING_LITERAL) {
-      stack_push(expresionStack, str_new_string_const(token1.token.val));
-    } else if (token1.token.type == TOKEN_KEYWORD && token1.token.keyword == KW_NIL) {
-      stack_push(expresionStack, str_new_nil_const());
-    }
-  }
-
-  if (token2.token.type != TOKEN_EXPRESSION) {
-    if (token2.token.type == TOKEN_IDENTIFIER) {
-      stack_push(expresionStack, str_new_from_cstr(token2.token.val));
-    } else if (token2.token.type == TOKEN_INTEGER_LITERAL) {
-      stack_push(expresionStack, str_new_int_const(token2.token.val));
-    } else if (token2.token.type == TOKEN_DECIMAL_LITERAL) {
-      stack_push(expresionStack, str_new_float_const(token2.token.val));
-    } else if (token2.token.type == TOKEN_STRING_LITERAL) {
-      stack_push(expresionStack, str_new_string_const(token2.token.val));
-    } else if (token2.token.type == TOKEN_KEYWORD && token2.token.keyword == KW_NIL) {
-      stack_push(expresionStack, str_new_nil_const());
-    }
   }
 }
 
@@ -388,12 +361,14 @@ int handle_reduce_case(void_stack_t *stack, Stack_token_t token, Stack_token_t p
         *ruleProduct = evaluate_rule(secondToken, firstToken.type);
         push_two_token_expresion(expresionStack, secondToken, firstToken, thirdToken);
       }
+
       //(E)
       if (firstToken.token.type == TOKEN_RPAREN && thirdToken.token.type == TOKEN_LPAREN) {
         if (secondToken.token.type == TOKEN_EXPRESSION) {
           *ruleProduct = (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = INT_TYPE, .nullable = false}};
         }
       }
+
       // E!
       if (firstToken.token.type == TOKEN_NOT && (secondToken.token.type == TOKEN_EXPRESSION)) {
         *ruleProduct = (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = firstToken.type};
@@ -427,6 +402,9 @@ int handle_reduce_case(void_stack_t *stack, Stack_token_t token, Stack_token_t p
     }
     precedence = get_precedence(stackTop, token);
   }
+
+  stack_reverse(expresionStack);
+
   return 0;
 }
 
@@ -557,6 +535,7 @@ SymtableIdentifierType parse_expression(Parser *parser, void_stack_t *expresionS
   advance(parser);
 
   y_eet(expresionStack);
+
   stack_dispose(stack);
   free(stack);
   return *result;

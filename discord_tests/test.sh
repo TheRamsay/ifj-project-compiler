@@ -1,7 +1,9 @@
 #!/bin/bash
 
-testNum=1
+testToRun=$1
+numberOfArgs=$#
 
+testNum=0
 compilerPath="../main"
 interpreterPath="../interpreter/ic23int"
 
@@ -14,30 +16,36 @@ failCount=0
 # 3. expected output file
 # 4. expected return code
 execTest () {
+	testNum=$((testNum+1))
+	if (( numberOfArgs > 0 )); then
+		if (( $testToRun != $testNum )); then
+			return;
+		fi
+	fi
+
+	# cat $2
+
 	echo "\n\e[33m--------------------------------\e[0m"
-	bash -c "$compilerPath < $2 > tmp_output.txt 2>&1"
+	bash -c "$compilerPath < $2 2>&1 1> tmp_output.txt"
 	returnCode=$?
 	touch tmp_output2.txt
 	if [ "$returnCode" = "0" ]; then
-		$interpreterPath tmp_output.txt > tmp_output2.txt
+		"$interpreterPath" tmp_output.txt > tmp_output2.txt
 	fi
-	echo $2
-	cat tmp_output.txt
 	printf "\n" >> tmp_output2.txt
 	if [ $returnCode -ne $4 ]; then
 		failCount=$((failCount+1))
 		printf "\e[1m\e[31mFailed\e[0m Test %02d: $1:\n" $testNum
-		printf "\tWrong return code, expected $4, got $returnCode"
+		printf "\tWrong return code, expected $4, got $returnCode\n"
 	elif [ -z "$(diff --ignore-trailing-space --ignore-blank-lines tmp_output2.txt $3)" ]; then
 		successCount=$((successCount+1))
 		printf "\e[1m\e[32mPassed\e[0m Test %02d: $1\n" $testNum
 	else
 		failCount=$((failCount+1))
 		printf "\e[1m\e[31mFailed\e[0m Test %02d: $1\n" $testNum
-		diff tmp_output2.txt $3
+		diff tmp_output2.txt $3 | colordiff
 	fi
-	testNum=$((testNum+1))
-	# rm -f tmp_output.txt tmp_output2.txt
+	rm -f tmp_output.txt tmp_output2.txt
 }
 
 # execTest "Empty program" "input/empty.swift" "output/empty.txt" 0
@@ -47,6 +55,12 @@ execTest () {
 # execTest "Variable name as single underscore" "input/variable_name_underscore.swift" "output/empty.txt" 2
 # execTest "Variable name as keyword" "input/variable_name_keyword.swift" "output/empty.txt" 2
 # execTest "Legal nil initialization" "input/nil_init.swift" "output/empty.txt" 0
+# execTest "Decimal literals" "input/decimal_literals.swift" "output/empty.txt" 0
+# execTest "Decimal literals with empty whole part" "input/decimal_literal_empty_whole_part.swift" "output/empty.txt" 1
+# execTest "Decimal literals with empty decimal part" "input/decimal_literal_empty_decimal_part.swift" "output/empty.txt" 1
+# execTest "Decimal literals with empty exponent" "input/decimal_literal_empty_exponent.swift" "output/empty.txt" 1
+# execTest "Decimal literals with decimal exponent" "input/decimal_literal_decimal_exponent.swift" "output/empty.txt" 1
+# execTest "Decimal literals with other chars" "input/decimal_literal_other_char.swift" "output/empty.txt" 2
 # execTest "Illegal nil initialization" "input/nil_init_illegal.swift" "output/empty.txt" 7
 # execTest "Type deduction" "input/type_deduction.swift" "output/empty.txt" 0
 # execTest "Nil type deduction" "input/nil_type_deduction.swift" "output/empty.txt" 8
@@ -58,7 +72,7 @@ execTest () {
 # execTest "Default nil initialisation" "input/default_nil_init.swift" "output/default_nil_init.txt" 9
 # execTest "Uninitialised variable" "input/uninitialised_variable.swift" "output/empty.txt" 5
 # execTest "Uninitialised variable (init in deeper scope)" "input/uninitialised_variable_in_scope.swift" "output/empty.txt" 5
-execTest "Variable initialised in scope" "input/initialised_variable_in_scope.swift" "output/empty.txt" 0
+# execTest "Variable initialised in scope" "input/initialised_variable_in_scope.swift" "output/empty.txt" 0
 # execTest "Function call" "input/function_call.swift" "output/function_call.txt" 0
 # execTest "Function call before definition" "input/function_call_before_def.swift" "output/function_call.txt" 0
 # execTest "Undefined function" "input/undefined_function.swift" "output/empty.txt" 3
@@ -67,19 +81,19 @@ execTest "Variable initialised in scope" "input/initialised_variable_in_scope.sw
 # execTest "Function with wrong parameter id" "input/funct_param_wrong_id.swift" "output/empty.txt" 5
 # execTest "Function call with wrong parameter name" "input/func_param_wrong_name.swift" "output/empty.txt" 4
 # execTest "Function call with omitted name" "input/func_param_omit_name.swift" "output/function_call_args.txt" 0
-# execTest "Function call with illegaly omitted name" "input/func_param_omit_name_illegal.swift" "output/empty.txt" 4
+# execTest "Function call with illegaly omitted name" "input/func_param_omit_name_illegal.swift" "output/empty.txt" 9
 # execTest "Function call with wrong parameter type" "input/func_call_wrong_type.swift" "output/empty.txt" 4
 # execTest "Function call with wrong number of params" "input/func_call_wrong_param_count.swift" "output/empty.txt" 4
 # execTest "Modify function parameter" "input/func_call_modify_param.swift" "output/empty.txt" 9
 # execTest "Eearly return from procedure" "input/proc_return.swift" "output/empty.txt" 0
-# execTest "Try to return value from procedure" "input/proc_return_with_type.swift" "output/empty.txt" 2
-# execTest "Try to return without value from function" "input/func_return_without_value.swift" "output/empty.txt" 2
-# execTest "Return wrong type from function" "input/func_wrong_return_type.swift" "output/empty.txt" 6
+# execTest "Try to return value from procedure" "input/proc_return_with_type.swift" "output/empty.txt" 6
+# execTest "Try to return without value from function" "input/func_return_without_value.swift" "output/empty.txt" 6
+# execTest "Return wrong type from function" "input/func_wrong_return_type.swift" "output/empty.txt" 4
 # execTest "Return statement in global scope" "input/return_in_global_scope.swift" "output/empty.txt" 2
 # execTest "Return statement in global scope" "input/return_in_global_scope_with_value.swift" "output/empty.txt" 2
 # execTest "Modify constant" "input/modify_const_variable.swift" "output/empty.txt" 9
 # execTest "Set constant after definition" "input/immutable_deferred_init.swift" "output/immutable_deferred_init.txt" 0
-# execTest "Incomplete variable declaration" "input/incomplete_variabe_decl.swift" "output/empty.txt" 2
+# execTest "Incomplete variable declaration" "input/incomplete_variabe_decl.swift" "output/empty.txt" 2 # zmrd zmrd drm TODO:
 # execTest "Wrong variable init type" "input/wrong_init_type.swift" "output/empty.txt" 7
 # execTest "Omit variable value in deifinition" "input/variable_omit_value.swift" "output/empty.txt" 0
 # execTest "Assignment with wrong type" "input/assignment_wrong_type.swift" "output/empty.txt" 7
@@ -87,7 +101,7 @@ execTest "Variable initialised in scope" "input/initialised_variable_in_scope.sw
 # execTest "Assign to const variable" "input/assign_const.swift" "output/empty.txt" 9
 # execTest "If statement" "input/if_statement.swift" "output/if_statement.txt" 0
 # execTest "If statement with wrong condition type" "input/if_statement_no_bool.swift" "output/empty.txt" 7
-# execTest "If let statement" "input/if_let.swift" "output/if_let.txt" 0
+# execTest "If let statement" "input/if_let.swift" "output/empty.txt" 9
 # execTest "If let statement with non-null variable" "input/if_let_nonull.swift" "output/empty.txt" 9
 # execTest "If let statement modify attempt" "input/if_let_modify.swift" "output/empty.txt" 9
 # execTest "While loop" "input/while.swift" "output/while.txt" 0
@@ -109,7 +123,7 @@ execTest "Variable initialised in scope" "input/initialised_variable_in_scope.sw
 # execTest "Comparison of strings" "input/rel_string.swift" "output/rel_string.txt" 0
 # execTest "Relational operators" "input/rel.swift" "output/rel.txt" 0
 # execTest "Relational operator with illegal implicit conversion" "input/rel_wrong_convert.swift" "output/empty.txt" 7
-# execTest "Operator precedence" "input/precedence.swift" "output/precedence.txt" 0
+execTest "Operator precedence" "input/precedence.swift" "output/precedence.txt" 0
 # execTest "Builtin conversion functions" "input/builtin_convert.swift" "output/builtin_convert.txt" 0
 # execTest "Int2Double with wrong type" "input/int2double_wrong.swift" "output/empty.txt" 4
 # execTest "Double2Int with wrong type" "input/double2int_wrong.swift" "output/empty.txt" 4
@@ -121,6 +135,10 @@ execTest "Variable initialised in scope" "input/initialised_variable_in_scope.sw
 # execTest "Init variable in while loop" "input/while_init.swift" "output/empty.txt" 0
 # execTest "Init variable in while loop - nested" "input/while_init_nested.swift" "output/while_init_nested.txt" 0
 # execTest "Illegal token instead of data type" "input/illegal_typename.swift" "output/empty.txt" 2
+# execTest "String with escape sequences" "input/string_valid.swift" "output/string_valid.txt" 0
+# execTest "String with invalid escape sequence" "input/string_invalid_escape.swift" "output/empty.txt" 1
+# execTest "String with ascii escape sequence" "input/string_ascii.swift" "output/string_ascii.txt" 0
+# execTest "String with invalid ascii" "input/string_ascii_invalid.swift" "output/empty.txt" 1
 # execTest "String literal with newline character" "input/string_literal_newline.swift" "output/empty.txt" 1
 # execTest "Init Double variable with int literal" "input/double_int_init.swift" "output/empty.txt" 0
 # execTest "Basic multiline string" "input/multiline_string.swift" "output/multiline_string.txt" 0
@@ -130,6 +148,7 @@ execTest "Variable initialised in scope" "input/initialised_variable_in_scope.sw
 # execTest "Multiline string with indent and empty line" "input/multiline_string_indent_empty_line.swift" "output/multiline_string_indent_empty_line.txt" 0
 # execTest "Multiline string with bad indent" "input/multiline_string_indent_illegal.swift" "output/empty.txt" 1
 # execTest "Multiline string with closing quotes not on unique line" "input/multiline_string_wrong_close.swift" "output/empty.txt" 1
+# execTest "Multiline string with quotation marks" "input/multiline_string_quotation_mark.swift" "output/multiline_string_quotation_mark.txt" 0
 # execTest "Equality comparison with nil literal" "input/nil_eq.swift" "output/nil_eq.txt" 0
 # execTest "Example - concat" "input/example_concat.swift" "output/example_concat.txt" 0
 # execTest "Example - factorial (iterative)" "input/example_factorial_iter.swift" "output/example_factorial_iter.txt" 0
@@ -140,9 +159,25 @@ execTest "Variable initialised in scope" "input/initialised_variable_in_scope.sw
 # execTest "Illegal implicit conversions in variable declarations" "input/var_init_implicit_convert_bad.swift" "output/empty.txt" 7
 # execTest "Implicit conversions in variable assignment" "input/assignment_implicit_convert.swift" "output/empty.txt" 0
 # execTest "Illegal implicit conversions in variable assignment" "input/assignment_implicit_convert_wrong.swift" "output/empty.txt" 7
+# execTest "Escaping characters in strings" "input/escaped_strings.swift" "output/escaped_strings.txt" 0
+# execTest "Example - redefinition inside while" "input/example_while_redef.swift" "output/example_while_redef.txt" 0
+# execTest "Coalescence with nil on lhs" "input/coal_nil.swift" "output/coal_nil.txt" 0
+# execTest "Example - ifj projekt je moc hard" "input/example_moc_hard.swift" "output/example_moc_hard.txt" 0
+# execTest "Example - cycles" "input/example_cycles.swift" "output/empty.txt" 0
+# execTest "Bogus input (func !)" "input/bogus_func.swift" "output/empty.txt" 2
+# execTest "Escape sequence + ord" "input/escape_ord.swift" "output/escape_ord.txt" 0
+# execTest "Ord function with empty string" "input/ord_empty.swift" "output/empty.txt" 0
+# execTest "Substring end out of bounds" "input/substring_oob.swift" "output/empty.txt" 0
+# execTest "Implicit cast in nil coalescence" "input/implicit_cast_coal.swift" "output/empty.txt" 0
+# execTest "Wrong argument name" "input/func_wrong_arg_name.swift" "output/empty.txt" 9
+# execTest "Unused param" "input/unused_param.swift" "output/empty.txt" 0
+# execTest "Function param with same name" "input/func_param_same_name.swift" "output/empty.txt" 9
+# execTest "Implicit conversion when assigning" "input/assign_convert.swift" "output/assign_convert.txt" 0
 
 echo "\n\n"
 echo "Successes: $successCount"
 echo "Fails: $failCount"
 
-rm -f tmp_output.txt tmp_output2.txt
+rm 0
+
+# rm -f tmp_output.txt tmp_output2.txt
