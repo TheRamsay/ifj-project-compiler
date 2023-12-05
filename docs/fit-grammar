@@ -1,0 +1,51 @@
+prog -> func_def prog | body prog | .
+
+
+func_def -> 'func' FUNC_ID '(' func_params ')' return_def '{' body '}' .
+return_def-> '->' TYPE | .
+func_params -> PARAM_NAME ID':' TYPE func_params_n | .
+func_params_n -> 
+	',' PARAM_NAME ID':' TYPE func_params_n
+	| .
+
+
+body -> statement body | .
+
+statement -> 
+	  if_statement	
+	| while_statement
+	| 'return' return_t
+	| function_call
+	| definition_statement
+	| assign
+	| expression 
+	| .
+
+function_call -> ID '(' call_params ')' .
+
+definition_statement -> VAR_DEFINITION_KW ID definition_other .
+definition_other -> : TYPE possible_assign | assign .
+possible_assign  -> assign | .
+assign -> '=' value .
+
+if_statement -> 'if' if_cond '{' body '} else {' body '}' .
+if_cond -> expr | VAR_DEFINITION_KW IDENTIFIER 
+
+while_statement -> 'while' expression '{' body '}' .
+
+var_definition_value -> '=' value | .
+var_definition -> VAR_DEFINITION_KW var_definition_type . 
+var_definition_type -> ':' TYPE | .
+
+return_t -> expression | .
+
+value -> expression | func_call .
+
+call_params -> call_param_kw term call_param_n | .
+call_param_n -> ',' call_param_kw term call_param_n | .
+call_param_kw -> PARAM_NAME ':' | .
+
+VAR_DEFINITION_KW -> 'var' | 'let' .
+
+TYPE -> 'Int' nullable | 'Double' nullable | 'String' nullable .
+nullable -> '?' | .
