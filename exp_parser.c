@@ -346,13 +346,10 @@ int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t 
 
           }
           else if (firstToken.type.data_type != thirdToken.type.data_type) {
-            if ((firstToken.type.data_type == INT_TYPE && thirdToken.type.data_type == DOUBLE_TYPE) || (firstToken.type.data_type == DOUBLE_TYPE && thirdToken.type.data_type == INT_TYPE)) {
-              if (firstToken.token.type == TOKEN_PLUS || firstToken.token.type == TOKEN_MINUS || firstToken.token.type == TOKEN_DIV || firstToken.token.type == TOKEN_MULTIPLY) {
-
-                *ruleProduct = evaluate_complex_rule(secondToken, (SymtableIdentifierType) { .data_type = DOUBLE_TYPE, .nullable = false });
-              }
-            }
-            else {
+            SymtableIdentifierType conversion_result = conversion_possible(firstToken.type, thirdToken.type);
+            if (conversion_result.data_type != UNKNOWN_TYPE) {
+                *ruleProduct = evaluate_complex_rule(secondToken, conversion_result);
+            } else {
               exit_with_error(SEMANTIC_ERR, "Cannot use operator on different types");
             }
           }
@@ -575,4 +572,54 @@ void y_eet(void_stack_t * stack) {
   }
 
   stack_dispose(temp_stack);
+}
+
+bool is_relational_operator(TokenType type) {
+  switch (type) {
+  case TOKEN_LT:
+  case TOKEN_LTE:
+  case TOKEN_GT:
+  case TOKEN_GTE:
+  case TOKEN_EQ:
+  case TOKEN_NE:
+    return true;
+
+  default:
+    return false;
+  }
+}
+
+bool is_arithmetic_operator(TokenType type) {
+  switch (type) {
+  case TOKEN_PLUS:
+  case TOKEN_MINUS:
+  case TOKEN_MULTIPLY:
+  case TOKEN_DIV:
+    return true;
+
+  default:
+    return false;
+  }
+}
+
+SymtableIdentifierType conversion_possible(SymtableIdentifierType type1, SymtableIdentifierType type2) {
+  SymtableIdentifierType converted_type = { .data_type = UNKNOWN_TYPE, .nullable = type1.nullable | type2.nullable  };
+
+  if (is_arithmetic_operator(type1) && is_arithmetic_operator(type2)) {
+    converted_type.data_type = DOUBLE_TYPE;
+  } else if (is_relational_operator(type1) && is_relational_operator(type2)) {
+    converted_type.data_type = BOOL_TYPE;
+  } else {
+    return converted_type;
+  }
+
+  if (typ1.data_type == INT_TYPE && typ2.data_type == DOUBLE_TYPE) {
+    return converted_type;
+  }
+
+  if (typ1.data_type == DOUBLE_TYPE && typ2.data_type == INT_TYPE) {
+    return converted_type;
+  }
+
+  return { .data_type = UNKNOWN_TYPE };
 }
