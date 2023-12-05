@@ -1021,7 +1021,7 @@ bool statement(Parser *parser) {
 
         if (identifier_item->data->variable.identifier_type.data_type == DOUBLE_TYPE && expression_type.data_type == INT_TYPE && !expression_type.nullable) {
           stack_push(expr_stack, str_new_from_cstr(variable_id));
-          generator_function_call(parser->gen, str_new_from_cstr("Int2Double"), expr_stack, str_new_from_cstr(variable_id));
+          generator_function_call(parser->gen, str_new_float_const(), expr_stack, str_new_from_cstr(variable_id));
         }
 #endif
       }
@@ -1133,13 +1133,8 @@ Token *parser_start(Parser *parser, Token *input_tokens)
 #endif
 }
 
-#ifdef PARSER_TEST
 SymtableIdentifierType expression(Parser *parser, SymtableIdentifierType return_type)
-#else
-SymtableIdentifierType expression(Parser *parser, void_stack_t *expr_stack)
-#endif
 {
-
 #ifdef PARSER_TEST
   if (current_token(parser)->type != TOKEN_COMMA) {
     return (SymtableIdentifierType){.data_type = VOID_TYPE, .nullable = false};
@@ -1147,7 +1142,7 @@ SymtableIdentifierType expression(Parser *parser, void_stack_t *expr_stack)
   consume(parser, TOKEN_COMMA, "Expected an expression");
   return return_type;
 #else
-  return parse_expression(parser, expr_stack);
+  return parse_expression(parser, expr_stack, return_type);
 #endif
 }
 
