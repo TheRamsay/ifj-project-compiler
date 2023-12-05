@@ -350,7 +350,7 @@ int handle_reduce_case(void_stack_t *stack, Stack_token_t token, Stack_token_t p
 
         } else if (firstToken.type.data_type != thirdToken.type.data_type) {
           if ((firstToken.type.data_type == INT_TYPE && thirdToken.type.data_type == DOUBLE_TYPE) || (firstToken.type.data_type == DOUBLE_TYPE && thirdToken.type.data_type == INT_TYPE)) {
-            if (firstToken == TOKEN_PLUS || firstToken == TOKEN_MINUS || firstToken == TOKEN_DIV || firstToken == TOKEN_MULTIPLY) {
+            if (firstToken.type.data_type == TOKEN_PLUS || firstToken.type.data_type == TOKEN_MINUS || firstToken.type.data_type == TOKEN_DIV || firstToken.type.data_type == TOKEN_MULTIPLY) {
 
               *ruleProduct = evaluate_rule(secondToken, (SymtableIdentifierType){.data_type = DOUBLE_TYPE, .nullable = false});
             }
