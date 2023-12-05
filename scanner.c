@@ -505,6 +505,7 @@ int get_next_token(Token *token) {
         while (c != '\n' && c != EOF) {
           c = fgetc(source_file);
         }; // Read until the end of the line
+        ungetc(c, source_file);
         continue;
       } else if (c == '*') {
         if (nested_block_comment > 0) {
@@ -563,18 +564,18 @@ int get_next_token(Token *token) {
     fprintf(stderr, "Unknown token: %s\n", token->val);
     exit(1);
   }
-  // printf("Token Type: %d token: %s\n", token->type, token->val);
+  printf("Token Type: %d token: %s newline: %d\n", token->type, token->val, token->after_newline);
   return token->type;
 }
 
-// int main() {
-//   FILE *input_file = stdin;
-//   Token token;
-//   scanner_init(input_file);
-//   while (get_next_token(&token) != TOKEN_EOF)
-//     ;
+int main() {
+  FILE *input_file = stdin;
+  Token token;
+  scanner_init(input_file);
+  while (get_next_token(&token) != TOKEN_EOF)
+    ;
 
-//   scanner_destroy();
+  scanner_destroy();
 
-//   return 0;
-// }
+  return 0;
+}
