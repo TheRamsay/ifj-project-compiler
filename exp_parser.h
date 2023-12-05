@@ -26,11 +26,13 @@ typedef struct {
 } Stack_token_t;
 
 #ifdef PARSER_TEST
-Token parse_expression(Token expressionToParse[], int inputSize, Parser *parser, void_stack_t *expresionStack);
+Token parse_expression(Token expressionToParse[], int inputSize, Parser* parser, void_stack_t* expresionStack);
 #else
-SymtableIdentifierType parse_expression(Parser *parser, void_stack_t *expresionStack);
+SymtableIdentifierType parse_expression(Parser* parser, void_stack_t* expresionStack);
 #endif
 
-void y_eet(void_stack_t *stack);
+void y_eet(void_stack_t* stack);
+
+SymtableIdentifierType conversion_possible(Stack_token_t type1, Stack_token_t type2);
 
 #endif // _EXP_PARSER_H

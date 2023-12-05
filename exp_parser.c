@@ -346,10 +346,13 @@ int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t 
 
           }
           else if (firstToken.type.data_type != thirdToken.type.data_type) {
-            SymtableIdentifierType conversion_result = conversion_possible(firstToken.type, thirdToken.type);
+            SymtableIdentifierType conversion_result = conversion_possible(firstToken, thirdToken);
             if (conversion_result.data_type != UNKNOWN_TYPE) {
-                *ruleProduct = evaluate_complex_rule(secondToken, conversion_result);
-            } else {
+              *ruleProduct = evaluate_complex_rule(secondToken, conversion_result);
+              stack_pop(expresionStack);
+              stack_pop(expresionStack);
+            }
+            else {
               exit_with_error(SEMANTIC_ERR, "Cannot use operator on different types");
             }
           }
@@ -602,24 +605,26 @@ bool is_arithmetic_operator(TokenType type) {
   }
 }
 
-SymtableIdentifierType conversion_possible(SymtableIdentifierType type1, SymtableIdentifierType type2) {
-  SymtableIdentifierType converted_type = { .data_type = UNKNOWN_TYPE, .nullable = type1.nullable | type2.nullable  };
+SymtableIdentifierType conversion_possible(Stack_token_t token1, Stack_token_t token2) {
+  SymtableIdentifierType converted_type = { .data_type = UNKNOWN_TYPE, .nullable = token1.type.nullable | token2.type.nullable };
 
-  if (is_arithmetic_operator(type1) && is_arithmetic_operator(type2)) {
+  if (is_arithmetic_operator(token1.token.type) && is_arithmetic_operator(token2.token.type)) {
     converted_type.data_type = DOUBLE_TYPE;
-  } else if (is_relational_operator(type1) && is_relational_operator(type2)) {
+  }
+  else if (is_relational_operator(token1.token.type) && is_relational_operator(token2.token.type)) {
     converted_type.data_type = BOOL_TYPE;
-  } else {
+  }
+  else {
     return converted_type;
   }
 
-  if (typ1.data_type == INT_TYPE && typ2.data_type == DOUBLE_TYPE) {
+  if (token1.type.data_type == INT_TYPE && token2.type.data_type == DOUBLE_TYPE) {
     return converted_type;
   }
 
-  if (typ1.data_type == DOUBLE_TYPE && typ2.data_type == INT_TYPE) {
+  if (token1.type.data_type == DOUBLE_TYPE && token2.type.data_type == INT_TYPE) {
     return converted_type;
   }
 
-  return { .data_type = UNKNOWN_TYPE };
+  return (SymtableIdentifierType) { .data_type = UNKNOWN_TYPE, .nullable = false };
 }
