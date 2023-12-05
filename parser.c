@@ -1003,7 +1003,6 @@ bool statement(Parser *parser) {
 #else
 
         void_stack_t *expr_stack = stack_new(100);
-        //
         SymtableIdentifierType expression_type = expression(parser, expr_stack);
 
         stack_reverse(expr_stack);

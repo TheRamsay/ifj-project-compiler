@@ -295,6 +295,11 @@ void generator_header(gen_t *gen) {
   str_append_cstr(gen->out_str, "JUMP main\n\n");
 
   FILE *builtin = fopen("../builtin.ifj23", "r");
+
+  if (builtin == NULL) {
+    builtin = fopen("./builtin.ifj23", "r");
+  }
+
   if (builtin == NULL) {
     fprintf(stderr, "The file with builtin functions could not be opened.\n");
     return;

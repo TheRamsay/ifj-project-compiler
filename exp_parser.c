@@ -327,6 +327,8 @@ void handle_shift_case(void_stack_t *stack, Stack_token_t token) {
 }
 
 int handle_reduce_case(void_stack_t *stack, Stack_token_t token, Stack_token_t precedence, void_stack_t *expresionStack) {
+  stack_reverse(expresionStack);
+
   while (precedence.precedence == R) {
     Stack_token_t firstToken = *(Stack_token_t *)stack_pop(stack);
 
