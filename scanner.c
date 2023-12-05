@@ -14,8 +14,7 @@ int token_count = 0;
 void scanner_init(FILE *file) {  // Initialize the scanner
   source_file = file;            // Set the source file to the file passed in
   if (source_file == NULL) {
-    fprintf(stderr, "Error opening file\n");
-    exit(1);
+    exit_with_error(INTERNAL_ERROR, "Error opening file");
   }
 }
 void scanner_destroy() {
