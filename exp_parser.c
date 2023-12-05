@@ -111,29 +111,7 @@ Stack_token_t evaluate_simple_rule(Stack_token_t token, SymtableIdentifierType t
 
       break;
     }
-    case TOKEN_PLUS:
-    case TOKEN_MINUS:
-    case TOKEN_MULTIPLY:
-    case TOKEN_DIV: {
-      // TODO type check
-      return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = type};
-    }
-    case TOKEN_LT:
-    case TOKEN_LTE:
-    case TOKEN_GT:
-    case TOKEN_GTE:
-    case TOKEN_EQ:
-    case TOKEN_NE: {
-      // TODO type check
-      return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = BOOL_TYPE, .nullable = false}};
-    }
-    case TOKEN_NULL_COALESCING: {
-      // TODO type check
-      return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = type};
-    }
 
-    break;
-  }
   default:
     break;
   }
