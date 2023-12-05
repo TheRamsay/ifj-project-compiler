@@ -1,10 +1,10 @@
-var a : Int
-var b = 3
+var a = 2
 
-if b == 3 {
-    a = 4
-    b = a
-}
-else
+if a == 2 {
+    var a = 4
+    write(a)
+} else
 {
 }
+
+write(a)
