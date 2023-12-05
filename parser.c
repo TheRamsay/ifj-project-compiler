@@ -82,9 +82,9 @@ void push_param_to_stack(void_stack_t *params_stack, Token *first, Token *second
     if (first->type == TOKEN_IDENTIFIER) {
       stack_push(params_stack, str_new_from_cstr(first->val));
     } else if (first->type == TOKEN_DECIMAL_LITERAL) {
-      stack_push(params_stack, str_new_int_const(first->val));
-    } else if (first->type == TOKEN_INTEGER_LITERAL) {
       stack_push(params_stack, str_new_float_const(first->val));
+    } else if (first->type == TOKEN_INTEGER_LITERAL) {
+      stack_push(params_stack, str_new_int_const(first->val));
     } else if (first->type == TOKEN_STRING_LITERAL) {
       stack_push(params_stack, str_new_string_const(first->val));
     } else if (first->type == TOKEN_KEYWORD && first->keyword == KW_NIL) {
@@ -96,9 +96,9 @@ void push_param_to_stack(void_stack_t *params_stack, Token *first, Token *second
     if (second->type == TOKEN_IDENTIFIER) {
       stack_push(params_stack, str_new_from_cstr(second->val));
     } else if (second->type == TOKEN_DECIMAL_LITERAL) {
-      stack_push(params_stack, str_new_int_const(second->val));
-    } else if (second->type == TOKEN_INTEGER_LITERAL) {
       stack_push(params_stack, str_new_float_const(second->val));
+    } else if (second->type == TOKEN_INTEGER_LITERAL) {
+      stack_push(params_stack, str_new_int_const(second->val));
     } else if (second->type == TOKEN_STRING_LITERAL) {
       stack_push(params_stack, str_new_string_const(second->val));
     } else if (second->type == TOKEN_KEYWORD && second->keyword == KW_NIL) {
@@ -160,6 +160,10 @@ bool compare_symtable_item_with_token(Token *token, SymtableIdentifierType ident
 }
 
 bool compare_symtable_item_types(SymtableIdentifierType left, SymtableIdentifierType right) {
+  if (left.data_type == DOUBLE_TYPE && right.data_type == INT_TYPE && !right.nullable) {
+    return true;
+  }
+
   if (left.nullable) {
     return left.data_type == right.data_type || right.data_type == VOID_TYPE;
   } else {
@@ -317,8 +321,12 @@ void func_params_n(Parser *parser, SymtableItem *item, Symtable *local_table, vo
     exit_with_error(SYNTAX_ERR, "Expected datatype after ':'");
   }
 
-  symtable_add_param(item, out_param_id, in_param_id, parse_datatype(parser));
-  symtable_add_symbol(local_table, in_param_id, SYMTABLE_VARIABLE, true, false, true);
+  SymtableIdentifierType data_type = parse_datatype(parser);
+
+  symtable_add_param(item, out_param_id, in_param_id, data_type);
+  SymtableItem *parameter_var_item = symtable_add_symbol(local_table, in_param_id, SYMTABLE_VARIABLE, true, false, true);
+  parameter_var_item->data->variable.identifier_type = data_type;
+
   func_params_n(parser, item, local_table, stack);
 }
 
@@ -440,7 +448,7 @@ void check_call_param(Parser *parser, SymtableParam *param, Token *first, Token 
   }
 
   if (strcmp(param->out_name, "_") == 0 && second != NULL) {
-    exit_with_error(SEMANTIC_ERR_CALL, "Parameter %s doesn't have out definition", first->val);
+    exit_with_error(SEMANTIC_ERR, "Parameter %s doesn't have out definition", first->val);
   }
   // Parameter out identifier doesn't match the call
   else if (strcmp(param->out_name, "_") != 0 && second == NULL) {
@@ -809,6 +817,7 @@ bool statement(Parser *parser) {
 #else
     void_stack_t *expr_stack = stack_new(100);
     SymtableIdentifierType expression_type = expression(parser, expr_stack);
+    // stack_reverse(expr_stack);
 #endif
 
     if (expression_type.data_type != BOOL_TYPE) {
@@ -870,7 +879,6 @@ bool statement(Parser *parser) {
 
     // Preemptively create
     SymtableItem *item = symtable_add_symbol(table, variable_id, SYMTABLE_VARIABLE, false, false, false);
-
     generator_var_create(parser->gen, str_new_from_cstr(variable_id));
 
     // Variable initialization
@@ -895,14 +903,17 @@ bool statement(Parser *parser) {
         check_identifier(current_token(parser)->val);
 
         stack_reverse(params_stack);
-        generator_function_call(parser->gen, str_new_from_cstr(current_token(parser)->val), params_stack, str_new_from_cstr(variable_id));
+        generator_function_call(parser->gen, str_new_from_cstr(func_id), params_stack, str_new_from_cstr(variable_id));
       } else {
 #ifdef PARSER_TEST
         SymtableIdentifierType expression_type = expression(parser, DEFAULT_EXPRESION_TYPE);
 #else
         void_stack_t *expr_stack = stack_new(128);
-        stack_push(expr_stack, str_new_from_cstr(variable_id));
+
         SymtableIdentifierType expression_type = expression(parser, expr_stack);
+
+        stack_reverse(expr_stack);
+        stack_push(expr_stack, str_new_from_cstr(variable_id));
         stack_reverse(expr_stack);
 #endif
 
@@ -945,6 +956,7 @@ bool statement(Parser *parser) {
         item->data->variable.initialized = true;
       }
     }
+
   } else if (check_type(parser, TOKEN_IDENTIFIER)) {
     // statement -> <identifier> <var_definition_value>
     if (peek(parser)->type == TOKEN_ASSIGN) {
@@ -991,8 +1003,10 @@ bool statement(Parser *parser) {
 #else
 
         void_stack_t *expr_stack = stack_new(100);
-        stack_push(expr_stack, str_new_from_cstr(variable_id));
         SymtableIdentifierType expression_type = expression(parser, expr_stack);
+
+        stack_reverse(expr_stack);
+        stack_push(expr_stack, str_new_from_cstr(variable_id));
         stack_reverse(expr_stack);
 #endif
 
@@ -1004,6 +1018,11 @@ bool statement(Parser *parser) {
 
 #ifndef PARSER_TEST
         generator_expr(parser->gen, expr_stack);
+
+        if (identifier_item->data->variable.identifier_type.data_type == DOUBLE_TYPE && expression_type.data_type == INT_TYPE && !expression_type.nullable) {
+          stack_push(expr_stack, str_new_from_cstr(variable_id));
+          generator_function_call(parser->gen, str_new_from_cstr("Int2Double"), expr_stack, str_new_from_cstr(variable_id));
+        }
 #endif
       }
     }

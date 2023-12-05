@@ -7,6 +7,8 @@
 
 #include <stdlib.h>
 
+#include "str.h"
+
 /*                            Private functions                               */
 void stack_resize(void_stack_t *stack) {
   stack->size *= 2;
@@ -152,6 +154,7 @@ void stack_dispose(void_stack_t *stack) {
   stack->size = 0;
   stack->top_index = -1;
 }
+
 void stack_reverse(void_stack_t *stack) {
   void_stack_t *stack_reversed = stack_new((stack)->size);
 
@@ -160,5 +163,11 @@ void stack_reverse(void_stack_t *stack) {
   }
 
   *stack = *stack_reversed;
+}
+
+void stack_print(void_stack_t *stack) {
+  for (int i = 0; i < stack->top_index + 1; i++) {
+    fprintf(stderr, "%d. %s\n", i, ((str *)stack->items[i])->data);
+  }
 }
 /* ************************************************************************** */

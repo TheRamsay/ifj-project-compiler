@@ -146,14 +146,14 @@ str *str_new_int_const(const char *s) {
  *
  */
 str *str_new_float_const(const char *s) {
-  str *str = str_new(128);
-
-  str_append_cstr(str, "float@");
-  str_append_cstr(str, s);
+  str *fltstr = str_new(128);
 
   float flt;
   sscanf(s, "%a", &flt);
-  snprintf(str->data, str->alloc_size, "%a", flt);
+  snprintf(fltstr->data, fltstr->alloc_size, "%a", flt);
+
+  str *str = str_new_from_cstr("float@");
+  str_append_str_dispose(str, &fltstr);
 
   return str;
 }

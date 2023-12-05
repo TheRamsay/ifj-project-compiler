@@ -35,45 +35,45 @@ const int precedence_table[TABLE_SIZE][TABLE_SIZE] = {
 
 int get_operator_index(TokenType op) {
   switch (op) {
-  case TOKEN_PLUS:
-    return 0;
-  case TOKEN_MINUS:
-    return 1;
-  case TOKEN_MULTIPLY:
-    return 2;
-  case TOKEN_DIV:
-    return 3;
-  case TOKEN_LT:
-    return 4;
-  case TOKEN_LTE:
-    return 5;
-  case TOKEN_GT:
-    return 6;
-  case TOKEN_GTE:
-    return 7;
-  case TOKEN_EQ:
-    return 8;
-  case TOKEN_NE:
-    return 9;
-  case TOKEN_LPAREN:
-    return 10;
-  case TOKEN_RPAREN:
-    return 11;
-  case TOKEN_NULL_COALESCING:
-    return 12;
-  case TOKEN_NOT:
-    return 13;
-  case TOKEN_IDENTIFIER:
-  case TOKEN_STRING_LITERAL:
-  case TOKEN_INTEGER_LITERAL:
-  case TOKEN_DECIMAL_LITERAL:
-  case TOKEN_KEYWORD:
-    return 14;
-  case TOKEN_STACK_BOTTOM:
-    return 15;
+    case TOKEN_PLUS:
+      return 0;
+    case TOKEN_MINUS:
+      return 1;
+    case TOKEN_MULTIPLY:
+      return 2;
+    case TOKEN_DIV:
+      return 3;
+    case TOKEN_LT:
+      return 4;
+    case TOKEN_LTE:
+      return 5;
+    case TOKEN_GT:
+      return 6;
+    case TOKEN_GTE:
+      return 7;
+    case TOKEN_EQ:
+      return 8;
+    case TOKEN_NE:
+      return 9;
+    case TOKEN_LPAREN:
+      return 10;
+    case TOKEN_RPAREN:
+      return 11;
+    case TOKEN_NULL_COALESCING:
+      return 12;
+    case TOKEN_NOT:
+      return 13;
+    case TOKEN_IDENTIFIER:
+    case TOKEN_STRING_LITERAL:
+    case TOKEN_INTEGER_LITERAL:
+    case TOKEN_DECIMAL_LITERAL:
+    case TOKEN_KEYWORD:
+      return 14;
+    case TOKEN_STACK_BOTTOM:
+      return 15;
 
-  default:
-    return -1; // Operator not found
+    default:
+      return -1;  // Operator not found
   }
 }
 
@@ -82,7 +82,7 @@ Stack_token_t get_precedence(Stack_token_t stack_top, Stack_token_t input) {
   int input_index = get_operator_index(input.token.type);
 
   if (stack_index == -1 || input_index == -1) {
-    return (Stack_token_t){.precedence = X}; // Handle invalid operators
+    return (Stack_token_t){.precedence = X};  // Handle invalid operators
   }
 
   return (Stack_token_t){.precedence = precedence_table[stack_index][input_index]};
@@ -90,22 +90,46 @@ Stack_token_t get_precedence(Stack_token_t stack_top, Stack_token_t input) {
 
 Stack_token_t evaluate_simple_rule(Stack_token_t token, SymtableIdentifierType type) {
   switch (token.token.type) {
-  case TOKEN_INTEGER_LITERAL:
-    return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = INT_TYPE, .nullable = false}};
+    case TOKEN_INTEGER_LITERAL:
+      return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = INT_TYPE, .nullable = false}};
 
-  case TOKEN_DECIMAL_LITERAL:
-    return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = DOUBLE_TYPE, .nullable = false}};
+    case TOKEN_DECIMAL_LITERAL:
+      return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = DOUBLE_TYPE, .nullable = false}};
 
-  case TOKEN_STRING_LITERAL:
-    return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = STRING_TYPE, .nullable = false}};
-  case TOKEN_IDENTIFIER: {
-    return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = type};
+    case TOKEN_STRING_LITERAL:
+      return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = STRING_TYPE, .nullable = false}};
+    case TOKEN_IDENTIFIER: {
+      return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = type};
 
-    break;
-  }
-  case TOKEN_KEYWORD: {
-    if (token.token.keyword == KW_NIL) {
-      return (Stack_token_t){.token = {TOKEN_EXPRESSION, token.token.keyword, "E", 1}, .precedence = None, .type = {.data_type = VOID_TYPE, .nullable = true}};
+      break;
+    }
+    case TOKEN_KEYWORD: {
+      if (token.token.keyword == KW_NIL) {
+        return (Stack_token_t){
+            .token = {TOKEN_EXPRESSION, token.token.keyword, "E", 1}, .precedence = None, .type = {.data_type = VOID_TYPE, .nullable = true}};
+      }
+
+      break;
+    }
+    case TOKEN_PLUS:
+    case TOKEN_MINUS:
+    case TOKEN_MULTIPLY:
+    case TOKEN_DIV: {
+      // TODO type check
+      return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = type};
+    }
+    case TOKEN_LT:
+    case TOKEN_LTE:
+    case TOKEN_GT:
+    case TOKEN_GTE:
+    case TOKEN_EQ:
+    case TOKEN_NE: {
+      // TODO type check
+      return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = BOOL_TYPE, .nullable = false}};
+    }
+    case TOKEN_NULL_COALESCING: {
+      // TODO type check
+      return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = type};
     }
 
     break;
@@ -164,50 +188,50 @@ void push_single_token_expresion(void_stack_t *expresionStack, Stack_token_t tok
 
 void push_two_token_expresion(void_stack_t *expresionStack, Stack_token_t action, Stack_token_t token1, Stack_token_t token2) {
   switch (action.token.type) {
-  case TOKEN_PLUS:
-    stack_push(expresionStack, str_new_from_cstr("+"));
-    break;
-  case TOKEN_MINUS:
-    stack_push(expresionStack, str_new_from_cstr("-"));
-    break;
-  case TOKEN_MULTIPLY:
-    stack_push(expresionStack, str_new_from_cstr("*"));
-    break;
-  case TOKEN_DIV:
-    if (token1.type.data_type == INT_TYPE && token2.type.data_type == INT_TYPE) {
-      stack_push(expresionStack, str_new_from_cstr(":"));
-    } else if (token1.type.data_type == DOUBLE_TYPE && token2.type.data_type == DOUBLE_TYPE) {
-      stack_push(expresionStack, str_new_from_cstr("/"));
-    }
-    break;
-  case TOKEN_LT:
-    stack_push(expresionStack, str_new_from_cstr("<"));
-    break;
-  case TOKEN_LTE:
-    stack_push(expresionStack, str_new_from_cstr("<="));
-    break;
-  case TOKEN_GT:
-    stack_push(expresionStack, str_new_from_cstr(">"));
-    break;
-  case TOKEN_GTE:
-    stack_push(expresionStack, str_new_from_cstr(">="));
-    break;
-  case TOKEN_EQ:
-    stack_push(expresionStack, str_new_from_cstr("="));
-    break;
-  case TOKEN_NE:
-    stack_push(expresionStack, str_new_from_cstr("!"));
-    break;
-  case TOKEN_NULL_COALESCING:
-    stack_push(expresionStack, str_new_from_cstr("??"));
-    break;
-    // TODO NOT
-    // case TOKEN_NOT:
-    //   stack_push(expresionStack, str_new_from_cstr("!"));
-    //   break;
+    case TOKEN_PLUS:
+      stack_push(expresionStack, str_new_from_cstr("+"));
+      break;
+    case TOKEN_MINUS:
+      stack_push(expresionStack, str_new_from_cstr("-"));
+      break;
+    case TOKEN_MULTIPLY:
+      stack_push(expresionStack, str_new_from_cstr("*"));
+      break;
+    case TOKEN_DIV:
+      if (token1.type.data_type == INT_TYPE && token2.type.data_type == INT_TYPE) {
+        stack_push(expresionStack, str_new_from_cstr(":"));
+      } else if (token1.type.data_type == DOUBLE_TYPE && token2.type.data_type == DOUBLE_TYPE) {
+        stack_push(expresionStack, str_new_from_cstr("/"));
+      }
+      break;
+    case TOKEN_LT:
+      stack_push(expresionStack, str_new_from_cstr("<"));
+      break;
+    case TOKEN_LTE:
+      stack_push(expresionStack, str_new_from_cstr("<="));
+      break;
+    case TOKEN_GT:
+      stack_push(expresionStack, str_new_from_cstr(">"));
+      break;
+    case TOKEN_GTE:
+      stack_push(expresionStack, str_new_from_cstr(">="));
+      break;
+    case TOKEN_EQ:
+      stack_push(expresionStack, str_new_from_cstr("="));
+      break;
+    case TOKEN_NE:
+      stack_push(expresionStack, str_new_from_cstr("!"));
+      break;
+    case TOKEN_NULL_COALESCING:
+      stack_push(expresionStack, str_new_from_cstr("??"));
+      break;
+      // TODO NOT
+      // case TOKEN_NOT:
+      //   stack_push(expresionStack, str_new_from_cstr("!"));
+      //   break;
 
-  default:
-    break;
+    default:
+      break;
   }
 }
 
@@ -305,6 +329,8 @@ void handle_shift_case(void_stack_t *stack, Stack_token_t token) {
 }
 
 int handle_reduce_case(void_stack_t *stack, Stack_token_t token, Stack_token_t precedence, void_stack_t *expresionStack) {
+  stack_reverse(expresionStack);
+
   while (precedence.precedence == R) {
     Stack_token_t firstToken = *(Stack_token_t *)stack_pop(stack);
 
@@ -406,7 +432,8 @@ SymtableIdentifierType parse_expression(Parser *parser, void_stack_t *expresionS
 #endif
 
   void_stack_t *stack = stack_new(8192);
-  stack_push(stack, &(Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None, .type = {.data_type = UNKNOWN_TYPE, .nullable = false}});
+  stack_push(stack,
+             &(Stack_token_t){.token = {TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1}, .precedence = None, .type = {.data_type = UNKNOWN_TYPE, .nullable = false}});
 
 #ifdef PARSER_TEST
   Stack_token_t token = get_next_token_wrap(testExpressionToParse, expIndex, inputSize);
@@ -456,51 +483,51 @@ SymtableIdentifierType parse_expression(Parser *parser, void_stack_t *expresionS
     Stack_token_t action = get_precedence(stackTop, token);
 
     switch (action.precedence) {
-    case L:
-      handle_shift_case(stack, token);
+      case L:
+        handle_shift_case(stack, token);
 #ifdef PARSER_TEST
-      token = get_next_token_wrap(testExpressionToParse, expIndex, inputSize);
-      expIndex++;
+        token = get_next_token_wrap(testExpressionToParse, expIndex, inputSize);
+        expIndex++;
 #else
-      token = get_next_token_wrap(token.token.type, parser);
+        token = get_next_token_wrap(token.token.type, parser);
 #endif
 
-      break;
-
-    case R:
-      // If there is no rule, expression is not valid
-      if (handle_reduce_case(stack, token, action, expresionStack) == -1) {
-        fprintf(stderr, "No rule for token %d\n", token.token.type);
-        exit_with_error(SYNTAX_ERR, "Invalid expression");
-      }
-      break;
-
-    case E:
-      handle_equals_case(stack, token);
-#ifdef PARSER_TEST
-      token = get_next_token_wrap(testExpressionToParse, expIndex, inputSize);
-      expIndex++;
-#else
-      token = get_next_token_wrap(token.token.type, parser);
-#endif
-
-      break;
-
-    case X: {
-      if (stackTop.token.type == TOKEN_STACK_BOTTOM && token.token.type == TOKEN_STACK_BOTTOM) {
         break;
-        // Stack_token_t tempToken = *(Stack_token_t *)stack_top(stack);
-        // ;
-        // if (tempToken.token.type == TOKEN_EXPRESSION) {
-        //   break;
-        // }
-      }
-      fprintf(stderr, "Invalid relation between %s and %s\n", stackTop.token.val, token.token.val);
-      exit_with_error(SYNTAX_ERR, "Invalid expression");
-    } break;
 
-    case None:
-      break;
+      case R:
+        // If there is no rule, expression is not valid
+        if (handle_reduce_case(stack, token, action, expresionStack) == -1) {
+          fprintf(stderr, "No rule for token %d\n", token.token.type);
+          exit_with_error(SYNTAX_ERR, "Invalid expression");
+        }
+        break;
+
+      case E:
+        handle_equals_case(stack, token);
+#ifdef PARSER_TEST
+        token = get_next_token_wrap(testExpressionToParse, expIndex, inputSize);
+        expIndex++;
+#else
+        token = get_next_token_wrap(token.token.type, parser);
+#endif
+
+        break;
+
+      case X: {
+        if (stackTop.token.type == TOKEN_STACK_BOTTOM && token.token.type == TOKEN_STACK_BOTTOM) {
+          break;
+          // Stack_token_t tempToken = *(Stack_token_t *)stack_top(stack);
+          // ;
+          // if (tempToken.token.type == TOKEN_EXPRESSION) {
+          //   break;
+          // }
+        }
+        fprintf(stderr, "Invalid relation between %s and %s\n", stackTop.token.val, token.token.val);
+        exit_with_error(SYNTAX_ERR, "Invalid expression");
+      } break;
+
+      case None:
+        break;
     }
   }
 

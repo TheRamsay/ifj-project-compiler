@@ -16,16 +16,12 @@ failCount=0
 # 3. expected output file
 # 4. expected return code
 execTest () {
-	testNum=$((testNum+1))
-	if (( numberOfArgs > 0 )); then
-		if (( $testToRun != $testNum )); then
-			return;
-		fi
-	fi
-
+	testNum="$((testNum+1))"
 	# cat $2
+	rm -f tmp_output.txt tmp_output2.txt
 
 	echo "\n\e[33m--------------------------------\e[0m"
+	echo $2
 	bash -c "$compilerPath < $2 2>&1 1> tmp_output.txt"
 	returnCode=$?
 	touch tmp_output2.txt
@@ -43,9 +39,8 @@ execTest () {
 	else
 		failCount=$((failCount+1))
 		printf "\e[1m\e[31mFailed\e[0m Test %02d: $1\n" $testNum
-		diff tmp_output2.txt $3 | colordiff
+		diff tmp_output2.txt $3
 	fi
-	rm -f tmp_output.txt tmp_output2.txt
 }
 
 # execTest "Empty program" "input/empty.swift" "output/empty.txt" 0
@@ -123,7 +118,7 @@ execTest () {
 # execTest "Comparison of strings" "input/rel_string.swift" "output/rel_string.txt" 0
 # execTest "Relational operators" "input/rel.swift" "output/rel.txt" 0
 # execTest "Relational operator with illegal implicit conversion" "input/rel_wrong_convert.swift" "output/empty.txt" 7
-execTest "Operator precedence" "input/precedence.swift" "output/precedence.txt" 0
+# execTest "Operator precedence" "input/precedence.swift" "output/precedence.txt" 0
 # execTest "Builtin conversion functions" "input/builtin_convert.swift" "output/builtin_convert.txt" 0
 # execTest "Int2Double with wrong type" "input/int2double_wrong.swift" "output/empty.txt" 4
 # execTest "Double2Int with wrong type" "input/double2int_wrong.swift" "output/empty.txt" 4
@@ -163,7 +158,7 @@ execTest "Operator precedence" "input/precedence.swift" "output/precedence.txt" 
 # execTest "Example - redefinition inside while" "input/example_while_redef.swift" "output/example_while_redef.txt" 0
 # execTest "Coalescence with nil on lhs" "input/coal_nil.swift" "output/coal_nil.txt" 0
 # execTest "Example - ifj projekt je moc hard" "input/example_moc_hard.swift" "output/example_moc_hard.txt" 0
-# execTest "Example - cycles" "input/example_cycles.swift" "output/empty.txt" 0
+execTest "Example - cycles" "input/example_cycles.swift" "output/empty.txt" 0
 # execTest "Bogus input (func !)" "input/bogus_func.swift" "output/empty.txt" 2
 # execTest "Escape sequence + ord" "input/escape_ord.swift" "output/escape_ord.txt" 0
 # execTest "Ord function with empty string" "input/ord_empty.swift" "output/empty.txt" 0
