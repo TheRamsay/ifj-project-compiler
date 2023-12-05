@@ -14,53 +14,23 @@
 #include "symtable.h"
 
 const int precedence_table[TABLE_SIZE][TABLE_SIZE] = {
-    //+ -  *  /  <  <= >  => == != (  ) ??  !  i  $  E
-    {R, R, L, L, R, R, R, R, R, R, L, R, R, L, L, R, E}, // +
-    {R, R, L, L, R, R, R, R, R, R, L, R, R, L, L, R, E}, // -
-    {R, R, R, R, R, R, R, R, R, R, L, R, R, L, L, R, E}, // *
-    {R, R, R, R, R, R, R, R, R, R, L, R, R, L, L, R, E}, // /
-    {L, L, L, L, X, X, X, X, X, X, L, R, X, X, L, R, E}, // <
-    {L, L, L, L, X, X, X, X, X, X, L, R, X, X, L, R, E}, // <=
-    {L, L, L, L, X, X, X, X, X, X, L, R, X, X, L, R, E}, // >
-    {L, L, L, L, X, X, X, X, X, X, L, R, X, X, L, R, E}, // >=
-    {L, L, L, L, X, X, X, X, X, X, L, R, X, X, L, R, E}, // ==
-    {L, L, L, L, X, X, X, X, X, X, L, R, X, X, L, R, E}, // !=
-    {L, L, L, L, L, L, L, L, L, L, L, E, L, L, L, X, E}, // (
-    {R, R, R, R, R, R, R, R, R, R, X, R, X, X, X, R, L}, // )
-    {L, L, L, L, X, X, X, X, X, X, L, R, X, X, L, R, L}, // ??
-    {R, R, R, R, X, X, X, X, X, X, X, R, X, X, R, R, X}, // !
-    {R, R, R, R, R, R, R, R, R, R, X, R, R, R, R, R, X}, // i
-    {L, L, L, L, L, L, L, L, L, L, L, X, L, L, L, X, L}, // $
-    {E, E, E, E, E, E, E, E, E, E, L, R, L, L, X, R, X}  // E
-};
-
-Rule_t rules[] = {
-    {TOKEN_EXPRESSION, 1, {TOKEN_INTEGER_LITERAL}},
-    {TOKEN_EXPRESSION, 1, {TOKEN_DECIMAL_LITERAL}},
-    {
-        TOKEN_EXPRESSION,
-        1,
-        {TOKEN_STRING_LITERAL},
-    },
-    {
-        TOKEN_EXPRESSION,
-        1,
-        {TOKEN_IDENTIFIER},
-    },
-    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_PLUS, TOKEN_EXPRESSION}},
-    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_MINUS, TOKEN_EXPRESSION}},
-    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_MULTIPLY, TOKEN_EXPRESSION}},
-    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_DIV, TOKEN_EXPRESSION}},
-    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_EQ, TOKEN_EXPRESSION}},
-    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_GT, TOKEN_EXPRESSION}},
-    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_GTE, TOKEN_EXPRESSION}},
-    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_LT, TOKEN_EXPRESSION}},
-    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_LTE, TOKEN_EXPRESSION}},
-    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_NE, TOKEN_EXPRESSION}},
-    {TOKEN_EXPRESSION, 3, {TOKEN_EXPRESSION, TOKEN_NULL_COALESCING, TOKEN_EXPRESSION}},
-    {TOKEN_EXPRESSION, 3, {TOKEN_LPAREN, TOKEN_EXPRESSION, TOKEN_RPAREN}},
-    {TOKEN_EXPRESSION, 5, {TOKEN_LPAREN, TOKEN_EXPRESSION, TOKEN_PLUS, TOKEN_EXPRESSION, TOKEN_RPAREN}},
-
+    //+ -  *  /  <  <= >  => == != (  ) ??  !  i  $
+    {R, R, L, L, R, R, R, R, R, R, L, R, R, L, L, R}, // +
+    {R, R, L, L, R, R, R, R, R, R, L, R, R, L, L, R}, // -
+    {R, R, R, R, R, R, R, R, R, R, L, R, R, L, L, R}, // *
+    {R, R, R, R, R, R, R, R, R, R, L, R, R, L, L, R}, // /
+    {L, L, L, L, X, X, X, X, X, X, L, R, X, X, L, R}, // <
+    {L, L, L, L, X, X, X, X, X, X, L, R, X, X, L, R}, // <=
+    {L, L, L, L, X, X, X, X, X, X, L, R, X, X, L, R}, // >
+    {L, L, L, L, X, X, X, X, X, X, L, R, X, X, L, R}, // >=
+    {L, L, L, L, X, X, X, X, X, X, L, R, X, X, L, R}, // ==
+    {L, L, L, L, X, X, X, X, X, X, L, R, X, X, L, R}, // !=
+    {L, L, L, L, L, L, L, L, L, L, L, E, L, L, L, X}, // (
+    {R, R, R, R, R, R, R, R, R, R, X, R, X, X, X, R}, // )
+    {L, L, L, L, X, X, X, X, X, X, L, R, X, X, L, R}, // ??
+    {R, R, R, R, X, X, X, X, X, X, X, R, X, X, R, R}, // !
+    {R, R, R, R, R, R, R, R, R, R, X, R, R, R, R, R}, // i
+    {L, L, L, L, L, L, L, L, L, L, L, X, L, L, L, X}, // $
 };
 
 int get_operator_index(TokenType op) {
@@ -118,7 +88,7 @@ Stack_token_t get_precedence(Stack_token_t stack_top, Stack_token_t input) {
   return (Stack_token_t){.precedence = precedence_table[stack_index][input_index]};
 }
 
-Stack_token_t evaluate_rule(Stack_token_t token, SymtableIdentifierType type) {
+Stack_token_t evaluate_simple_rule(Stack_token_t token, SymtableIdentifierType type) {
   switch (token.token.type) {
   case TOKEN_INTEGER_LITERAL:
     return (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = INT_TYPE, .nullable = false}};
@@ -140,6 +110,15 @@ Stack_token_t evaluate_rule(Stack_token_t token, SymtableIdentifierType type) {
 
     break;
   }
+  default:
+    break;
+  }
+  return (Stack_token_t){.token = {TOKEN_EOF, KW_UNKNOWN, "Eof", 3}, .precedence = None, .type = {.data_type = UNKNOWN_TYPE, .nullable = false}};
+}
+
+Stack_token_t evaluate_complex_rule(Stack_token_t token, SymtableIdentifierType type) {
+  switch (token.token.type) {
+
   case TOKEN_PLUS:
   case TOKEN_MINUS:
   case TOKEN_MULTIPLY:
@@ -331,49 +310,55 @@ int handle_reduce_case(void_stack_t *stack, Stack_token_t token, Stack_token_t p
 
     Stack_token_t *ruleProduct = malloc(sizeof(Stack_token_t));
 
-    *ruleProduct = evaluate_rule(firstToken, firstToken.type);
+    *ruleProduct = evaluate_simple_rule(firstToken, firstToken.type);
 
     // Not a simple reduction, find in the rest of the rules
     if (ruleProduct->token.type == TOKEN_EOF) {
       Stack_token_t secondToken = *(Stack_token_t *)stack_pop(stack);
 
-      Stack_token_t thirdToken = *(Stack_token_t *)stack_pop(stack);
+      // single operator in expresion (+) (-) ...
+      if (secondToken.token.type == TOKEN_STACK_BOTTOM) {
+        *ruleProduct = (Stack_token_t){.token = {TOKEN_EOF, KW_UNKNOWN, "eof", 1}, .precedence = None};
+      } else {
 
-      // E+E
-      if (firstToken.token.type == TOKEN_EXPRESSION && thirdToken.token.type == TOKEN_EXPRESSION) {
-        // Check nil type and ??
-        if (firstToken.token.keyword == KW_NIL && secondToken.token.type == TOKEN_NULL_COALESCING) {
-          *ruleProduct = (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = thirdToken.type};
+        Stack_token_t thirdToken = *(Stack_token_t *)stack_pop(stack);
 
-        } else if (thirdToken.token.keyword == KW_NIL && secondToken.token.type == TOKEN_NULL_COALESCING) {
-          *ruleProduct = (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = firstToken.type};
+        // E+E
+        if (firstToken.token.type == TOKEN_EXPRESSION && thirdToken.token.type == TOKEN_EXPRESSION) {
+          // Check nil type and ??
+          if (firstToken.token.keyword == KW_NIL && secondToken.token.type == TOKEN_NULL_COALESCING) {
+            *ruleProduct = (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = thirdToken.type};
 
-        } else if (firstToken.type.data_type != thirdToken.type.data_type) {
-          if ((firstToken.type.data_type == INT_TYPE && thirdToken.type.data_type == DOUBLE_TYPE) || (firstToken.type.data_type == DOUBLE_TYPE && thirdToken.type.data_type == INT_TYPE)) {
-            if (firstToken.token.type == TOKEN_PLUS || firstToken.token.type == TOKEN_MINUS || firstToken.token.type == TOKEN_DIV || firstToken.token.type == TOKEN_MULTIPLY) {
+          } else if (thirdToken.token.keyword == KW_NIL && secondToken.token.type == TOKEN_NULL_COALESCING) {
+            *ruleProduct = (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = firstToken.type};
 
-              *ruleProduct = evaluate_rule(secondToken, (SymtableIdentifierType){.data_type = DOUBLE_TYPE, .nullable = false});
+          } else if (firstToken.type.data_type != thirdToken.type.data_type) {
+            if ((firstToken.type.data_type == INT_TYPE && thirdToken.type.data_type == DOUBLE_TYPE) || (firstToken.type.data_type == DOUBLE_TYPE && thirdToken.type.data_type == INT_TYPE)) {
+              if (firstToken.token.type == TOKEN_PLUS || firstToken.token.type == TOKEN_MINUS || firstToken.token.type == TOKEN_DIV || firstToken.token.type == TOKEN_MULTIPLY) {
+
+                *ruleProduct = evaluate_complex_rule(secondToken, (SymtableIdentifierType){.data_type = DOUBLE_TYPE, .nullable = false});
+              }
+            } else {
+              exit_with_error(SEMANTIC_ERR, "Cannot use operator on different types");
             }
-          } else {
-            exit_with_error(SEMANTIC_ERR, "Cannot use operator on different types");
+          }
+          *ruleProduct = evaluate_complex_rule(secondToken, firstToken.type);
+          push_two_token_expresion(expresionStack, secondToken, firstToken, thirdToken);
+        }
+
+        //(E)
+        if (firstToken.token.type == TOKEN_RPAREN && thirdToken.token.type == TOKEN_LPAREN) {
+          if (secondToken.token.type == TOKEN_EXPRESSION) {
+            *ruleProduct = (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = INT_TYPE, .nullable = false}};
           }
         }
-        *ruleProduct = evaluate_rule(secondToken, firstToken.type);
-        push_two_token_expresion(expresionStack, secondToken, firstToken, thirdToken);
-      }
 
-      //(E)
-      if (firstToken.token.type == TOKEN_RPAREN && thirdToken.token.type == TOKEN_LPAREN) {
-        if (secondToken.token.type == TOKEN_EXPRESSION) {
-          *ruleProduct = (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = INT_TYPE, .nullable = false}};
+        // E!
+        if (firstToken.token.type == TOKEN_NOT && (secondToken.token.type == TOKEN_EXPRESSION)) {
+          *ruleProduct = (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = firstToken.type};
+          // Return third token
+          stack_push(stack, &thirdToken);
         }
-      }
-
-      // E!
-      if (firstToken.token.type == TOKEN_NOT && (secondToken.token.type == TOKEN_EXPRESSION)) {
-        *ruleProduct = (Stack_token_t){.token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = firstToken.type};
-        // Return third token
-        stack_push(stack, &thirdToken);
       }
     } else {
       // Push simple token to expresion stack
