@@ -327,7 +327,12 @@ int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t 
 
     Stack_token_t* ruleProduct = malloc(sizeof(Stack_token_t));
 
+
     *ruleProduct = evaluate_simple_rule(firstToken, firstToken.type, firstToken.token.val);
+
+    if (ruleProduct->type.data_type == DOUBLE_TYPE) {
+      *convert_int_to_double = true;
+    }
 
     // Not a simple reduction, find in the rest of the rules
     if (ruleProduct->token.type == TOKEN_EOF) {
@@ -388,6 +393,7 @@ int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t 
     }
     else {
       // Push simple token to expresion stack
+
       push_single_token_expresion(expresionStack, firstToken);
     }
 
