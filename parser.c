@@ -60,18 +60,21 @@ bool parser_init(Parser* parser) {
 }
 
 SymtableItem* search_var_in_tables(Parser* parser, char* key) {
-  SymtableItem* result = symtable_get(parser->global_table, key);
+  SymtableItem* result = NULL;
+
+  int i = parser->local_tables_stack->top_index;
+  while (i >= 0) {
+    result = symtable_get(parser->local_tables_stack->items[i], key);
+    if (result != NULL) {
+      break;
+    }
+    i--;
+  }
 
   if (result == NULL) {
-    int i = parser->local_tables_stack->top_index;
-    while (i >= 0) {
-      result = symtable_get(parser->local_tables_stack->items[i], key);
-      if (result != NULL) {
-        break;
-      }
-      i--;
-    }
+    result = symtable_get(parser->global_table, key);
   }
+
 
   return result;
 }
@@ -643,9 +646,8 @@ SymtableIdentifierType func_call(Parser* parser, char* func_id, void_stack_t* pa
   consume(parser, TOKEN_LPAREN, "Expected '('");
   int params_count = call_params(parser, item, item->data->function.params, params_stack);
 
-  stack_reverse(params_stack);
-
   if (strcmp(func_id, "write") == 0) {
+    stack_reverse(params_stack);
     str* params_count_str = str_new_int_const("");
     str_append_int(params_count_str, params_count);
     stack_push(params_stack, params_count_str);
@@ -747,7 +749,7 @@ bool if_statement(Parser* parser) {
       exit_with_error(SEMANTIC_ERR, "Variable %s has to be defined as constant", var_id);
     }
 
-    SymtableItem* item = symtable_add_symbol(local_table, var_id, SYMTABLE_VARIABLE, true, true, false);
+    SymtableItem* item = symtable_add_symbol(local_table, var_id, SYMTABLE_VARIABLE, true, true, true);
     item->data->variable.identifier_type = result->data->variable.identifier_type;
     item->data->variable.identifier_type.nullable = false;
 
@@ -899,10 +901,6 @@ bool statement(Parser* parser) {
       table = parser->local_tables_stack->items[parser->local_tables_stack->top_index];
     }
 
-    // Preemptively create
-    SymtableItem* item = symtable_add_symbol(table, variable_id, SYMTABLE_VARIABLE, false, false, false);
-    generator_var_create(parser->gen, str_new_from_cstr(variable_id));
-
     // Variable initialization
     if (match(parser, TOKEN_ASSIGN, false)) {
       var_initialized = true;
@@ -937,7 +935,7 @@ bool statement(Parser* parser) {
         SymtableIdentifierType expression_type = expression(parser, expr_stack, identifier_type);
 
         stack_reverse(expr_stack);
-        stack_push(expr_stack, str_new_from_cstr(variable_id));
+        stack_push(expr_stack, str_new_from_cstr("?"));
         stack_reverse(expr_stack);
 #endif
 
@@ -957,7 +955,7 @@ bool statement(Parser* parser) {
       }
     }
     else if (identifier_type.nullable) {
-      generator_var_set(parser->gen, str_new_from_cstr(variable_id), str_new_nil_const());
+      generator_var_set(parser->gen, str_new_from_cstr("?"), str_new_nil_const());
       var_initialized = true;
     }
     // Variable definition without initialization
@@ -968,17 +966,20 @@ bool statement(Parser* parser) {
       if (identifier_type.data_type == UNKNOWN_TYPE) {
         exit_with_error(SYNTAX_ERR, "");
       }
-      else {
-        item->data->variable.identifier_type = identifier_type;
-      }
     }
+
+
+    generator_var_create(parser->gen, str_new_from_cstr(variable_id));
+    generator_var_set(parser->gen, str_new_from_cstr(variable_id), str_new_from_cstr("?"));
+    SymtableItem* item = symtable_add_symbol(table, variable_id, SYMTABLE_VARIABLE, false, false, false);
 
     // Set variable data
     item->data->variable.constant = is_constant;
     item->data->variable.initialized = var_initialized;
 
+    item->data->variable.identifier_type = identifier_type;
+
     if (var_initialized) {
-      item->data->variable.identifier_type = identifier_type;
       if (identifier_type.nullable) {
         item->data->variable.initialized = true;
       }
