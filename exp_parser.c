@@ -263,7 +263,7 @@ Stack_token_t get_next_token_wrap(TokenType previousToken, Parser * parser) {
   }
 
   // Identifier check
-  if (peakToken->type == TOKEN_IDENTIFIER && previousToken == TOKEN_IDENTIFIER) {
+  if ((peakToken->type == TOKEN_IDENTIFIER || peakToken->type == TOKEN_INTEGER_LITERAL || peakToken->type == TOKEN_DECIMAL_LITERAL || peakToken->type == TOKEN_STRING_LITERAL) && (previousToken == TOKEN_IDENTIFIER || previousToken == TOKEN_INTEGER_LITERAL || previousToken == TOKEN_DECIMAL_LITERAL || previousToken == TOKEN_STRING_LITERAL)) {
     return (Stack_token_t) { .token = { TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1 }, .precedence = None };
   }
   // Peaked token is valid, consume it

@@ -51,5 +51,5 @@ test:
 	cd cmake-build && cmake ./..
 	cd cmake-build && make all && ctest --verbose $(CTESTFLAGS)
 
-havel_test: main
+havel: main
 	cd ./discord_tests && ./test.sh
