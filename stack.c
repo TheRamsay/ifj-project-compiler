@@ -170,19 +170,17 @@ void stack_reverse(void_stack_t* stack) {
 
 void stack_print(void_stack_t* stack) {
   for (int i = 0; i < stack->top_index + 1; i++) {
+    if (strstr(((str*)stack->items[i])->data, "float@") != NULL) {
+      float buffer;
 
-    fprintf(stderr, "%d. %s %p\n", i, ((Stack_token_t*)stack->items[i])->token.val, stack->items[i]);
-    //   if (strstr(((str*)stack->items[i])->data, "float@") != NULL) {
-    //     float buffer;
+      sscanf(((str*)stack->items[i])->data, "float@%a", &buffer);
 
-    //     sscanf(((str*)stack->items[i])->data, "float@%a", &buffer);
+      fprintf(stderr, "%d. %f\n", i, buffer);
+    }
+    else {
+      fprintf(stderr, "%d. %s\n", i, ((str*)stack->items[i])->data);
 
-    //     fprintf(stderr, "%d. %f\n", i, buffer);
-    //   }
-    //   else {
-    //     fprintf(stderr, "%d. %s\n", i, ((str*)stack->items[i])->data);
-
-    //   }
     }
   }
-  /* ************************************************************************** */
+}
+/* ************************************************************************** */
