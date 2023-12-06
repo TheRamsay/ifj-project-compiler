@@ -363,7 +363,7 @@ int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t 
         //(E)
         if (firstToken.token.type == TOKEN_RPAREN && thirdToken.token.type == TOKEN_LPAREN) {
           if (secondToken.token.type == TOKEN_EXPRESSION) {
-            *ruleProduct = (Stack_token_t){ .token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = {.data_type = INT_TYPE, .nullable = false} };
+            *ruleProduct = (Stack_token_t){ .token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = secondToken.type };
           }
         }
 
@@ -536,7 +536,7 @@ SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresio
 
   //Converts all ints to double, if there was a double in the expresion
   Stack_token_t* e = ((Stack_token_t*)stack_top(stack));
-  if (convert_int_to_double || (expectedType.data_type == DOUBLE_TYPE && e->type.data_type == INT_TYPE)) {
+  if (convert_int_to_double) {
     for (int i = 0; i < expresionStack->top_index + 1; i++) {
       str* el = expresionStack->items[i];
       if (strstr(el->data, "int@") != NULL) {
@@ -580,7 +580,7 @@ SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresio
     }
   }
 
-  stack_print(expresionStack);
+  // stack_print(expresionStack);
 
   SymtableIdentifierType* result = malloc(sizeof(SymtableIdentifierType));
   *result = ((Stack_token_t*)stack_top(stack))->type;
