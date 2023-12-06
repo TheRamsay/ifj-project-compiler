@@ -540,10 +540,12 @@ int get_next_token(Token* token) {
           }
           c = strtol(unicode, NULL, 16);
 
+          fprintf(stderr, "Unicode character: %d\n", (unsigned char)c);
+
           char_to_token(token, '\\');
-          char_to_token(token, (c / 100) + '0');
-          char_to_token(token, (c / 10) + '0');
-          char_to_token(token, (c % 10) + '0');
+          char_to_token(token, ((unsigned char)c / 100) + '0');
+          char_to_token(token, (((unsigned char)c % 100) / 10) + '0');
+          char_to_token(token, ((unsigned char)c % 10) + '0');
 
           c = fgetc(source_file);
           if (c != '}') {

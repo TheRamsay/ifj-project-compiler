@@ -88,7 +88,15 @@ RETURN
 
 LABEL ord$
   POPS GF@$? # instr
+
+  STRLEN GF@$?1 GF@$?
+  JUMPIFEQ ord$zero GF@$?1 int@0
+
   STRI2INT GF@$? GF@$? int@0
+RETURN
+
+  LABEL ord$zero
+  MOVE GF@$? int@0
 RETURN
 
 LABEL chr$
