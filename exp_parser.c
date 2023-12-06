@@ -416,12 +416,12 @@ void handle_equals_case(void_stack_t * stack, Stack_token_t token) {
 
 //Main function start
 #ifdef PARSER_TEST
-Token parse_expression(Token * testExpressionToParse, int inputSize, Parser * parser, void_stack_t * expresionStack)
+Token parse_expression(Token * testExpressionToParse, int inputSize, Parser * parser, void_stack_t * expresionStack){
   int expIndex = 0;
 #else
-SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresionStack, SymtableIdentifierType expectedType)
+SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresionStack, SymtableIdentifierType expectedType){
 #endif
-{
+
 
   //Create stack
   void_stack_t* stack = stack_new(8192);
