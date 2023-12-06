@@ -175,7 +175,12 @@ void push_single_token_expresion(void_stack_t* expresionStack, Stack_token_t tok
 void push_two_token_expresion(void_stack_t* expresionStack, Stack_token_t action, Stack_token_t token1, Stack_token_t token2) {
   switch (action.token.type) {
   case TOKEN_PLUS:
-    stack_push(expresionStack, str_new_from_cstr("+"));
+    if (token1.type.data_type == STRING_TYPE || token2.type.data_type == STRING_TYPE) {
+      stack_push(expresionStack, str_new_from_cstr("++"));
+    }
+    else {
+      stack_push(expresionStack, str_new_from_cstr("+"));
+    }
     break;
   case TOKEN_MINUS:
     stack_push(expresionStack, str_new_from_cstr("-"));
