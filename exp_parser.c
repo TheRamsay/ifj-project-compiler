@@ -581,31 +581,21 @@ SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresio
         str_dispose(el);
         expresionStack->items[i] = new_el;
 
-        // Little finticka to count variables (they start with 'GF' or 'LF' or 'TF' prefixes)
       }
-      else if (isalpha(el->data[0]) && strstr(el->data, "@") == NULL) {
-        variable_count++;
+      else {
+        SymtableItem *result = search_var_in_tables(parser, el->data);
+        if (result != NULL && result->data->variable.identifier_type.data_type != DOUBLE_TYPE) {
+          variable_count++;
+        }
       }
+    }
+
+    if (variable_count != 0) {
+      pexit_with_error(parser, SEMANTIC_ERR_EXPR, "Cannot implicitly convert non literals");
     }
   }
 
 
-  if (variable_count != 0) {
-    pexit_with_error(parser, SEMANTIC_ERR_EXPR, "Cannot implicitly convert non literals");
-  }
-  // fprintf(stderr, "variable_count: %d\n", variable_count);
-  // if (expectedType.data_type == UNKNOWN_TYPE) {
-  //   if (variable_count != 0) {
-  //     exit_with_error(SEMANTIC_ERR, "Cannot implicitly convert non literals");
-  //   }
-  // }
-  // else {
-  //   if (variable_count > 1) {
-  //     exit_with_error(SEMANTIC_ERR, "Cannot implicitly convert non literals");
-  //   }
-  // }
-
-  // stack_print(expresionStack);
 
   SymtableIdentifierType* result = malloc(sizeof(SymtableIdentifierType));
   *result = ((Stack_token_t*)stack_top(stack))->type;
