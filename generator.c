@@ -13,11 +13,9 @@
  /*                            Orchestration functions                         */
 
  /**
-  *
   * @brief Creates a new gen_t.
   *
   * @returns Pointer to the new gen_t. NULL if the allocation failed.
-  *
   */
 gen_t* generator_new() {
   gen_t* gen = malloc(sizeof(struct gen_t));
@@ -75,11 +73,9 @@ onfail:
 }
 
 /**
- *
  * @brief Prints the gen_t's output.
  *
  * @param gen The gen_t.
- *
  */
 void generator_print(gen_t* gen) {
   if (gen == NULL) {
@@ -90,11 +86,9 @@ void generator_print(gen_t* gen) {
 }
 
 /**
- *
  * @brief Disposes of the generator.
  *
  * @param gen_t The generator.
- *
  */
 void generator_dispose(gen_t* gen) {
   if (gen == NULL) {
@@ -130,6 +124,12 @@ void generator_dispose(gen_t* gen) {
 
 /*                            gen_t functions                             */
 /*                            Private functions                               */
+/**
+ * @brief Gets the label (label/varname path) for the specified depth.
+ *
+ * @param gen The generator.
+ * @param depth The depth. Can be -1 to get the full label.
+*/
 str* get_label(gen_t* gen, int depth) {
   if (gen->label_stack->top_index == -1 || depth == 0) {
     return str_new_from_cstr("$");
@@ -150,6 +150,11 @@ str* get_label(gen_t* gen, int depth) {
   return label;
 }
 
+/**
+ * @brief Gets the frame depending on the function depth.
+ *
+ * @param gen The generator.
+*/
 str* get_frame(gen_t* gen) {
   str* fr = str_new(4);
 
@@ -163,6 +168,12 @@ str* get_frame(gen_t* gen) {
   return fr;
 }
 
+/**
+ * @brief Gets the destination string depending on the function depth.
+ *
+ * @param gen The generator.
+ * @param is_var Whether the destination is for a variable declaration.
+*/
 str* get_dest(gen_t* gen, bool is_var) {
   if (is_var && gen->function_depth != 0) {
     return gen->out_str;
@@ -176,6 +187,12 @@ str* get_dest(gen_t* gen, bool is_var) {
   }
 }
 
+/**
+ * @brief Gets the depth of the closest definition of a variable.
+ *
+ * @param gen The generator.
+ * @param name The name of the variable.
+*/
 int get_closest_var_depth(gen_t* gen, str* name) {
   for (int i = gen->frame_stack->top_index; i != -1; i--) {
     Symtable* frame = gen->frame_stack->items[i];
@@ -188,6 +205,11 @@ int get_closest_var_depth(gen_t* gen, str* name) {
   return -1;
 }
 
+/**
+ * @brief Checks whether the term is a constant.
+ *
+ * @param name The term.
+*/
 bool is_constant(str* name) {
   for (size_t i = 0; i < strlen(name->data); i++) {
     if (name->data[i] == '@') {
@@ -198,6 +220,12 @@ bool is_constant(str* name) {
   return false;
 }
 
+/**
+ * @brief Gets the path to the closest definition of a variable.
+ *
+ * @param gen The generator.
+ * @param name The name of the variable.
+*/
 str* get_closest_var_path(gen_t* gen, str* name) {
   int depth = get_closest_var_depth(gen, name);
 
@@ -214,6 +242,12 @@ str* get_closest_var_path(gen_t* gen, str* name) {
   return path;
 }
 
+/**
+ * @brief Gets the path to a symbol.
+ *
+ * @param gen The generator.
+ * @param name The name of the symbol.
+*/
 str* get_symbol_path(gen_t* gen, str* name) {
   if (is_constant(name)) {
     return str_new_from_cstr(name->data);
@@ -223,6 +257,11 @@ str* get_symbol_path(gen_t* gen, str* name) {
   }
 }
 
+/**
+ * @brief Adds indentation to the destination string.
+ *
+ * @param gen The generator.
+*/
 void add_indentation(gen_t* gen) {
   str* dest = get_dest(gen, false);
 
@@ -231,6 +270,11 @@ void add_indentation(gen_t* gen) {
   }
 }
 
+/**
+ * @brief Gets the instruction for the specified symbol.
+ *
+ * @param symbol The symbol.
+*/
 str* get_instruction(str* symbol) {
   switch (symbol->data[0]) {
   case '+': {
@@ -273,6 +317,11 @@ str* get_instruction(str* symbol) {
   return NULL;
 }
 
+/**
+ * @brief Begins an if statement. Used by if_begin and if_begin_stack.
+ *
+ * @param gen The generator.
+*/
 void generator_if_begin_base(gen_t* gen) {
   stack_push(gen->frame_stack, symtable_new(128));
 
@@ -285,7 +334,12 @@ void generator_if_begin_base(gen_t* gen) {
   stack_push(gen->label_stack, new_sub_label);
 }
 
-
+/**
+ * @brief Handles one element of an expression stack.
+ *
+ * @param gen The generator.
+ * @param item The element.
+*/
 void generator_expr_element(gen_t* gen, str* item) {
   str* dest = get_dest(gen, false);
 
@@ -321,6 +375,11 @@ void generator_expr_element(gen_t* gen, str* item) {
   }
 }
 /*                            Public functions                                */
+/**
+ * @brief Generates the header of the output. It includes the required header and builtin functions.
+ *
+ * @param gen The generator.
+*/
 void generator_header(gen_t* gen) {
   if (gen == NULL) {
     return;
@@ -449,6 +508,11 @@ void generator_header(gen_t* gen) {
   str_append_cstr(gen->out_str, builtin);
 }
 
+/**
+ * @brief Generates the footer of the output. It appends the main function to the end of the output.
+ *
+ * @param gen The generator.
+*/
 void generator_footer(gen_t* gen) {
   if (gen == NULL) {
     return;
@@ -459,6 +523,12 @@ void generator_footer(gen_t* gen) {
   str_append_cstr(gen->out_str, "\nEXIT int@0\n");
 }
 
+/**
+ * @brief Creates a new variable and adds it to the current table.
+ *
+ * @param gen The generator.
+ * @param name The name of the variable.
+*/
 void generator_var_create(gen_t* gen, str* name) {
   str* fr = get_frame(gen);
   str* dest = get_dest(gen, true);
@@ -487,6 +557,13 @@ void generator_var_create(gen_t* gen, str* name) {
   str_append_cstr(dest, "\n");
 }
 
+/**
+ * @brief Sets the value of a variable.
+ *
+ * @param gen The generator.
+ * @param dest_symbol The name of the variable that will be sety.
+ * @param src_symbol The symbol the variable will be set to.
+*/
 void generator_var_set(gen_t* gen, str* dest_symbol, str* src_symbol) {
   str* dest = get_dest(gen, false);
 
@@ -501,6 +578,13 @@ void generator_var_set(gen_t* gen, str* dest_symbol, str* src_symbol) {
   str_append_cstr(dest, "\n");
 }
 
+/**
+ * @brief Begins a function.
+ *
+ * @param gen The generator.
+ * @param name The name of the function.
+ * @param args The arguments of the function.
+*/
 void generator_function_begin(gen_t* gen, str* name, void_stack_t* args) {
   stack_push(gen->label_stack, str_new_from_cstr(name->data));
   stack_push(gen->frame_stack, symtable_new(128));
@@ -539,6 +623,12 @@ void generator_function_begin(gen_t* gen, str* name, void_stack_t* args) {
   str_dispose(label);
 }
 
+/**
+ * @brief Returns from a function.
+ *
+ * @param gen The generator.
+ * @param return_symbol The symbol to return.
+*/
 void generator_function_return(gen_t* gen, str* return_symbol) {
   // In main
   if (gen->function_depth == 0) {
@@ -564,6 +654,12 @@ void generator_function_return(gen_t* gen, str* return_symbol) {
   str_append_cstr(gen->out_str, "RETURN\n\n");
 }
 
+/**
+ * @brief Returns from a function with an expression.
+ *
+ * @param gen The generator.
+ * @param expr_stack The expression stack.
+*/
 void generator_function_return_expr(gen_t* gen, void_stack_t* expr_stack) {
   if (expr_stack == NULL || expr_stack->top_index == -1) {
     if (gen->function_depth == 0) {
@@ -597,6 +693,12 @@ void generator_function_return_expr(gen_t* gen, void_stack_t* expr_stack) {
   str_append_cstr(gen->fn_str, "RETURN\n\n");
 }
 
+/**
+ * @brief Ends a function.
+ *
+ * @param gen The generator.
+ * @param return_symbol The symbol to return. Can be NULL for void functions.
+*/
 void generator_function_end(gen_t* gen, str* return_symbol) {
   str_dispose(stack_pop(gen->label_stack));
   symtable_dispose(stack_pop(gen->frame_stack));
@@ -611,6 +713,14 @@ void generator_function_end(gen_t* gen, str* return_symbol) {
   gen->indent_depth--;
 }
 
+/**
+ * @brief Calls a function.
+ *
+ * @param gen The generator.
+ * @param name The name of the function.
+ * @param args The arguments of the function.
+ * @param return_var The variable to store the return value in.
+*/
 void generator_function_call(gen_t* gen, str* name, void_stack_t* args, str* return_var) {
   str* dest = get_dest(gen, false);
 
@@ -660,6 +770,14 @@ void generator_function_call(gen_t* gen, str* name, void_stack_t* args, str* ret
   }
 }
 
+/**
+ * @brief Begins an if statement.
+ *
+ * @param gen The generator.
+ * @param left_symbol The left symbol.
+ * @param eq Whether the comparison is equal or not equal.
+ * @param right_symbol The right symbol.
+*/
 void generator_if_begin(gen_t* gen, str* left_symbol, bool eq, str* right_symbol) {
   generator_if_begin_base(gen);
 
@@ -690,6 +808,13 @@ void generator_if_begin(gen_t* gen, str* left_symbol, bool eq, str* right_symbol
   gen->indent_depth++;
 }
 
+/**
+ * @brief Begins an if statement with an expression stack.
+ *
+ * @param gen The generator.
+ * @param is_true Whether the result of the expression is true or false.
+ * @param expr_stack The expression stack.
+*/
 void generator_if_begin_stack(gen_t* gen, bool is_true, void_stack_t* expr_stack) {
   generator_if_begin_base(gen);
 
@@ -719,6 +844,11 @@ void generator_if_begin_stack(gen_t* gen, bool is_true, void_stack_t* expr_stack
   gen->indent_depth++;
 }
 
+/**
+ * @brief Begins an else statement.
+ *
+ * @param gen The generator.
+*/
 void generator_if_else(gen_t* gen) {
   str* if_label = get_label(gen, -1);
 
@@ -756,6 +886,11 @@ void generator_if_else(gen_t* gen) {
   gen->indent_depth++;
 }
 
+/**
+ * @brief Ends an if statement.
+ *
+ * @param gen The generator.
+*/
 void generator_if_end(gen_t* gen) {
   str* label = get_label(gen, -1);
   str* dest = get_dest(gen, false);
@@ -775,6 +910,12 @@ void generator_if_end(gen_t* gen) {
   stack_pop(gen->construct_count_stack);
 }
 
+/**
+ * @brief Evaluates an expression and stores it into the last item of the expression stack.
+ *
+ * @param gen The generator.
+ * @param expr_stack The expression stack.
+*/
 void generator_expr(gen_t* gen, void_stack_t* expr_stack) {
   if (expr_stack == NULL || expr_stack->top_index < 1) {
     return;
@@ -785,6 +926,8 @@ void generator_expr(gen_t* gen, void_stack_t* expr_stack) {
 
   while (!stack_is_empty(expr_stack)) {
     item = stack_pop(expr_stack);
+
+    // Last element, pop into it
     if (stack_is_empty(expr_stack)) {
       add_indentation(gen);
       str_append_cstr(dest, "POPS ");
@@ -800,6 +943,12 @@ void generator_expr(gen_t* gen, void_stack_t* expr_stack) {
   }
 }
 
+/**
+ * @brief Begins a while loop.
+ *
+ * @param gen The generator.
+ * @param expr_stack The expression stack.
+*/
 void generator_loop_start(gen_t* gen, void_stack_t* expr_stack) {
   stack_push(gen->frame_stack, symtable_new(128));
 
@@ -842,6 +991,11 @@ void generator_loop_start(gen_t* gen, void_stack_t* expr_stack) {
   str_append_cstr(dest, "# WHILE BODY START\n");
 }
 
+/**
+ * @brief Ends a while loop.
+ *
+ * @param gen The generator.
+*/
 void generator_loop_end(gen_t* gen) {
   symtable_dispose(stack_pop(gen->frame_stack));
   stack_pop(gen->construct_count_stack);
@@ -863,6 +1017,11 @@ void generator_loop_end(gen_t* gen) {
   str_dispose(stack_pop(gen->label_stack));
 }
 
+/**
+ * @brief Handles the coalesce (??) operator. Items have to already be pushed on the stack.
+ *
+ * @param gen The generator.
+*/
 void generator_coalesce(gen_t* gen) {
   str* dest = get_dest(gen, false);
 
@@ -912,6 +1071,11 @@ void generator_coalesce(gen_t* gen) {
   str_append_cstr(dest, "coalend$\n");
 }
 
+/**
+ * @brief Handles the concat (++) operator. Items have to already be pushed on the stack.
+ *
+ * @param gen The generator.
+*/
 void generator_concat(gen_t* gen) {
   str* dest = get_dest(gen, false);
 
