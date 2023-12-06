@@ -1166,6 +1166,8 @@ Token* parser_start(Parser* parser, Token* input_tokens)
 
   // Second pass
   parser->tokens = first_token;
+  parser->line = 1;
+  parser->col = 1;
 
   // prog rule
   parse(parser);
