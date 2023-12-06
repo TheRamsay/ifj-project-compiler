@@ -117,27 +117,3 @@ Token *parser_start(Parser *parser, Token *input_tokens);
 
 void scanner_consume(Parser *parser);
 #endif
-
-SymtableIdentifierType conversion_possible(Stack_token_t token1, Stack_token_t token2) {
-  SymtableIdentifierType converted_type = { .data_type = UNKNOWN_TYPE, .nullable = token1.type.nullable | token2.type.nullable };
-
-  if (is_arithmetic_operator(token1.token.type) && is_arithmetic_operator(token2.token.type)) {
-    converted_type.data_type = DOUBLE_TYPE;
-  }
-  else if (is_relational_operator(token1.token.type) && is_relational_operator(token2.token.type)) {
-    converted_type.data_type = BOOL_TYPE;
-  }
-  else {
-    return converted_type;
-  }
-
-  if (token1.type.data_type == INT_TYPE && token2.type.data_type == DOUBLE_TYPE) {
-    return converted_type;
-  }
-
-  if (token1.type.data_type == DOUBLE_TYPE && token2.type.data_type == INT_TYPE) {
-    return converted_type;
-  }
-
-  return (SymtableIdentifierType) { .data_type = UNKNOWN_TYPE, .nullable = false };
-}
