@@ -319,10 +319,7 @@ int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t 
   stack_reverse(expresionStack);
 
   while (precedence.precedence == R) {
-    // fprintf(stderr, "Top: %s\n", ((Stack_token_t*)stack->items[stack->top_index])->token.val);
-    // fprintf(stderr, "Second: %s\n", ((Stack_token_t*)stack->items[stack->top_index - 1])->token.val);
 
-    stack_print(stack);
     Stack_token_t firstToken = *(Stack_token_t*)stack_pop(stack);
 
     Stack_token_t* ruleProduct = malloc(sizeof(Stack_token_t));
@@ -384,6 +381,9 @@ int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t 
 
         // E!
         if (firstToken.token.type == TOKEN_IDENTIFIER_NOT_NULL && secondToken.token.type == TOKEN_EXPRESSION) {
+          if (!secondToken.type.nullable) {
+            pexit_with_error(parser, SEMANTIC_ERR_EXPR, "Cannot use operator ! on non nullable type.");
+          }
           secondToken.type.nullable = false;
           *ruleProduct = secondToken;
           // Return third token
@@ -419,7 +419,6 @@ int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t 
     }
     precedence = get_precedence(stackTop, token);
   }
-  stack_print(stack);
 
   stack_reverse(expresionStack);
 
@@ -705,6 +704,9 @@ SymtableIdentifierType conversion_possible(Stack_token_t token1, Stack_token_t t
   }
   else if (is_relational_operator(token_operator)) {
     converted_type.data_type = BOOL_TYPE;
+  }
+  else if (token_operator.token.type == TOKEN_NULL_COALESCING) {
+    converted_type.data_type = token2.type;
   }
   else {
     return converted_type;
