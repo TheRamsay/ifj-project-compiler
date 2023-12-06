@@ -298,29 +298,114 @@ void generator_header(gen_t* gen) {
   str_append_cstr(gen->out_str, "DEFVAR GF@$?2\n");
   str_append_cstr(gen->out_str, "JUMP main\n\n");
 
-  FILE* builtin = fopen("../builtin.ifj23", "r");
+  const char* builtin =
+    "LABEL readString$\n"
+    "  READ GF@$? string\n"
+    "RETURN\n"
+    "\n"
+    "LABEL readInt$\n"
+    "  READ GF@$? int\n"
+    "RETURN\n"
+    "\n"
+    "LABEL readDouble$\n"
+    "  READ GF@$? float\n"
+    "RETURN\n"
+    "\n"
+    "LABEL write$\n"
+    "  DEFVAR TF@argcount\n"
+    "  POPS TF@argcount\n"
+    "  DEFVAR TF@curarg\n"
+    "\n"
+    "  LABEL write$loop\n"
+    "    JUMPIFEQ write$end TF@argcount int@0\n"
+    "    POPS TF@curarg\n"
+    "    WRITE TF@curarg\n"
+    "    SUB TF@argcount TF@argcount int@1\n"
+    "    JUMP write$loop\n"
+    "\n"
+    "  LABEL write$end\n"
+    "RETURN\n"
+    "\n"
+    "LABEL Int2Double$\n"
+    "  POPS GF@$?\n"
+    "  INT2FLOAT GF@$? GF@$?\n"
+    "RETURN\n"
+    "\n"
+    "LABEL Double2Int$\n"
+    "  POPS GF@$?\n"
+    "  FLOAT2INT GF@$? GF@$?\n"
+    "RETURN\n"
+    "\n"
+    "LABEL length$\n"
+    "  POPS GF@$?\n"
+    "  STRLEN GF@$? GF@$?\n"
+    "RETURN\n"
+    "\n"
+    "LABEL substring$\n"
+    "  DEFVAR TF@instr\n"
+    "  POPS TF@instr\n"
+    "  DEFVAR TF@startsAt\n"
+    "  POPS TF@startsAt\n"
+    "  DEFVAR TF@endsBefore\n"
+    "  POPS TF@endsBefore\n"
+    "\n"
+    "  # startsAt < 0\n"
+    "  LT GF@$? TF@startsAt int@0\n"
+    "  JUMPIFEQ substring$error GF@$? bool@true\n"
+    "\n"
+    "  # endsBefore < 0\n"
+    "  LT GF@$? TF@endsBefore int@0\n"
+    "  JUMPIFEQ substring$error GF@$? bool@true\n"
+    "\n"
+    "  # startsAt >= length(instr)\n"
+    "  STRLEN GF@$? TF@instr\n"
+    "  SUB GF@$? GF@$? int@1\n"
+    "  GT GF@$? TF@startsAt GF@$?\n"
+    "  JUMPIFEQ substring$error GF@$? bool@true\n"
+    "\n"
+    "  # endsBefore > length(instr)\n"
+    "  STRLEN GF@$? TF@instr\n"
+    "  GT GF@$? TF@endsBefore GF@$?\n"
+    "  JUMPIFEQ substring$error GF@$? bool@true\n"
+    "\n"
+    "  DEFVAR TF@outstr\n"
+    "  MOVE TF@outstr string@\n"
+    "  DEFVAR TF@curchar\n"
+    "\n"
+    "  LABEL substring$loop\n"
+    "    GETCHAR TF@curchar TF@instr TF@startsAt\n"
+    "    CONCAT TF@outstr TF@outstr TF@curchar\n"
+    "    ADD TF@startsAt TF@startsAt int@1\n"
+    "    JUMPIFEQ substring$end TF@startsAt TF@endsBefore\n"
+    "    JUMP substring$loop\n"
+    "\n"
+    "  LABEL substring$end\n"
+    "  MOVE GF@$? TF@outstr\n"
+    "RETURN\n"
+    "\n"
+    "  LABEL substring$error\n"
+    "  MOVE GF@$? nil@nil\n"
+    "RETURN\n"
+    "\n"
+    "LABEL ord$\n"
+    "  POPS GF@$? # instr\n"
+    "\n"
+    "  STRLEN GF@$?1 GF@$?\n"
+    "  JUMPIFEQ ord$zero GF@$?1 int@0\n"
+    "\n"
+    "  STRI2INT GF@$? GF@$? int@0\n"
+    "RETURN\n"
+    "\n"
+    "  LABEL ord$zero\n"
+    "  MOVE GF@$? int@0\n"
+    "RETURN\n"
+    "\n"
+    "LABEL chr$\n"
+    "  POPS GF@$? # int\n"
+    "  INT2CHAR GF@$? GF@$?\n"
+    "RETURN";
 
-  if (builtin == NULL) {
-    builtin = fopen("./builtin.ifj23", "r");
-  }
-
-  if (builtin == NULL) {
-    fprintf(stderr, "The file with builtin functions could not be opened.\n");
-    return;
-  }
-
-  char* ch = malloc(sizeof(char) * 2);
-  ch[1] = '\0';
-
-  do {
-    ch[0] = fgetc(builtin);
-    if (ch[0] == EOF) {
-      break;
-    }
-    str_append_cstr(gen->out_str, ch);
-  } while (true);
-
-  free(ch);
+  str_append_cstr(gen->out_str, builtin);
 }
 
 void generator_footer(gen_t* gen) {

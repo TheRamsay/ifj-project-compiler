@@ -34,4 +34,5 @@ SymtableIdentifierType parse_expression(Parser* parser, void_stack_t* expresionS
 void y_eet(void_stack_t* stack);
 
 SymtableIdentifierType conversion_possible(Stack_token_t token1, Stack_token_t token_operator, Stack_token_t token2);
+bool types_match(Stack_token_t type1, Stack_token_t token_operator , Stack_token_t type2);
 #endif // _EXP_PARSER_H
