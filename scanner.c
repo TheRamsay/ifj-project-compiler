@@ -427,34 +427,51 @@ int get_next_token(Token* token) {
 
     if (inString) {   // String literal
       if (c == '"') { // End of string literal
+        // Empty string
+        if (token->val == NULL) {
+          token->val = (char*)malloc(1 * sizeof(char));
+          token->val[0] = '\0';
+        }
+
+
         k = fgetc(source_file);
         j = fgetc(source_file);
+
         if (k == '"' && j == '"') {
           multiline = false;
+          multiline_string = false;
+
+          bool is_on_new_line_flag = false;
 
           // Last char is a newline
           if (token->val[strlen(token->val) - 4] == '\\') {
-            if (token->val[strlen(token->val) - 3] == '\0') {
-              if (token->val[strlen(token->val) - 2] == '\1') {
-                if (token->val[strlen(token->val) - 1] == '\0') {
+            if (token->val[strlen(token->val) - 3] == '0') {
+              if (token->val[strlen(token->val) - 2] == '1') {
+                if (token->val[strlen(token->val) - 1] == '0') {
                   token->val[strlen(token->val) - 4] = '\0';
+                  is_on_new_line_flag = true;
                 }
               }
             }
+          }
+
+          if (!is_on_new_line_flag) {
+            fprintf(stderr, "Multiline string doesn't end on a new line\n");
+            exit(1);
           }
         }
         else {
           ungetc(j, source_file);
           ungetc(k, source_file);
         }
+
+        if (multiline_string) {
+          char_to_token(token, '"');
+          continue;
+        }
+
         inString = false;
         token->type = TOKEN_STRING_LITERAL;
-
-        // Empty string
-        if (token->val == NULL) {
-          token->val = (char*)malloc(1 * sizeof(char));
-          token->val[0] = '\0';
-        }
 
         break;
       }
