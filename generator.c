@@ -916,8 +916,8 @@ void generator_concat(gen_t* gen) {
   str_append_cstr(dest, "POPS GF@$?2\n");
 
   add_indentation(gen);
-  str_append_cstr(dest, "CONCAT GF@$?1 GF@$?1 GF@$?2\n");
+  str_append_cstr(dest, "CONCAT GF@$?1 GF@$?2 GF@$?1\n");
 
   add_indentation(gen);
-  str_append_cstr(dest, "PUSHS GF@$?2\n");
+  str_append_cstr(dest, "PUSHS GF@$?1\n");
 }
