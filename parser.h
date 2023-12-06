@@ -5,7 +5,6 @@
 #include <stdlib.h>
 
 #include "builtin.h"
-#include "error.h"
 #include "generator.h"
 #include "scanner.h"
 #include "symtable.h"
@@ -30,10 +29,13 @@ typedef struct {
   bool buffer_active;
   bool in_function;
   bool in_scope;
+  bool after_return;
   char *current_function_name;
   DLL_Token *tokens;
   bool semantic_enabled;
   gen_t *gen;
+  int line;
+  int col;
 
 #ifdef PARSER_TEST
   Token *input_tokens;
@@ -96,7 +98,7 @@ void parse(Parser *parser);
 SymtableIdentifierType expression(Parser *parser,
                                   SymtableIdentifierType return_type);
 #else
-SymtableIdentifierType expression(Parser *parser, void_stack_t *expr_stack);
+SymtableIdentifierType expression(Parser *parser, void_stack_t *expr_stack, SymtableIdentifierType return_type);
 #endif
 
 bool return_t(Parser *parser);

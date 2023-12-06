@@ -225,8 +225,8 @@ TEST_F(ParserTest, LetVariableDeclarationWithoutInit) {
   };
 
   EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_INFER),
-              "Semantic error.*");
+              ::testing::ExitedWithCode(SYNTAX_ERR),
+              "Syntax error.*");
 }
 
 TEST_F(ParserTest, VarVariableDeclarationWithoutInit) {
@@ -237,8 +237,8 @@ TEST_F(ParserTest, VarVariableDeclarationWithoutInit) {
   };
 
   EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_INFER),
-              "Semantic error.*");
+              ::testing::ExitedWithCode(SYNTAX_ERR),
+              "Syntax error.*");
 }
 
 TEST_F(ParserTest, FuncDeclaration) {
@@ -756,6 +756,21 @@ TEST_F(ParserTest, SimpleIf) {
       {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},    {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
       {TOKEN_KEYWORD, KW_ELSE, "else", 4},   {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
       {TOKEN_COMMA, KW_UNKNOWN, ",", 1},     {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
+      {TOKEN_EOF, KW_UNKNOWN, "", 0},
+  };
+
+  check_tokens(tokens, parser_start(&parser_, tokens.data()));
+}
+TEST_F(ParserTest, SimpleIf2) {
+  std::vector<Token> tokens{
+      {TOKEN_KEYWORD, KW_IF, "if", 2, 0, 1},
+      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
+      {TOKEN_KEYWORD, KW_ELSE, "else", 4, 0, 1},
+      {TOKEN_LBRACE, KW_UNKNOWN, "{", 1, 0, 1},
+      {TOKEN_COMMA, KW_UNKNOWN, ",", 1},
+      {TOKEN_RBRACE, KW_UNKNOWN, "}", 1},
       {TOKEN_EOF, KW_UNKNOWN, "", 0},
   };
 

@@ -4,6 +4,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "parser.h"
 
 typedef enum {
   NO_ERROR,
@@ -19,6 +20,7 @@ typedef enum {
   INTERNAL_ERROR
 } ReturnCode;
 
+void pexit_with_error(Parser *parser, ReturnCode return_code, char *error_mesage_fmt, ...);
 void exit_with_error(ReturnCode return_code, char *error_mesage_fmt, ...);
 void exit_custom(ReturnCode return_code, const char *fmt, ...);
 

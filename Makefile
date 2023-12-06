@@ -16,6 +16,7 @@ OBJS := $(SRCS:%.c=%.o)
 # Get corresponding .d files
 DEPS := $(SRCS:%.c=%.d)
 
+
 # These will run every time (not just when the files are newer)
 .PHONY: run clean zip test pdf examples
 
@@ -49,3 +50,6 @@ test:
 	mkdir -p cmake-build
 	cd cmake-build && cmake ./..
 	cd cmake-build && make all && ctest --verbose $(CTESTFLAGS)
+
+havel: main
+	cd ./discord_tests && ./test.sh

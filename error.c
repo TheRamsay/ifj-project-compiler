@@ -16,6 +16,22 @@ const char *error_msgs[] = {
     [SEMANTIC_ERR] = "Semantic error",
     [INTERNAL_ERROR] = "Internal error: memory allocation error"};
 
+void pexit_with_error(Parser *parser, ReturnCode return_code, char *error_mesage_fmt, ...) {
+  if (error_mesage_fmt == NULL) {
+    fprintf(stderr, "%s\n", error_msgs[return_code]);
+  } else {
+    va_list args;
+    va_start(args, error_mesage_fmt);
+    fprintf(stderr, "%s (Error at line %d column %d. Message: ", error_msgs[return_code], parser->line, parser->col );
+    vfprintf(stderr, error_mesage_fmt, args);
+    fprintf(stderr, ")\n");
+    va_end(args);
+  }
+
+  exit(return_code);
+}
+
+
 void exit_with_error(ReturnCode return_code, char *error_mesage_fmt, ...) {
   if (error_mesage_fmt == NULL) {
     fprintf(stderr, "%s\n", error_msgs[return_code]);

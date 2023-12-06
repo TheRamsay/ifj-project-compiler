@@ -9,22 +9,22 @@
 #include <stdlib.h>
 #include <string.h>
 
-/*                            Private functions                               */
-/**
- *
- * @brief Resizes the string to the given size.
- *
- * @param s The string.
- * @param new_size The new size of the string.
- * @returns True if the operation was successful, false otherwise.
- *
- */
-bool str_resize(str *s, unsigned int new_size) {
+ /*                            Private functions                               */
+ /**
+  *
+  * @brief Resizes the string to the given size.
+  *
+  * @param s The string.
+  * @param new_size The new size of the string.
+  * @returns True if the operation was successful, false otherwise.
+  *
+  */
+bool str_resize(str* s, unsigned int new_size) {
   if (s == NULL || new_size <= s->alloc_size) {
     return NULL;
   }
 
-  char *data_prev = s->data;
+  char* data_prev = s->data;
 
   s->data = realloc(s->data, new_size);
 
@@ -46,12 +46,12 @@ bool str_resize(str *s, unsigned int new_size) {
  * @returns Pointer to the new string. NULL if the allocation failed.
  *
  */
-str *str_new(unsigned int length) {
+str* str_new(unsigned int length) {
   if (length == 0) {
     return NULL;
   }
 
-  str *str = malloc(sizeof(struct str));
+  str* str = malloc(sizeof(struct str));
 
   if (str == NULL) {
     return NULL;
@@ -78,12 +78,12 @@ str *str_new(unsigned int length) {
  * @returns Pointer to the new string.
  *
  */
-str *str_new_from_str(str *s) {
+str* str_new_from_str(str* s) {
   if (s == NULL) {
     return NULL;
   }
 
-  str *str = str_new(s->alloc_size);
+  str* str = str_new(s->alloc_size);
 
   if (str == NULL) {
     str_dispose(str);
@@ -103,12 +103,12 @@ str *str_new_from_str(str *s) {
  * @returns Pointer to the new string.
  *
  */
-str *str_new_from_cstr(const char *s) {
+str* str_new_from_cstr(const char* s) {
   if (s == NULL) {
     return NULL;
   }
 
-  str *str = str_new(strlen(s) + 1);
+  str* str = str_new(strlen(s) + 1);
 
   if (str == NULL) {
     str_dispose(str);
@@ -129,8 +129,8 @@ str *str_new_from_cstr(const char *s) {
  * @returns Pointer to the new string.
  *
  */
-str *str_new_int_const(const char *s) {
-  str *str = str_new_from_cstr("int@");
+str* str_new_int_const(const char* s) {
+  str* str = str_new_from_cstr("int@");
   str_append_cstr(str, s);
 
   return str;
@@ -145,30 +145,29 @@ str *str_new_int_const(const char *s) {
  * @returns Pointer to the new string.
  *
  */
-str *str_new_float_const(const char *s) {
-  str *str = str_new(128);
-
-  str_append_cstr(str, "float@");
-  str_append_cstr(str, s);
+str* str_new_float_const(const char* s) {
+  str* fltstr = str_new(128);
 
   float flt;
   sscanf(s, "%a", &flt);
-  snprintf(str->data, str->alloc_size, "%a", flt);
+  snprintf(fltstr->data, fltstr->alloc_size, "%a", flt);
+
+  str* str = str_new_from_cstr("float@");
+  str_append_str_dispose(str, &fltstr);
 
   return str;
 }
 
 /**
  *
- * @brief Creates a string containing a string constant in the appropriate
- * format.
+ * @brief Creates a string containing a string constant in the appropriate format.
  *
  * @param s C string containing a string.
  * @returns Pointer to the new string.
  *
  */
-str *str_new_string_const(const char *s) {
-  str *str = str_new_from_cstr("string@");
+str* str_new_string_const(const char* s) {
+  str* str = str_new_from_cstr("string@");
   str_append_cstr(str, s);
 
   return str;
@@ -181,7 +180,7 @@ str *str_new_string_const(const char *s) {
  * @returns Pointer to the new string.
  *
  */
-str *str_new_nil_const() { return str_new_from_cstr("nil@nil"); }
+str* str_new_nil_const() { return str_new_from_cstr("nil@nil"); }
 
 /**
  * @brief Converts the string to a new C string.
@@ -189,12 +188,12 @@ str *str_new_nil_const() { return str_new_from_cstr("nil@nil"); }
  * @param s The string.
  * @returns Pointer to the new C string.
  */
-char *str_to_cstr(str *s) {
+char* str_to_cstr(str* s) {
   if (s == NULL) {
     return NULL;
   }
 
-  char *cstr = malloc(sizeof(char) * strlen(s->data) + 1);
+  char* cstr = malloc(sizeof(char) * strlen(s->data) + 1);
 
   if (cstr == NULL) {
     return NULL;
@@ -214,7 +213,7 @@ char *str_to_cstr(str *s) {
  * @returns True if the operation was successful, false otherwise.
  *
  */
-bool str_set_cstr(str *s, const char *c) {
+bool str_set_cstr(str* s, const char* c) {
   if (s == NULL || c == NULL) {
     return false;
   }
@@ -239,7 +238,7 @@ bool str_set_cstr(str *s, const char *c) {
  * @returns True if the operation was successful, false otherwise.
  *
  */
-bool str_set_str(str *s, str *c) {
+bool str_set_str(str* s, str* c) {
   if (s == NULL || c == NULL) {
     return false;
   }
@@ -264,10 +263,11 @@ bool str_set_str(str *s, str *c) {
  * @returns True if the operation was successful, false otherwise.
  *
  */
-bool str_append_cstr(str *s, const char *c) {
+bool str_append_cstr(str* s, const char* c) {
   if (s == NULL) {
     return false;
-  } else if (c == NULL) {
+  }
+  else if (c == NULL) {
     return s;
   }
 
@@ -291,7 +291,7 @@ bool str_append_cstr(str *s, const char *c) {
  * @returns True if the operation was successful, false otherwise.
  *
  */
-bool str_append_str(str *s, str *c) {
+bool str_append_str(str* s, str* c) {
   if (s == NULL || c == NULL) {
     return false;
   }
@@ -316,12 +316,12 @@ bool str_append_str(str *s, str *c) {
  * @returns True if the operation was successful, false otherwise.
  *
  */
-bool str_append_int(str *s, int c) {
+bool str_append_int(str* s, int c) {
   if (s == NULL) {
     return false;
   }
 
-  str *str = str_new(12);
+  str* str = str_new(12);
   sprintf(str->data, "%d", c);
   str_append_str_dispose(s, &str);
 
@@ -337,7 +337,7 @@ bool str_append_int(str *s, int c) {
  * @returns True if the operation was successful, false otherwise.
  *
  */
-bool str_append_cstr_dispose(str *s, char **c) {
+bool str_append_cstr_dispose(str* s, char** c) {
   if (s == NULL || c == NULL || *c == NULL) {
     return false;
   }
@@ -361,7 +361,7 @@ bool str_append_cstr_dispose(str *s, char **c) {
  * @returns True if the operation was successful, false otherwise.
  *
  */
-bool str_append_str_dispose(str *s, str **c) {
+bool str_append_str_dispose(str* s, str** c) {
   if (s == NULL || c == NULL || *c == NULL) {
     return false;
   }
@@ -383,7 +383,7 @@ bool str_append_str_dispose(str *s, str **c) {
  * @param s The string.
  *
  */
-void str_dispose(str *s) {
+void str_dispose(str* s) {
   if (s == NULL) {
     return;
   }

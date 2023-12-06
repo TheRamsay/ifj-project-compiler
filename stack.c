@@ -7,11 +7,16 @@
 
 #include <stdlib.h>
 
-/*                            Private functions                               */
-void stack_resize(void_stack_t *stack) {
+#include "str.h"
+#include "exp_parser.h"
+
+#include <string.h>
+
+ /*                            Private functions                               */
+void stack_resize(void_stack_t* stack) {
   stack->size *= 2;
 
-  void **new_items = realloc(stack->items, stack->size * sizeof(void *));
+  void** new_items = realloc(stack->items, stack->size * sizeof(void*));
 
   if (new_items == NULL) {
     stack_error(stack, STACK_SERR_RESIZE);
@@ -29,7 +34,7 @@ void stack_resize(void_stack_t *stack) {
  * @param stack Pointer to the stack structure
  * @param error_code Internal error identifier
  */
-void stack_error(void_stack_t *stack, int error_code) {
+void stack_error(void_stack_t* stack, int error_code) {
   if (error_code <= 0) {
     error_code = 0;
   }
@@ -41,7 +46,7 @@ void stack_error(void_stack_t *stack, int error_code) {
  *
  * @param stack Pointer to the stack structure
  */
-void stack_clear_error(void_stack_t *stack) { stack->error_code = 0; }
+void stack_clear_error(void_stack_t* stack) { stack->error_code = 0; }
 
 /**
  * Provede inicializaci zásobníku - nastaví vrchol zásobníku.
@@ -51,14 +56,14 @@ void stack_clear_error(void_stack_t *stack) { stack->error_code = 0; }
  *
  * @param stack Ukazatel na strukturu zásobníku
  */
-void_stack_t *stack_new(int size) {
-  void_stack_t *stack = malloc(sizeof(void_stack_t));
+void_stack_t* stack_new(int size) {
+  void_stack_t* stack = malloc(sizeof(void_stack_t));
 
   if (stack == NULL) {
     return NULL;
   }
 
-  stack->items = malloc(size * sizeof(void *));
+  stack->items = malloc(size * sizeof(void*));
   stack->error_code = 0;
   stack->size = size;
   stack->top_index = -1;
@@ -73,9 +78,7 @@ void_stack_t *stack_new(int size) {
  *
  * @returns true v případě, že je zásobník prázdný, jinak false
  */
-bool stack_is_empty(const void_stack_t *stack) {
-  return stack->top_index == -1;
-}
+bool stack_is_empty(const void_stack_t* stack) { return stack->top_index == -1; }
 
 /**
  * Vrací nenulovou hodnotu, je-li zásobník plný, jinak vrací hodnotu 0.
@@ -84,9 +87,7 @@ bool stack_is_empty(const void_stack_t *stack) {
  *
  * @returns true v případě, že je zásobník plný, jinak false
  */
-bool stack_is_full(const void_stack_t *stack) {
-  return stack->top_index == stack->size - 1;
-}
+bool stack_is_full(const void_stack_t* stack) { return stack->top_index == stack->size - 1; }
 
 /**
  * Vrací znak z vrcholu zásobníku prostřednictvím parametru dataPtr.
@@ -96,7 +97,7 @@ bool stack_is_full(const void_stack_t *stack) {
  *
  * @param stack Ukazatel na inicializovanou strukturu zásobníku
  */
-void *stack_top(void_stack_t *stack) {
+void* stack_top(void_stack_t* stack) {
   if (stack_is_empty(stack)) {
     stack_error(stack, STACK_SERR_TOP);
     return 0;
@@ -110,7 +111,7 @@ void *stack_top(void_stack_t *stack) {
  *
  * @param stack Ukazatel na inicializovanou strukturu zásobníku
  */
-void *stack_pop(void_stack_t *stack) {
+void* stack_pop(void_stack_t* stack) {
   if (stack_is_empty(stack)) {
     stack_error(stack, STACK_SERR_POP);
     return 0;
@@ -126,7 +127,7 @@ void *stack_pop(void_stack_t *stack) {
  * @param stack Ukazatel na inicializovanou strukturu zásobníku
  * @param data Znak k vložení
  */
-void stack_push(void_stack_t *stack, void *data) {
+void stack_push(void_stack_t* stack, void* data) {
   if (stack_is_full(stack)) {
     stack_resize(stack);
     if (stack->error_code != 0) {
@@ -143,7 +144,7 @@ void stack_push(void_stack_t *stack, void *data) {
  *
  * @param stack Ukazatel na inicializovanou strukturu zásobníku
  */
-void stack_dispose(void_stack_t *stack) {
+void stack_dispose(void_stack_t* stack) {
   if (stack == NULL) {
     return;
   }
@@ -156,16 +157,30 @@ void stack_dispose(void_stack_t *stack) {
   stack->size = 0;
   stack->top_index = -1;
 }
-void stack_reverse(void_stack_t **stack) {
-  void_stack_t *stack_reversed = stack_new((*stack)->size);
 
-  while (!stack_is_empty(*stack)) {
-    stack_push(stack_reversed, stack_pop(*stack));
+void stack_reverse(void_stack_t* stack) {
+  void_stack_t* stack_reversed = stack_new((stack)->size);
+
+  while (!stack_is_empty(stack)) {
+    stack_push(stack_reversed, stack_pop(stack));
   }
 
-  void_stack_t *old_stack = *stack;
+  *stack = *stack_reversed;
+}
 
-  *stack = stack_reversed;
-  stack_dispose(old_stack);
+void stack_print(void_stack_t* stack) {
+  for (int i = 0; i < stack->top_index + 1; i++) {
+    if (strstr(((str*)stack->items[i])->data, "float@") != NULL) {
+      float buffer;
+
+      sscanf(((str*)stack->items[i])->data, "float@%a", &buffer);
+
+      fprintf(stderr, "%d. %f\n", i, buffer);
+    }
+    else {
+      fprintf(stderr, "%d. %s\n", i, ((str*)stack->items[i])->data);
+
+    }
+  }
 }
 /* ************************************************************************** */
