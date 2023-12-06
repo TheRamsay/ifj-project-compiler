@@ -419,7 +419,8 @@ int get_next_token(Token* token) {
         break;
       }
       ungetc(c, source_file);              // Put the last character back into the source file
-      if (token->type != TOKEN_EXPONENT) { // If the token type is not exponent
+
+      if (token->type != TOKEN_DECIMAL_LITERAL) { // If the token type is not exponent
         token->type = TOKEN_INTEGER_LITERAL;
       }
 
