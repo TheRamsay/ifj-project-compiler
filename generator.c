@@ -285,6 +285,41 @@ void generator_if_begin_base(gen_t* gen) {
   stack_push(gen->label_stack, new_sub_label);
 }
 
+
+void generator_expr_element(gen_t* gen, str* item) {
+  str* dest = get_dest(gen, false);
+
+  if (strcmp(item->data, "??") == 0) {
+    generator_coalesce(gen);
+    return;
+  }
+
+  if (strcmp(item->data, "++") == 0) {
+    generator_concat(gen);
+    return;
+  }
+
+  add_indentation(gen);
+
+  str* instruction = get_instruction(item);
+  if (instruction != NULL) {
+    str_append_str_dispose(dest, &instruction);
+  }
+  else {
+    // Handle special pop case
+    if (item->alloc_size > 3 && item->data[2] == '-') {
+      str_append_cstr(dest, "POPS ");
+      item->data[2] = '\0';
+    }
+    else {
+      str_append_cstr(dest, "PUSHS ");
+    }
+
+    str* path = get_symbol_path(gen, item);
+    str_append_str_dispose(dest, &path);
+    str_append_cstr(dest, "\n");
+  }
+}
 /*                            Public functions                                */
 void generator_header(gen_t* gen) {
   if (gen == NULL) {
@@ -539,34 +574,7 @@ void generator_function_return_expr(gen_t* gen, void_stack_t* expr_stack) {
 
   while (!stack_is_empty(expr_stack)) {
     item = stack_pop(expr_stack);
-
-    if (strcmp(item->data, "??") == 0) {
-      generator_coalesce(gen);
-      str_dispose(item);
-      continue;
-    }
-
-    add_indentation(gen);
-
-    str* instruction = get_instruction(item);
-    if (instruction != NULL) {
-      str_append_str_dispose(gen->fn_str, &instruction);
-    }
-    else {
-      // Handle special pop case
-      if (item->alloc_size > 3 && item->data[2] == '-') {
-        str_append_cstr(gen->fn_str, "POPS ");
-        item->data[2] = '\0';
-      }
-      else {
-        str_append_cstr(gen->fn_str, "PUSHS ");
-      }
-
-      str* path = get_symbol_path(gen, item);
-      str_append_str_dispose(gen->fn_str, &path);
-      str_append_cstr(gen->fn_str, "\n");
-    }
-
+    generator_expr_element(gen, item);
     str_dispose(item);
   }
 
@@ -684,34 +692,7 @@ void generator_if_begin_stack(gen_t* gen, bool is_true, void_stack_t* expr_stack
 
   while (!stack_is_empty(expr_stack)) {
     item = stack_pop(expr_stack);
-
-    if (strcmp(item->data, "??") == 0) {
-      generator_coalesce(gen);
-      str_dispose(item);
-      continue;
-    }
-
-    add_indentation(gen);
-
-    str* instruction = get_instruction(item);
-    if (instruction != NULL) {
-      str_append_str_dispose(dest, &instruction);
-    }
-    else {
-      // Handle special pop case
-      if (item->alloc_size > 3 && item->data[2] == '-') {
-        str_append_cstr(dest, "POPS ");
-        item->data[2] = '\0';
-      }
-      else {
-        str_append_cstr(dest, "PUSHS ");
-      }
-
-      str* path = get_symbol_path(gen, item);
-      str_append_str_dispose(dest, &path);
-      str_append_cstr(dest, "\n");
-    }
-
+    generator_expr_element(gen, item);
     str_dispose(item);
   }
 
@@ -808,32 +789,7 @@ void generator_expr(gen_t* gen, void_stack_t* expr_stack) {
       break;
     }
 
-    if (strcmp(item->data, "??") == 0) {
-      generator_coalesce(gen);
-      str_dispose(item);
-      continue;
-    }
-
-    add_indentation(gen);
-
-    str* instruction = get_instruction(item);
-    if (instruction != NULL) {
-      str_append_str_dispose(dest, &instruction);
-    }
-    else {
-      // Handle special pop case
-      if (item->alloc_size > 3 && item->data[2] == '-') {
-        str_append_cstr(dest, "POPS ");
-        item->data[2] = '\0';
-      }
-      else {
-        str_append_cstr(dest, "PUSHS ");
-      }
-      str* path = get_symbol_path(gen, item);
-      str_append_str_dispose(dest, &path);
-      str_append_cstr(dest, "\n");
-    }
-
+    generator_expr_element(gen, item);
     str_dispose(item);
   }
 }
@@ -862,33 +818,7 @@ void generator_loop_start(gen_t* gen, void_stack_t* expr_stack) {
 
   while (!stack_is_empty(expr_stack)) {
     item = stack_pop(expr_stack);
-
-    if (strcmp(item->data, "??") == 0) {
-      generator_coalesce(gen);
-      str_dispose(item);
-      continue;
-    }
-
-    add_indentation(gen);
-
-    str* instruction = get_instruction(item);
-    if (instruction != NULL) {
-      str_append_str_dispose(dest, &instruction);
-    }
-    else {
-      // Handle special pop case
-      if (item->alloc_size > 3 && item->data[2] == '-') {
-        str_append_cstr(dest, "POPS ");
-        item->data[2] = '\0';
-      }
-      else {
-        str_append_cstr(dest, "PUSHS ");
-      }
-      str* path = get_symbol_path(gen, item);
-      str_append_str_dispose(dest, &path);
-      str_append_cstr(dest, "\n");
-    }
-
+    generator_expr_element(gen, item);
     str_dispose(item);
   }
 
@@ -974,4 +904,20 @@ void generator_coalesce(gen_t* gen) {
   str_append_str(dest, get_label(gen, -1));
   str_append_int(dest, struct_count);
   str_append_cstr(dest, "coalend$\n");
+}
+
+void generator_concat(gen_t* gen) {
+  str* dest = get_dest(gen, false);
+
+  add_indentation(gen);
+  str_append_cstr(dest, "POPS GF@$?1\n");
+
+  add_indentation(gen);
+  str_append_cstr(dest, "POPS GF@$?2\n");
+
+  add_indentation(gen);
+  str_append_cstr(dest, "CONCAT GF@$?1 GF@$?1 GF@$?2\n");
+
+  add_indentation(gen);
+  str_append_cstr(dest, "PUSHS GF@$?2\n");
 }
