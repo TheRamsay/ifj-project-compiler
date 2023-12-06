@@ -29,6 +29,7 @@ typedef struct {
   bool buffer_active;
   bool in_function;
   bool in_scope;
+  bool after_return;
   char *current_function_name;
   DLL_Token *tokens;
   bool semantic_enabled;
