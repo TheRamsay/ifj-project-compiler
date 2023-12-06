@@ -910,6 +910,7 @@ bool statement(Parser* parser) {
         void_stack_t* params_stack = stack_new(100);
 
         char* func_id = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
+        check_identifier(current_token(parser)->val);
         SymtableIdentifierType returned_type = func_call(parser, func_id, params_stack);
 
         if (returned_type.data_type == VOID_TYPE) {
@@ -922,8 +923,6 @@ bool statement(Parser* parser) {
         else if (!compare_symtable_item_types(identifier_type, returned_type)) {
           exit_with_error(SEMANTIC_ERR_EXPR, "Cannot assign %s to %s", "<returned_type>", "<identifier_type>");
         }
-
-        check_identifier(current_token(parser)->val);
 
         stack_reverse(params_stack);
         generator_function_call(parser->gen, str_new_from_cstr(func_id), params_stack, str_new_from_cstr(variable_id));

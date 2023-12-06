@@ -12,6 +12,7 @@
 #include "stack.h"
 #include "str.h"
 #include "symtable.h"
+#include "ctype.h"
 
 const int precedence_table[TABLE_SIZE][TABLE_SIZE] = {
   //+ -  *  /  <  <= >  => == != (  ) ??  !  i  $
@@ -345,7 +346,7 @@ int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t 
             *ruleProduct = (Stack_token_t){ .token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = firstToken.type };
 
           }
-          else if (firstToken.type.data_type != thirdToken.type.data_type) {
+          else if (!types_match(firstToken, secondToken, thirdToken)) {
             SymtableIdentifierType conversion_result = conversion_possible(firstToken, secondToken, thirdToken);
             if (conversion_result.data_type != UNKNOWN_TYPE) {
               //Convert ints to doubles at the end
@@ -353,7 +354,7 @@ int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t 
               *ruleProduct = evaluate_complex_rule(secondToken, conversion_result);
             }
             else {
-              exit_with_error(SEMANTIC_ERR, "Cannot use operator on different types");
+              exit_with_error(SEMANTIC_ERR, "Cannot use operator on different types. Expresion: %s: %d %s %s: %d", firstToken.token.val, firstToken.type.data_type, secondToken.token.val, thirdToken.token.val, thirdToken.type.data_type);
             }
           }
           *ruleProduct = evaluate_complex_rule(secondToken, firstToken.type);
@@ -563,10 +564,13 @@ SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresio
 #else
 
   //Converts all ints to double, if there was a double in the expresion
+  int variable_count = 0;
   Stack_token_t* e = ((Stack_token_t*)stack_top(stack));
+  fprintf(stderr, "convert_int_to_double: %d\n", convert_int_to_double);
   if (convert_int_to_double || (expectedType.data_type == DOUBLE_TYPE && e->type.data_type == INT_TYPE)) {
     for (int i = 0; i < expresionStack->top_index + 1; i++) {
       str* el = expresionStack->items[i];
+      fprintf(stderr, "curak: %d %s\n", i, el->data);
       if (strstr(el->data, "int@") != NULL) {
         char buffer[128];
 
@@ -576,9 +580,30 @@ SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresio
 
         str_dispose(el);
         expresionStack->items[i] = new_el;
+
+        // Little finticka to count variables (they start with 'GF' or 'LF' or 'TF' prefixes)
+      }
+      else if (isalpha(el->data[0]) && strstr(el->data, "@") == NULL) {
+        variable_count++;
       }
     }
   }
+
+
+  if (variable_count != 0) {
+    exit_with_error(SEMANTIC_ERR_EXPR, "Cannot implicitly convert non literals");
+  }
+  // fprintf(stderr, "variable_count: %d\n", variable_count);
+  // if (expectedType.data_type == UNKNOWN_TYPE) {
+  //   if (variable_count != 0) {
+  //     exit_with_error(SEMANTIC_ERR, "Cannot implicitly convert non literals");
+  //   }
+  // }
+  // else {
+  //   if (variable_count > 1) {
+  //     exit_with_error(SEMANTIC_ERR, "Cannot implicitly convert non literals");
+  //   }
+  // }
 
   // stack_print(expresionStack);
 
@@ -688,4 +713,16 @@ SymtableIdentifierType conversion_possible(Stack_token_t token1, Stack_token_t t
   }
 
   return (SymtableIdentifierType) { .data_type = UNKNOWN_TYPE, .nullable = false };
+}
+
+bool types_match(Stack_token_t type1, Stack_token_t operator , Stack_token_t type2) {
+  if (is_relational_operator(operator)) {
+    return
+      type1.type.data_type == type2.type.data_type ||
+      (type1.type.data_type == VOID_TYPE && type1.type.nullable && type2.type.nullable) ||
+      (type2.type.data_type == VOID_TYPE && type2.type.nullable && type1.type.nullable);
+  }
+
+  fprintf(stderr, "type1: %d, type2: %d\n", type1.type.data_type, type2.type.data_type);
+  return type1.type.data_type == type2.type.data_type;
 }
