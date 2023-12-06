@@ -30,7 +30,7 @@ const int precedence_table[TABLE_SIZE][TABLE_SIZE] = {
   {R, R, R, R, R, R, R, R, R, R, X, R, X, X, X, R}, // )
   {L, L, L, L, X, X, X, X, X, X, L, R, X, X, L, R}, // ??
   {R, R, R, R, X, X, X, X, X, X, X, R, X, X, R, R}, // !
-  {R, R, R, R, R, R, R, R, R, R, X, R, R, R, R, R}, // i
+  {R, R, R, R, R, R, R, R, R, R, X, R, R, R, X, R}, // i
   {L, L, L, L, L, L, L, L, L, L, L, X, L, L, L, X}, // $
 };
 
@@ -89,18 +89,18 @@ Stack_token_t get_precedence(Stack_token_t stack_top, Stack_token_t input) {
   return (Stack_token_t) { .precedence = precedence_table[stack_index][input_index] };
 }
 
-Stack_token_t evaluate_simple_rule(Stack_token_t token, SymtableIdentifierType type) {
+Stack_token_t evaluate_simple_rule(Stack_token_t token, SymtableIdentifierType type, char value[]) {
   switch (token.token.type) {
   case TOKEN_INTEGER_LITERAL:
-    return (Stack_token_t) { .token = { TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1 }, .precedence = None, .type = { .data_type = INT_TYPE, .nullable = false } };
+    return (Stack_token_t) { .token = { TOKEN_EXPRESSION, KW_UNKNOWN, value, 1 }, .precedence = None, .type = { .data_type = INT_TYPE, .nullable = false } };
 
   case TOKEN_DECIMAL_LITERAL:
-    return (Stack_token_t) { .token = { TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1 }, .precedence = None, .type = { .data_type = DOUBLE_TYPE, .nullable = false } };
+    return (Stack_token_t) { .token = { TOKEN_EXPRESSION, KW_UNKNOWN, value, 1 }, .precedence = None, .type = { .data_type = DOUBLE_TYPE, .nullable = false } };
 
   case TOKEN_STRING_LITERAL:
-    return (Stack_token_t) { .token = { TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1 }, .precedence = None, .type = { .data_type = STRING_TYPE, .nullable = false } };
+    return (Stack_token_t) { .token = { TOKEN_EXPRESSION, KW_UNKNOWN, value, 1 }, .precedence = None, .type = { .data_type = STRING_TYPE, .nullable = false } };
   case TOKEN_IDENTIFIER: {
-    return (Stack_token_t) { .token = { TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1 }, .precedence = None, .type = type };
+    return (Stack_token_t) { .token = { TOKEN_EXPRESSION, KW_UNKNOWN, value, 1 }, .precedence = None, .type = type };
 
     break;
   }
@@ -120,15 +120,17 @@ Stack_token_t evaluate_simple_rule(Stack_token_t token, SymtableIdentifierType t
   return (Stack_token_t) { .token = { TOKEN_EOF, KW_UNKNOWN, "Eof", 3 }, .precedence = None, .type = { .data_type = UNKNOWN_TYPE, .nullable = false } };
 }
 
-Stack_token_t evaluate_complex_rule(Stack_token_t token, SymtableIdentifierType type) {
+Stack_token_t evaluate_complex_rule(Stack_token_t token, SymtableIdentifierType type, char value1[], char value2[]) {
   switch (token.token.type) {
 
   case TOKEN_PLUS:
   case TOKEN_MINUS:
   case TOKEN_MULTIPLY:
   case TOKEN_DIV: {
-    // TODO type check
-    return (Stack_token_t) { .token = { TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1 }, .precedence = None, .type = type };
+
+    char* result = malloc(strlen(value1) + strlen(value2) + 1);
+    snprintf(result, strlen(value1) + strlen(value2) + 1, "%s%s%s", value1, token.token.val, value2);
+    return (Stack_token_t) { .token = { TOKEN_EXPRESSION, KW_UNKNOWN, result, 1 }, .precedence = None, .type = type };
   }
   case TOKEN_LT:
   case TOKEN_LTE:
@@ -136,11 +138,11 @@ Stack_token_t evaluate_complex_rule(Stack_token_t token, SymtableIdentifierType 
   case TOKEN_GTE:
   case TOKEN_EQ:
   case TOKEN_NE: {
-    // TODO type check
+
     return (Stack_token_t) { .token = { TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1 }, .precedence = None, .type = { .data_type = BOOL_TYPE, .nullable = false } };
   }
   case TOKEN_NULL_COALESCING: {
-    // TODO type check
+
     return (Stack_token_t) { .token = { TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1 }, .precedence = None, .type = type };
   }
 
@@ -317,11 +319,15 @@ int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t 
   stack_reverse(expresionStack);
 
   while (precedence.precedence == R) {
+    // fprintf(stderr, "Top: %s\n", ((Stack_token_t*)stack->items[stack->top_index])->token.val);
+    // fprintf(stderr, "Second: %s\n", ((Stack_token_t*)stack->items[stack->top_index - 1])->token.val);
+
+    stack_print(stack);
     Stack_token_t firstToken = *(Stack_token_t*)stack_pop(stack);
 
     Stack_token_t* ruleProduct = malloc(sizeof(Stack_token_t));
 
-    *ruleProduct = evaluate_simple_rule(firstToken, firstToken.type);
+    *ruleProduct = evaluate_simple_rule(firstToken, firstToken.type, firstToken.token.val);
 
     // Not a simple reduction, find in the rest of the rules
     if (ruleProduct->token.type == TOKEN_EOF) {
@@ -333,8 +339,12 @@ int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t 
       }
       else {
         Stack_token_t thirdToken = *(Stack_token_t*)stack_pop(stack);
+        // fprintf(stderr, "1: %s\n", ((Stack_token_t*)stack->items[stack->top_index-1])->token.val);
+        // fprintf(stderr, "2: %s\n", ((Stack_token_t*)stack->items[stack->top_index-2])->token.val);
+        // fprintf(stderr, "3: %s\n", ((Stack_token_t*)stack->items[stack->top_index-3])->token.val);
 
-        // E+E
+
+            // E+E
         if (firstToken.token.type == TOKEN_EXPRESSION && thirdToken.token.type == TOKEN_EXPRESSION) {
           // Check nil type and ??
           if (firstToken.token.keyword == KW_NIL && secondToken.token.type == TOKEN_NULL_COALESCING) {
@@ -350,20 +360,20 @@ int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t 
             if (conversion_result.data_type != UNKNOWN_TYPE) {
               //Convert ints to doubles at the end
               *convert_int_to_double = true;
-              *ruleProduct = evaluate_complex_rule(secondToken, conversion_result);
+              *ruleProduct = evaluate_complex_rule(secondToken, conversion_result, firstToken.token.val, thirdToken.token.val);
             }
             else {
               pexit_with_error(parser, SEMANTIC_ERR_EXPR, "Cannot use operator on different types. Expresion: %s: %d %s %s: %d", firstToken.token.val, firstToken.type.data_type, secondToken.token.val, thirdToken.token.val, thirdToken.type.data_type);
             }
           }
-          *ruleProduct = evaluate_complex_rule(secondToken, firstToken.type);
+          *ruleProduct = evaluate_complex_rule(secondToken, firstToken.type, firstToken.token.val, thirdToken.token.val);
           push_two_token_expresion(expresionStack, secondToken, firstToken, thirdToken);
         }
 
         //(E)
         if (firstToken.token.type == TOKEN_RPAREN && thirdToken.token.type == TOKEN_LPAREN) {
           if (secondToken.token.type == TOKEN_EXPRESSION) {
-            *ruleProduct = (Stack_token_t){ .token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = secondToken.type };
+            *ruleProduct = (Stack_token_t){ .token = {TOKEN_EXPRESSION, KW_UNKNOWN, secondToken.token.val, 1}, .precedence = None, .type = secondToken.type };
           }
         }
 
@@ -403,6 +413,7 @@ int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t 
     }
     precedence = get_precedence(stackTop, token);
   }
+  stack_print(stack);
 
   stack_reverse(expresionStack);
 
@@ -570,7 +581,6 @@ SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresio
   if (convert_int_to_double || (expectedType.data_type == DOUBLE_TYPE && e->type.data_type == INT_TYPE)) {
     for (int i = 0; i < expresionStack->top_index + 1; i++) {
       str* el = expresionStack->items[i];
-      fprintf(stderr, "curak: %d %s\n", i, el->data);
       if (strstr(el->data, "int@") != NULL) {
         char buffer[128];
 
@@ -583,7 +593,7 @@ SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresio
 
       }
       else {
-        SymtableItem *result = search_var_in_tables(parser, el->data);
+        SymtableItem* result = search_var_in_tables(parser, el->data);
         if (result != NULL && result->data->variable.identifier_type.data_type != DOUBLE_TYPE) {
           variable_count++;
         }
@@ -705,8 +715,8 @@ SymtableIdentifierType conversion_possible(Stack_token_t token1, Stack_token_t t
   return (SymtableIdentifierType) { .data_type = UNKNOWN_TYPE, .nullable = false };
 }
 
-bool types_match(Stack_token_t type1, Stack_token_t operator , Stack_token_t type2) {
-  if (operator.token.type == TOKEN_EQ || operator.token.type == TOKEN_NE) {
+bool types_match(Stack_token_t type1, Stack_token_t token_operator, Stack_token_t type2) {
+  if (token_operator.token.type == TOKEN_EQ || token_operator.token.type == TOKEN_NE) {
     return
       type1.type.data_type == type2.type.data_type ||
       (type1.type.data_type == VOID_TYPE && type1.type.nullable && type2.type.nullable) ||
