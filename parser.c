@@ -563,9 +563,6 @@ int call_params_n(Parser* parser, SymtableItem* item, SymtableParam* param, void
   Token first = *current_token(parser);
   char* first_temp = first.val;
 
-  // Petra somar znova pouziva pointery musime si to nakopirovat
-  // Nvm asi mam hlasy v hlave
-
   first.val = malloc(sizeof(char) * (strlen(first.val) + 1));
 
   if (first.val == NULL) {
@@ -616,8 +613,7 @@ int call_params(Parser* parser, SymtableItem* item, SymtableParam* param, void_s
 
   Token first = *current_token(parser);
   char* first_temp = first.val;
-  // Petra somar znova pouziva pointery musime si to nakopirovat
-  // Nvm asi mam hlasy v hlave
+
   first.val = malloc(sizeof(char) * (strlen(first.val) + 1));
   if (first.val == NULL) {
     pexit_with_error(parser, INTERNAL_ERROR, "Malloc failed");
@@ -780,8 +776,6 @@ bool if_statement(Parser* parser) {
       pexit_with_error(parser, SEMANTIC_ERR_FUNC, "Variable %s has to be defined", var_id);
     }
 
-    // TODO: toto je naozaj mysteriozne todo, krivka si vyfukal v zadani rit a
-    // neni som si isty ak toto handlovat zatial
     if (!result->data->variable.constant) {
       pexit_with_error(parser, SEMANTIC_ERR, "Variable %s has to be defined as constant", var_id);
     }
@@ -893,7 +887,6 @@ bool statement(Parser* parser) {
     generator_loop_start(parser->gen, expr_stack);
 #endif
     consume(parser, TOKEN_LBRACE, "Expected '{'");
-    // TODO: zmrd
     body(parser);
 
     if (!match(parser, TOKEN_RBRACE, false)) {
