@@ -713,7 +713,7 @@ SymtableIdentifierType conversion_possible(Stack_token_t token1, Stack_token_t t
     converted_type.data_type = BOOL_TYPE;
   }
   else if (token_operator.token.type == TOKEN_NULL_COALESCING) {
-    converted_type.data_type = token2.type;
+    converted_type.data_type = token2.type.data_type;
   }
   else {
     return converted_type;
