@@ -68,4 +68,6 @@ void generator_loop_end(gen_t* gen);
 
 void generator_coalesce(gen_t* gen);
 
+void generator_concat(gen_t* gen);
+
 #endif
