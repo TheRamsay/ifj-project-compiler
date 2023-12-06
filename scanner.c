@@ -449,6 +449,13 @@ int get_next_token(Token* token) {
         }
         inString = false;
         token->type = TOKEN_STRING_LITERAL;
+
+        // Empty string
+        if (token->val == NULL) {
+          token->val = (char*)malloc(1 * sizeof(char));
+          token->val[0] = '\0';
+        }
+
         break;
       }
 
