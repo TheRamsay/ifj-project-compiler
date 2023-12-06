@@ -597,6 +597,13 @@ SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresio
         expresionStack->items[i] = new_el;
 
       }
+      else if (strstr(el->data, ":") != NULL) {
+        str* new_el = str_new_from_cstr("/");
+
+        expresionStack->items[i] = new_el;
+
+
+      }
       else {
         SymtableItem* result = search_var_in_tables(parser, el->data);
         if (result != NULL && result->data->variable.identifier_type.data_type != DOUBLE_TYPE) {
