@@ -267,7 +267,7 @@ Stack_token_t get_next_token_wrap(TokenType previousToken, Parser * parser) {
     SymtableItem* result = search_var_in_tables(parser, peakToken->val);
 
     if (result == NULL) {
-      exit_with_error(SEMANTIC_ERR_VAR, "Variable not declared");
+      pexit_with_error(parser, SEMANTIC_ERR_VAR, "Variable not declared");
     }
 
     // int result = get_next_token(token);
@@ -287,7 +287,7 @@ Stack_token_t get_current_token_wrap(Parser * parser) {
     SymtableItem* result = search_var_in_tables(parser, token->val);
 
     if (result == NULL) {
-      exit_with_error(SEMANTIC_ERR_VAR, "Variable not declared");
+      pexit_with_error(parser, SEMANTIC_ERR_VAR, "Variable not declared");
     }
 
     return (Stack_token_t) { .token = *token, .precedence = None, .type = result->data->variable.identifier_type };
@@ -313,7 +313,7 @@ void handle_shift_case(void_stack_t * stack, Stack_token_t token) {
   stack_push(stack, new_token);
 }
 
-int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t precedence, void_stack_t * expresionStack, bool* convert_int_to_double) {
+int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t precedence, void_stack_t * expresionStack, bool* convert_int_to_double, Parser * parser) {
   stack_reverse(expresionStack);
 
   while (precedence.precedence == R) {
@@ -353,7 +353,7 @@ int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t 
               *ruleProduct = evaluate_complex_rule(secondToken, conversion_result);
             }
             else {
-              exit_with_error(SEMANTIC_ERR, "Cannot use operator on different types. Expresion: %s: %d %s %s: %d", firstToken.token.val, firstToken.type.data_type, secondToken.token.val, thirdToken.token.val, thirdToken.type.data_type);
+              pexit_with_error(parser, SEMANTIC_ERR_EXPR, "Cannot use operator on different types. Expresion: %s: %d %s %s: %d", firstToken.token.val, firstToken.type.data_type, secondToken.token.val, thirdToken.token.val, thirdToken.type.data_type);
             }
           }
           *ruleProduct = evaluate_complex_rule(secondToken, firstToken.type);
@@ -382,7 +382,7 @@ int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t 
     }
 
     if (ruleProduct->token.type == TOKEN_EOF) {
-      exit_with_error(SYNTAX_ERR, "No rule found");
+      pexit_with_error(parser, SYNTAX_ERR, "No rule found for token %s", firstToken.token.val);
     }
 
     stack_push(stack, ruleProduct);
@@ -495,9 +495,9 @@ SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresio
 
     case R:
       // If there is no rule, expression is not valid
-      if (handle_reduce_case(stack, token, action, expresionStack, &convert_int_to_double) == -1) {
+      if (handle_reduce_case(stack, token, action, expresionStack, &convert_int_to_double, parser) == -1) {
         fprintf(stderr, "No rule for token %d\n", token.token.type);
-        exit_with_error(SYNTAX_ERR, "Invalid expression");
+        pexit_with_error(parser, SYNTAX_ERR, "Invalid expression");
       }
       break;
 
@@ -522,7 +522,7 @@ SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresio
         // }
       }
       fprintf(stderr, "Invalid relation between %s and %s\n", stackTop.token.val, token.token.val);
-      exit_with_error(SYNTAX_ERR, "Invalid expression");
+      pexit_with_error(parser, SYNTAX_ERR, "Invalid expression");
     } break;
 
     case None:
@@ -591,7 +591,7 @@ SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresio
 
 
   if (variable_count != 0) {
-    exit_with_error(SEMANTIC_ERR_EXPR, "Cannot implicitly convert non literals");
+    pexit_with_error(parser, SEMANTIC_ERR_EXPR, "Cannot implicitly convert non literals");
   }
   // fprintf(stderr, "variable_count: %d\n", variable_count);
   // if (expectedType.data_type == UNKNOWN_TYPE) {
@@ -716,7 +716,7 @@ SymtableIdentifierType conversion_possible(Stack_token_t token1, Stack_token_t t
 }
 
 bool types_match(Stack_token_t type1, Stack_token_t operator , Stack_token_t type2) {
-  if (is_relational_operator(operator)) {
+  if (operator.token.type == TOKEN_EQ || operator.token.type == TOKEN_NE) {
     return
       type1.type.data_type == type2.type.data_type ||
       (type1.type.data_type == VOID_TYPE && type1.type.nullable && type2.type.nullable) ||

@@ -5,7 +5,6 @@
 #include <stdlib.h>
 
 #include "builtin.h"
-#include "error.h"
 #include "generator.h"
 #include "scanner.h"
 #include "symtable.h"
@@ -34,6 +33,8 @@ typedef struct {
   DLL_Token *tokens;
   bool semantic_enabled;
   gen_t *gen;
+  int line;
+  int col;
 
 #ifdef PARSER_TEST
   Token *input_tokens;

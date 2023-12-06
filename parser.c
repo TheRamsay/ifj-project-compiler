@@ -2,6 +2,7 @@
 
 #include "exp_parser.h"
 #include "string.h"
+#include "error.h"
 
 #ifdef PARSER_TEST
 #define DEFAULT_EXPRESION_TYPE \
@@ -31,6 +32,9 @@ bool parser_init(Parser* parser) {
 
   parser->semantic_enabled = false;
   parser->tokens = NULL;
+
+  parser->line = 1;
+  parser->col = 1;
 
   if (parser->token_buffer == NULL) {
     return false;
@@ -189,7 +193,7 @@ void is_valid_statement(Parser* parser) {
     return;
   }
 
-  exit_with_error(SYNTAX_ERR, "Multiple statements must be on separate lines");
+  pexit_with_error(parser, SYNTAX_ERR, "Multiple statements must be on separate lines");
 }
 
 // Returns current token
@@ -207,7 +211,7 @@ Token* peek(Parser* parser) {
 bool match(Parser* parser, TokenType token_type, bool check_new_line) {
   if (check_type(parser, token_type)) {
     if (check_new_line && !current_token(parser)->after_newline) {
-      exit_with_error(SYNTAX_ERR, "Multiple statements must be on separate lines");
+      pexit_with_error(parser, SYNTAX_ERR, "Multiple statements must be on separate lines");
     }
 
     advance(parser);
@@ -220,7 +224,7 @@ bool match(Parser* parser, TokenType token_type, bool check_new_line) {
 bool match_keyword(Parser* parser, KeywordType keyword, bool check_new_line) {
   if (check_keyword(parser, keyword)) {
     if (check_new_line && !current_token(parser)->after_newline) {
-      exit_with_error(SYNTAX_ERR, "Multiple statements must be on separate lines");
+      pexit_with_error(parser, SYNTAX_ERR, "Multiple statements must be on separate lines");
     }
 
     advance(parser);
@@ -241,6 +245,15 @@ Token* advance(Parser* parser) {
 
   parser->tokens = parser->tokens->next;
 
+  if (parser->tokens->token->val != NULL) {
+    parser->col += strlen(parser->tokens->token->val);
+  }
+
+  if (parser->tokens->token->after_newline) {
+    parser->line++;
+    parser->col = 1;
+  }
+
   return parser->tokens->token;
 }
 
@@ -252,11 +265,11 @@ bool check_type(Parser* parser, TokenType token_type) { return current_token(par
 Token consume(Parser* parser, TokenType token_type, char* error_msg) {
   if (!check_type(parser, token_type)) {
     // #ifdef PARSER_TEST
-    // exit_with_error(SYNTAX_ERR, "current_token %d (value: %s) | next token %d
+    // pexit_with_error(parser, SYNTAX_ERR, "current_token %d (value: %s) | next token %d
     // (value: %s) | %s",
     // current_token(parser)->keyword, current_token(parser)->val,
     // peek(parser)->type, peek(parser)->val, error_msg); #else
-    exit_with_error(SYNTAX_ERR, "%s", error_msg);
+    pexit_with_error(parser, SYNTAX_ERR, "%s", error_msg);
     // #endif
   }
 
@@ -305,12 +318,12 @@ void return_def(Parser* parser, SymtableItem* item) {
   }
 
   if (!match(parser, TOKEN_ARROW, false)) {
-    exit_with_error(SYNTAX_ERR, "missing '->' in function definition");
+    pexit_with_error(parser, SYNTAX_ERR, "missing '->' in function definition");
   }
 
   // Check if return type is valid datatype
   if (!is_datatype(parser)) {
-    exit_with_error(SYNTAX_ERR, "expected datatype after '->'");
+    pexit_with_error(parser, SYNTAX_ERR, "expected datatype after '->'");
   }
 
   symtable_add_return(item, parse_datatype(parser));
@@ -330,7 +343,7 @@ void func_params_n(Parser* parser, SymtableItem* item, Symtable* local_table, vo
   consume(parser, TOKEN_COLON, "Expected : ");
 
   if (!is_datatype(parser)) {
-    exit_with_error(SYNTAX_ERR, "Expected datatype after ':'");
+    pexit_with_error(parser, SYNTAX_ERR, "Expected datatype after ':'");
   }
 
   SymtableIdentifierType data_type = parse_datatype(parser);
@@ -360,7 +373,7 @@ void func_params(Parser* parser, SymtableItem* item, Symtable* local_table, void
 
   // Just consume type, idk what to do with it yet
   if (!is_datatype(parser)) {
-    exit_with_error(SYNTAX_ERR, "Expected datatype after ':'");
+    pexit_with_error(parser, SYNTAX_ERR, "Expected datatype after ':'");
   }
 
   SymtableIdentifierType data_type = parse_datatype(parser);
@@ -398,7 +411,7 @@ void func_def(Parser* parser) {
     SymtableItem* func_item = search_var_in_tables(parser, key);
 
     if (func_item == NULL) {
-      exit_with_error(INTERNAL_ERROR, "Function wasn't parsed by first pass (🙃)");
+      pexit_with_error(parser, INTERNAL_ERROR, "Function wasn't parsed by first pass (🙃)");
     }
 
     void_stack_t* stack = stack_new(LUFAK_JE_PEPIK_TODO_PREPSAT_NA_DYNAMICKEJ_STACK);
@@ -434,11 +447,11 @@ void func_def(Parser* parser) {
   SymtableItem* current_func = search_var_in_tables(parser, parser->current_function_name);
 
   if (current_func == NULL) {
-    exit_with_error(INTERNAL_ERROR, "Current func is NULL");
+    pexit_with_error(parser, INTERNAL_ERROR, "Current func is NULL");
   }
 
   if (!body(parser) && current_func->data->function._return->identifier_type.data_type != VOID_TYPE) {
-    exit_with_error(SEMANTIC_ERR_CALL, "Function control flow does lead to invalid return");
+    pexit_with_error(parser, SEMANTIC_ERR_CALL, "Function control flow does lead to invalid return");
   }
 
   consume(parser, TOKEN_RBRACE, "Expected '}'");
@@ -452,23 +465,23 @@ void func_def(Parser* parser) {
 void check_call_param(Parser* parser, SymtableParam* param, Token* first, Token* second, void_stack_t* params_stack) {
   // if (!is_term(parser))
   // {
-  // 	exit_with_error(SYNTAX_ERR, "Expected term in function call parameter");
+  // 	pexit_with_error(parser, SYNTAX_ERR, "Expected term in function call parameter");
   // }
 
   // Parameter is defined without out identifier, but is called with it
   if (param == NULL) {
-    exit_with_error(SEMANTIC_ERR_CALL, "Too many parameters in function call");
+    pexit_with_error(parser, SEMANTIC_ERR_CALL, "Too many parameters in function call");
   }
 
   if (strcmp(param->out_name, "_") == 0 && second != NULL) {
-    exit_with_error(SEMANTIC_ERR, "Parameter %s doesn't have out definition", first->val);
+    pexit_with_error(parser, SEMANTIC_ERR, "Parameter %s doesn't have out definition", first->val);
   }
   // Parameter out identifier doesn't match the call
   else if (strcmp(param->out_name, "_") != 0 && second == NULL) {
-    exit_with_error(SEMANTIC_ERR, "Parameter %s doesn't match the out definition", first->val);
+    pexit_with_error(parser, SEMANTIC_ERR, "Parameter %s doesn't match the out definition", first->val);
   }
   else if (strcmp(param->out_name, "_") != 0 && strcmp(param->out_name, first->val) != 0) {
-    exit_with_error(SEMANTIC_ERR_CALL, "Parameter %s doesn't match the out definition", first->val);
+    pexit_with_error(parser, SEMANTIC_ERR_CALL, "Parameter %s doesn't match the out definition", first->val);
   }
   // Valid call with out identifier
   else if (second != NULL) {
@@ -482,27 +495,27 @@ void check_call_param(Parser* parser, SymtableParam* param, Token* first, Token*
 
     // If variable is not defined
     if (param_variable == NULL) {
-      exit_with_error(SEMANTIC_ERR_VAR, "Variable %s is not defined", first->val);
+      pexit_with_error(parser, SEMANTIC_ERR_VAR, "Variable %s is not defined", first->val);
     }
     else if (!param_variable->data->variable.initialized) {
-      exit_with_error(SEMANTIC_ERR_VAR, "Variable %s is not initialized", first->val);
+      pexit_with_error(parser, SEMANTIC_ERR_VAR, "Variable %s is not initialized", first->val);
     }
     else if (!compare_symtable_item_types(param_variable->data->variable.identifier_type, param->identifier_type)) {
-      exit_with_error(SEMANTIC_ERR_CALL, "Variable %s is not of the expected type", first->val);
+      pexit_with_error(parser, SEMANTIC_ERR_CALL, "Variable %s is not of the expected type", first->val);
     }
 
     // If variable is a function
     if (param_variable->data->type == SYMTABLE_FUNCTION) {
-      exit_with_error(SEMANTIC_ERR_CALL, "Cannot pass function as parameter");
+      pexit_with_error(parser, SEMANTIC_ERR_CALL, "Cannot pass function as parameter");
     }
   }
   else if (is_literal_(first)) {
     if (!compare_symtable_item_with_token(first, param->identifier_type)) {
-      exit_with_error(SEMANTIC_ERR_CALL, "Parameter %s type doesn't match the definition", first->val);
+      pexit_with_error(parser, SEMANTIC_ERR_CALL, "Parameter %s type doesn't match the definition", first->val);
     }
   }
   else {
-    exit_with_error(SEMANTIC_ERR_CALL, "Parameter %s is weird", first->val);
+    pexit_with_error(parser, SEMANTIC_ERR_CALL, "Parameter %s is weird", first->val);
   }
 
   push_param_to_stack(params_stack, first, second);
@@ -510,7 +523,7 @@ void check_call_param(Parser* parser, SymtableParam* param, Token* first, Token*
 
 void check_call_param_write(Parser* parser, Token* first, Token* second, void_stack_t* params_stack) {
   if (second != NULL) {
-    exit_with_error(SEMANTIC_ERR_CALL, "Write function doesn't have named parameters");
+    pexit_with_error(parser, SEMANTIC_ERR_CALL, "Write function doesn't have named parameters");
   }
 
   // Parameter is a variable
@@ -519,15 +532,15 @@ void check_call_param_write(Parser* parser, Token* first, Token* second, void_st
 
     // If variable is not defined
     if (param_variable == NULL) {
-      exit_with_error(SEMANTIC_ERR_VAR, "Variable %s is not defined", first->val);
+      pexit_with_error(parser, SEMANTIC_ERR_VAR, "Variable %s is not defined", first->val);
     }
     else if (!param_variable->data->variable.initialized) {
-      exit_with_error(SEMANTIC_ERR_VAR, "Variable %s is not initialized", first->val);
+      pexit_with_error(parser, SEMANTIC_ERR_VAR, "Variable %s is not initialized", first->val);
     }
 
     // If variable is a function
     if (param_variable->data->type == SYMTABLE_FUNCTION) {
-      exit_with_error(SEMANTIC_ERR_CALL, "Cannot pass function as parameter");
+      pexit_with_error(parser, SEMANTIC_ERR_CALL, "Cannot pass function as parameter");
     }
   }
 
@@ -538,7 +551,7 @@ void check_call_param_write(Parser* parser, Token* first, Token* second, void_st
 int call_params_n(Parser* parser, SymtableItem* item, SymtableParam* param, void_stack_t* params_stack) {
   if (check_type(parser, TOKEN_RPAREN)) {
     if (param != NULL) {
-      exit_with_error(SEMANTIC_ERR_CALL, "Too few parameters in function call");
+      pexit_with_error(parser, SEMANTIC_ERR_CALL, "Too few parameters in function call");
     }
 
     return 0;
@@ -555,7 +568,7 @@ int call_params_n(Parser* parser, SymtableItem* item, SymtableParam* param, void
   first.val = malloc(sizeof(char) * (strlen(first.val) + 1));
 
   if (first.val == NULL) {
-    exit_with_error(INTERNAL_ERROR, "Malloc failed");
+    pexit_with_error(parser, INTERNAL_ERROR, "Malloc failed");
   }
 
   strcpy(first.val, first_temp);
@@ -564,7 +577,7 @@ int call_params_n(Parser* parser, SymtableItem* item, SymtableParam* param, void
 
   // Func call param name or value
   if (!is_term(parser)) {
-    exit_with_error(SYNTAX_ERR, "Expected term in function call parameter");
+    pexit_with_error(parser, SYNTAX_ERR, "Expected term in function call parameter");
   }
 
   advance(parser);
@@ -590,14 +603,14 @@ int call_params_n(Parser* parser, SymtableItem* item, SymtableParam* param, void
 int call_params(Parser* parser, SymtableItem* item, SymtableParam* param, void_stack_t* params_stack) {
   if (check_type(parser, TOKEN_RPAREN)) {
     if (param != NULL) {
-      exit_with_error(SEMANTIC_ERR_CALL, "Too few parameters in function call");
+      pexit_with_error(parser, SEMANTIC_ERR_CALL, "Too few parameters in function call");
     }
 
     return 0;
   }
 
   if (param == NULL && strcmp(item->key, "write") != 0) {
-    exit_with_error(SEMANTIC_ERR_CALL, "No parameters in func signature");
+    pexit_with_error(parser, SEMANTIC_ERR_CALL, "No parameters in func signature");
   }
 
   Token first = *current_token(parser);
@@ -606,7 +619,7 @@ int call_params(Parser* parser, SymtableItem* item, SymtableParam* param, void_s
   // Nvm asi mam hlasy v hlave
   first.val = malloc(sizeof(char) * (strlen(first.val) + 1));
   if (first.val == NULL) {
-    exit_with_error(INTERNAL_ERROR, "Malloc failed");
+    pexit_with_error(parser, INTERNAL_ERROR, "Malloc failed");
   }
   strcpy(first.val, first_temp);
 
@@ -614,7 +627,7 @@ int call_params(Parser* parser, SymtableItem* item, SymtableParam* param, void_s
 
   // Func call param name or value
   if (!is_term(parser)) {
-    exit_with_error(SYNTAX_ERR, "Expected term in function call parameter");
+    pexit_with_error(parser, SYNTAX_ERR, "Expected term in function call parameter");
   }
 
   advance(parser);
@@ -640,7 +653,7 @@ SymtableIdentifierType func_call(Parser* parser, char* func_id, void_stack_t* pa
   SymtableItem* item = symtable_get(parser->global_table, func_id);
 
   if (item == NULL || item->data->type != SYMTABLE_FUNCTION) {
-    exit_with_error(SEMANTIC_ERR_FUNC, "Function %s is not defined", func_id);
+    pexit_with_error(parser, SEMANTIC_ERR_FUNC, "Function %s is not defined", func_id);
   }
 
   consume(parser, TOKEN_LPAREN, "Expected '('");
@@ -660,30 +673,30 @@ SymtableIdentifierType func_call(Parser* parser, char* func_id, void_stack_t* pa
 
 bool return_t(Parser* parser) {
   if (!parser->in_function) {
-    exit_with_error(SYNTAX_ERR, "Return statement outside of function");
+    pexit_with_error(parser, SYNTAX_ERR, "Return statement outside of function");
   }
 
   if (parser->current_function_name == NULL) {
-    exit_with_error(INTERNAL_ERROR, "Current function name is NULL");
+    pexit_with_error(parser, INTERNAL_ERROR, "Current function name is NULL");
   }
 
   SymtableItem* func = search_var_in_tables(parser, parser->current_function_name);
 
   if (func == NULL) {
-    exit_with_error(INTERNAL_ERROR, "Current function is NULL (should be possible) ((⚠️))");
+    pexit_with_error(parser, INTERNAL_ERROR, "Current function is NULL (should be possible) ((⚠️))");
   }
 
   // return_t -> eps rule
   if (check_type(parser, TOKEN_RBRACE)) {
     if (func->data->function._return->identifier_type.data_type != VOID_TYPE) {
-      exit_with_error(SEMANTIC_ERR_RETURN, "Non void function must have an <expression> in return statement");
+      pexit_with_error(parser, SEMANTIC_ERR_RETURN, "Non void function must have an <expression> in return statement");
     }
 
     return true;
   }
 
   if (func->data->function._return->identifier_type.data_type == VOID_TYPE) {
-    exit_with_error(SEMANTIC_ERR_RETURN, "Void function can't have an <expression> in return statement");
+    pexit_with_error(parser, SEMANTIC_ERR_RETURN, "Void function can't have an <expression> in return statement");
   }
 
 #ifdef PARSER_TEST
@@ -698,7 +711,7 @@ bool return_t(Parser* parser) {
   // expression_type.data_type);
 
   if (!compare_symtable_item_types(func->data->function._return->identifier_type, expression_type)) {
-    exit_with_error(SEMANTIC_ERR_CALL, "Return type doesn't match the function definition");
+    pexit_with_error(parser, SEMANTIC_ERR_CALL, "Return type doesn't match the function definition");
   }
 
   //   generator_function_end(parser->gen, NULL);
@@ -729,7 +742,7 @@ bool if_statement(Parser* parser) {
 
   // If var is a little somarek, we don't support him
   if (match_keyword(parser, KW_VAR, false)) {
-    exit_with_error(SYNTAX_ERR, "If var is not supported 😝, use 'let' instead");
+    pexit_with_error(parser, SYNTAX_ERR, "If with 'var' is not supported 😝, try to use 'let' instead");
   }
 
   // if_cond -> <expr> | VAR_DEFINITION_KW IDENTIFIER '=' <expr>
@@ -740,13 +753,13 @@ bool if_statement(Parser* parser) {
     SymtableItem* result = search_var_in_tables(parser, var_id);
 
     if (!result) {
-      exit_with_error(SEMANTIC_ERR_FUNC, "Variable %s has to be defined", var_id);
+      pexit_with_error(parser, SEMANTIC_ERR_FUNC, "Variable %s has to be defined", var_id);
     }
 
     // TODO: toto je naozaj mysteriozne todo, krivka si vyfukal v zadani rit a
     // neni som si isty ak toto handlovat zatial
     if (!result->data->variable.constant) {
-      exit_with_error(SEMANTIC_ERR, "Variable %s has to be defined as constant", var_id);
+      pexit_with_error(parser, SEMANTIC_ERR, "Variable %s has to be defined as constant", var_id);
     }
 
     SymtableItem* item = symtable_add_symbol(local_table, var_id, SYMTABLE_VARIABLE, true, true, true);
@@ -767,12 +780,12 @@ bool if_statement(Parser* parser) {
 #endif
 
   if (expression_type.data_type != BOOL_TYPE) {
-    exit_with_error(SEMANTIC_ERR_EXPR, "Expression in if statement must be boolean");
+    pexit_with_error(parser, SEMANTIC_ERR_EXPR, "Expression in if statement must be boolean");
   }
 
 #ifdef PARSER_TEST
   if (expression_type.data_type == VOID_TYPE) {
-    exit_with_error(SYNTAX_ERR, "Only for testing purposes, expression cannot be void");
+    pexit_with_error(parser, SYNTAX_ERR, "Only for testing purposes, expression cannot be void");
   }
 #endif
 
@@ -785,11 +798,11 @@ else_branch:
   valid_return = body(parser);
 
   if (!match(parser, TOKEN_RBRACE, false)) {
-    exit_with_error(SYNTAX_ERR, "Expected '}'");
+    pexit_with_error(parser, SYNTAX_ERR, "Expected '}'");
   }
 
   if (!match_keyword(parser, KW_ELSE, false)) {
-    exit_with_error(SYNTAX_ERR, "Expected 'else'");
+    pexit_with_error(parser, SYNTAX_ERR, "Expected 'else'");
   }
 
   generator_if_else(parser->gen);
@@ -803,7 +816,7 @@ else_branch:
   valid_return &= body(parser);
 
   if (!match(parser, TOKEN_RBRACE, false)) {
-    exit_with_error(SYNTAX_ERR, "Expected '}'");
+    pexit_with_error(parser, SYNTAX_ERR, "Expected '}'");
   }
 
   generator_if_end(parser->gen);
@@ -843,12 +856,12 @@ bool statement(Parser* parser) {
 #endif
 
     if (expression_type.data_type != BOOL_TYPE) {
-      exit_with_error(SEMANTIC_ERR_EXPR, "Expression in while statement must be boolean");
+      pexit_with_error(parser, SEMANTIC_ERR_EXPR, "Expression in while statement must be boolean");
     }
 
 #ifdef PARSER_TEST
     if (expression_type.data_type == VOID_TYPE) {
-      exit_with_error(SYNTAX_ERR, "Only for testing purposes, expression cannot be void");
+      pexit_with_error(parser, SYNTAX_ERR, "Only for testing purposes, expression cannot be void");
     }
 #endif
 
@@ -860,7 +873,7 @@ bool statement(Parser* parser) {
     body(parser);
 
     if (!match(parser, TOKEN_RBRACE, false)) {
-      exit_with_error(SYNTAX_ERR, "Expected '}'");
+      pexit_with_error(parser, SYNTAX_ERR, "Expected '}'");
     }
 
     stack_pop(parser->local_tables_stack);
@@ -884,7 +897,7 @@ bool statement(Parser* parser) {
     if (match(parser, TOKEN_COLON, false)) {
       // TODO: Check if type is valid
       if (!is_datatype(parser)) {
-        exit_with_error(SYNTAX_ERR, "Expected datatype after ':'");
+        pexit_with_error(parser, SYNTAX_ERR, "Expected datatype after ':'");
       }
       else {
         // Save data type token for later
@@ -912,14 +925,14 @@ bool statement(Parser* parser) {
         SymtableIdentifierType returned_type = func_call(parser, func_id, params_stack);
 
         if (returned_type.data_type == VOID_TYPE) {
-          exit_with_error(SEMANTIC_ERR_EXPR, "Cannot assign void to variable");
+          pexit_with_error(parser, SEMANTIC_ERR_EXPR, "Cannot assign void to variable");
         }
 
         if (identifier_type.data_type == UNKNOWN_TYPE) {
           identifier_type = returned_type;
         }
         else if (!compare_symtable_item_types(identifier_type, returned_type)) {
-          exit_with_error(SEMANTIC_ERR_EXPR, "Cannot assign %s to %s", "<returned_type>", "<identifier_type>");
+          pexit_with_error(parser, SEMANTIC_ERR_EXPR, "Cannot assign %s to %s", "<returned_type>", "<identifier_type>");
         }
 
         stack_reverse(params_stack);
@@ -940,14 +953,14 @@ bool statement(Parser* parser) {
 
         if (identifier_type.data_type == UNKNOWN_TYPE) {
           if (expression_type.data_type == VOID_TYPE && !expression_type.nullable) {
-            exit_with_error(SYNTAX_ERR, "Expected type of variable or expression");
+            pexit_with_error(parser, SYNTAX_ERR, "Expected type of variable or expression");
           } else if (expression_type.data_type == VOID_TYPE && expression_type.nullable) {
-            exit_with_error(SEMANTIC_ERR_INFER, "Cannot infer type of variable from nil expression");
+            pexit_with_error(parser, SEMANTIC_ERR_INFER, "Cannot infer type of variable from nil expression");
           }
           identifier_type = expression_type;
         }
         else if (!compare_symtable_item_types(identifier_type, expression_type)) {
-          exit_with_error(SEMANTIC_ERR_EXPR, "Cannot assign %s to %s", "<expression_type>", "<identifier_type>");
+          pexit_with_error(parser, SEMANTIC_ERR_EXPR, "Cannot assign %s to %s", "<expression_type>", "<identifier_type>");
         }
 
 #ifndef PARSER_TEST
@@ -965,7 +978,7 @@ bool statement(Parser* parser) {
 
       // Type was not defined
       if (identifier_type.data_type == UNKNOWN_TYPE) {
-        exit_with_error(SYNTAX_ERR, "");
+        pexit_with_error(parser, SYNTAX_ERR, "You have to define type of variable or initialize it with value");
       }
     }
 
@@ -994,16 +1007,16 @@ bool statement(Parser* parser) {
       char* variable_id = current_token(parser)->val;
 
       if (identifier_item == NULL) {
-        exit_with_error(SEMANTIC_ERR_VAR, "Variable %s is not defined", variable_id);
+        pexit_with_error(parser, SEMANTIC_ERR_VAR, "Variable %s is not defined", variable_id);
       }
 
       if (identifier_item->data->variable.param) {
-        exit_with_error(SEMANTIC_ERR, "Cannot reassign function parameter '%s'", identifier_item->key);
+        pexit_with_error(parser, SEMANTIC_ERR, "Cannot reassign function parameter '%s'", identifier_item->key);
       }
 
       // Modifing constant variable
       if (identifier_item->data->variable.constant && identifier_item->data->variable.initialized) {
-        exit_with_error(SEMANTIC_ERR, "Cannot reassign constant variable '%s'", identifier_item->key);
+        pexit_with_error(parser, SEMANTIC_ERR, "Cannot reassign constant variable '%s'", identifier_item->key);
       }
 
       consume(parser, TOKEN_IDENTIFIER, "Expected identifier");
@@ -1016,11 +1029,11 @@ bool statement(Parser* parser) {
         SymtableIdentifierType returned_type = func_call(parser, func_id, params_stack);
 
         if (returned_type.data_type == VOID_TYPE) {
-          exit_with_error(SEMANTIC_ERR_EXPR, "Cannot assign void to variable");
+          pexit_with_error(parser, SEMANTIC_ERR_EXPR, "Cannot assign void to variable");
         }
 
         if (!compare_symtable_item_types(identifier_item->data->variable.identifier_type, returned_type)) {
-          exit_with_error(SEMANTIC_ERR_EXPR, "Cannot assign %s to %s", "<returned_type>", "<identifier_type>");
+          pexit_with_error(parser, SEMANTIC_ERR_EXPR, "Cannot assign %s to %s", "<returned_type>", "<identifier_type>");
         }
 
         check_identifier(current_token(parser)->val);
@@ -1042,7 +1055,7 @@ bool statement(Parser* parser) {
 #endif
 
         if (!compare_symtable_item_types(identifier_item->data->variable.identifier_type, expression_type)) {
-          exit_with_error(SEMANTIC_ERR_EXPR, "Cannot assign %s to %s", "<expression_type>", "<identifier_type>");
+          pexit_with_error(parser, SEMANTIC_ERR_EXPR, "Cannot assign %s to %s", "<expression_type>", "<identifier_type>");
         }
 
         identifier_item->data->variable.initialized = true;
