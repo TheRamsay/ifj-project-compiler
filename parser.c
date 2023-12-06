@@ -688,7 +688,7 @@ bool return_t(Parser* parser) {
   SymtableIdentifierType expression_type = expression(parser, DEFAULT_EXPRESION_TYPE);
 #else
   void_stack_t* expr_stack = stack_new(100);
-  SymtableIdentifierType expression_type = expression(parser, expr_stack);
+  SymtableIdentifierType expression_type = expression(parser, expr_stack, func->data->function._return->identifier_type);
   generator_function_return_expr(parser->gen, expr_stack);
 #endif
 
@@ -759,7 +759,7 @@ bool if_statement(Parser* parser) {
   SymtableIdentifierType expression_type = expression(parser, DEFAULT_IF_EXPRESION_TYPE);
 #else
   void_stack_t* expr_stack = stack_new(100);
-  SymtableIdentifierType expression_type = expression(parser, expr_stack);
+  SymtableIdentifierType expression_type = expression(parser, expr_stack, (SymtableIdentifierType) { BOOL_TYPE, false });
   // fprintf(stderr, "Padacek bahnacek vratil typ %d\n",
   //         expression_type.data_type);
 #endif
@@ -836,7 +836,7 @@ bool statement(Parser* parser) {
     SymtableIdentifierType expression_type = expression(parser, DEFAULT_IF_EXPRESION_TYPE);
 #else
     void_stack_t* expr_stack = stack_new(100);
-    SymtableIdentifierType expression_type = expression(parser, expr_stack);
+    SymtableIdentifierType expression_type = expression(parser, expr_stack, (SymtableIdentifierType) { BOOL_TYPE, false });
     // stack_reverse(expr_stack);
 #endif
 
@@ -934,7 +934,7 @@ bool statement(Parser* parser) {
 #else
         void_stack_t* expr_stack = stack_new(128);
 
-        SymtableIdentifierType expression_type = expression(parser, expr_stack);
+        SymtableIdentifierType expression_type = expression(parser, expr_stack, identifier_type);
 
         stack_reverse(expr_stack);
         stack_push(expr_stack, str_new_from_cstr(variable_id));
@@ -942,8 +942,8 @@ bool statement(Parser* parser) {
 #endif
 
         if (identifier_type.data_type == UNKNOWN_TYPE) {
-          if (expression_type.data_type == VOID_TYPE && expression_type.nullable) {
-            exit_with_error(SEMANTIC_ERR_INFER, "Cannot infer type of variable '%s'", variable_id);
+          if (expression_type.data_type == VOID_TYPE && !expression_type.nullable) {
+            exit_with_error(SYNTAX_ERR, "Expected type of variable or expression");
           }
           identifier_type = expression_type;
         }
@@ -966,7 +966,7 @@ bool statement(Parser* parser) {
 
       // Type was not defined
       if (identifier_type.data_type == UNKNOWN_TYPE) {
-        exit_with_error(SEMANTIC_ERR_INFER, "Cannot infer type of variable '%s'", variable_id);
+        exit_with_error(SYNTAX_ERR, "");
       }
       else {
         item->data->variable.identifier_type = identifier_type;
@@ -1032,7 +1032,7 @@ bool statement(Parser* parser) {
 #else
 
         void_stack_t* expr_stack = stack_new(100);
-        SymtableIdentifierType expression_type = expression(parser, expr_stack);
+        SymtableIdentifierType expression_type = expression(parser, expr_stack, identifier_item->data->variable.identifier_type);
 
         stack_reverse(expr_stack);
         stack_push(expr_stack, str_new_from_cstr(variable_id));
@@ -1048,10 +1048,11 @@ bool statement(Parser* parser) {
 #ifndef PARSER_TEST
         generator_expr(parser->gen, expr_stack);
 
-        if (identifier_item->data->variable.identifier_type.data_type == DOUBLE_TYPE && expression_type.data_type == INT_TYPE && !expression_type.nullable) {
-          stack_push(expr_stack, str_new_from_cstr(variable_id));
-          generator_function_call(parser->gen, str_new_float_const(), expr_stack, str_new_from_cstr(variable_id));
-        }
+        // TODO: toto robil lufak ale dame to dopice protoze to dela expr parser
+        // if (identifier_item->data->variable.identifier_type.data_type == DOUBLE_TYPE && expression_type.data_type == INT_TYPE && !expression_type.nullable) {
+        //   stack_push(expr_stack, str_new_from_cstr(variable_id));
+        //   generator_function_call(parser->gen, str_new_float_const(), expr_stack, str_new_from_cstr(variable_id));
+        // }
 #endif
       }
     }
@@ -1072,7 +1073,7 @@ bool statement(Parser* parser) {
 #else
       void_stack_t* expr_stack = stack_new(100);
       stack_push(expr_stack, str_new_from_cstr("?"));
-      expression(parser, expr_stack);
+      expression(parser, expr_stack, (SymtableIdentifierType) { UNKNOWN_TYPE, false });
       generator_expr(parser->gen, expr_stack);
 #endif
     }
@@ -1084,7 +1085,7 @@ bool statement(Parser* parser) {
 #else
     void_stack_t* expr_stack = stack_new(100);
     stack_push(expr_stack, str_new_from_cstr("?"));
-    expression(parser, expr_stack);
+    expression(parser, expr_stack, (SymtableIdentifierType) { UNKNOWN_TYPE, false });
     generator_expr(parser->gen, expr_stack);
 #endif
   }
@@ -1153,9 +1154,12 @@ Token* parser_start(Parser* parser, Token* input_tokens)
 
   // prog rule
   parse(parser);
+
+#ifndef PARSER_TEST
   generator_footer(parser->gen);
   generator_print(parser->gen);
   generator_dispose(parser->gen);
+#endif
 
 #ifdef PARSER_TEST
   parser->output_tokens[parser->output_index] = (Token){ .type = TOKEN_EOF };
@@ -1163,7 +1167,11 @@ Token* parser_start(Parser* parser, Token* input_tokens)
 #endif
 }
 
+#ifdef PARSER_TEST
 SymtableIdentifierType expression(Parser* parser, SymtableIdentifierType return_type)
+#else
+SymtableIdentifierType expression(Parser* parser, void_stack_t* expr_stack, SymtableIdentifierType return_type)
+#endif
 {
 #ifdef PARSER_TEST
   if (current_token(parser)->type != TOKEN_COMMA) {
