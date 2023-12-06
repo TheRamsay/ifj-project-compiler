@@ -92,12 +92,8 @@ void program(Parser *parser);
 
 void parse(Parser *parser);
 
-#ifdef PARSER_TEST
 SymtableIdentifierType expression(Parser *parser,
                                   SymtableIdentifierType return_type);
-#else
-SymtableIdentifierType expression(Parser *parser, void_stack_t *expr_stack);
-#endif
 
 bool return_t(Parser *parser);
 

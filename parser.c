@@ -809,7 +809,7 @@ else_branch:
   stack_pop(parser->local_tables_stack);
   parser->in_scope = false;
   return valid_return;
-  }
+}
 
 bool statement(Parser* parser) {
   bool valid_return = false;
@@ -864,7 +864,7 @@ bool statement(Parser* parser) {
     stack_pop(parser->local_tables_stack);
     parser->in_scope = false;
     generator_loop_end(parser->gen);
-    }
+  }
   // statement -> return <return_t>
   else if (match_keyword(parser, KW_RETURN, true)) {
     valid_return |= return_t(parser);
@@ -1050,7 +1050,7 @@ bool statement(Parser* parser) {
 
         if (identifier_item->data->variable.identifier_type.data_type == DOUBLE_TYPE && expression_type.data_type == INT_TYPE && !expression_type.nullable) {
           stack_push(expr_stack, str_new_from_cstr(variable_id));
-          generator_function_call(parser->gen, str_new_from_cstr("Int2Double"), expr_stack, str_new_from_cstr(variable_id));
+          generator_function_call(parser->gen, str_new_float_const(), expr_stack, str_new_from_cstr(variable_id));
         }
 #endif
       }
@@ -1092,7 +1092,7 @@ bool statement(Parser* parser) {
   // If current paths leads to valid return or if rest of the body leads to
   // valid return, return true
   return valid_return | body(parser);
-  }
+}
 
 void program(Parser* parser) {
   // program -> eps
@@ -1163,13 +1163,8 @@ Token* parser_start(Parser* parser, Token* input_tokens)
 #endif
 }
 
-#ifdef PARSER_TEST
 SymtableIdentifierType expression(Parser* parser, SymtableIdentifierType return_type)
-#else
-SymtableIdentifierType expression(Parser* parser, void_stack_t* expr_stack)
-#endif
 {
-
 #ifdef PARSER_TEST
   if (current_token(parser)->type != TOKEN_COMMA) {
     return (SymtableIdentifierType) { .data_type = VOID_TYPE, .nullable = false };
@@ -1177,9 +1172,9 @@ SymtableIdentifierType expression(Parser* parser, void_stack_t* expr_stack)
   consume(parser, TOKEN_COMMA, "Expected an expression");
   return return_type;
 #else
-  return parse_expression(parser, expr_stack);
+  return parse_expression(parser, expr_stack, return_type);
 #endif
-  }
+}
 
 void scanner_consume(Parser* parser) {
   Token token;
