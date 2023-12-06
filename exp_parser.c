@@ -414,12 +414,14 @@ void handle_equals_case(void_stack_t * stack, Stack_token_t token) {
   stack_push(stack, new_token);
 }
 #ifdef PARSER_TEST
-Token parse_expression(Token * testExpressionToParse, int inputSize, Parser * parser, void_stack_t * expresionStack) {
+Token parse_expression(Token * testExpressionToParse, int inputSize, Parser * parser, void_stack_t * expresionStack)
   int expIndex = 0;
 #else
-SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresionStack) {
+SymtableIdentifierType parse_expression(Parser* parser, void_stack_t* expresionStack, SymtableIdentifierType expectedType)
 #endif
+{
 
+  (void)expectedType;
   void_stack_t* stack = stack_new(8192);
   stack_push(stack,
     &(Stack_token_t){.token = { TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1 }, .precedence = None, .type = { .data_type = UNKNOWN_TYPE, .nullable = false }});

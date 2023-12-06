@@ -225,8 +225,8 @@ TEST_F(ParserTest, LetVariableDeclarationWithoutInit) {
   };
 
   EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_INFER),
-              "Semantic error.*");
+              ::testing::ExitedWithCode(SYNTAX_ERR),
+              "Syntax error.*");
 }
 
 TEST_F(ParserTest, VarVariableDeclarationWithoutInit) {
@@ -237,8 +237,8 @@ TEST_F(ParserTest, VarVariableDeclarationWithoutInit) {
   };
 
   EXPECT_EXIT(parser_start(&parser_, tokens.data()),
-              ::testing::ExitedWithCode(SEMANTIC_ERR_INFER),
-              "Semantic error.*");
+              ::testing::ExitedWithCode(SYNTAX_ERR),
+              "Syntax error.*");
 }
 
 TEST_F(ParserTest, FuncDeclaration) {
