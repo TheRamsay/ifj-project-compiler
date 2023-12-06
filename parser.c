@@ -28,6 +28,7 @@ bool parser_init(Parser* parser) {
   parser->token_buffer = calloc(TOKEN_BUFFER_LEN, sizeof(Token));
   parser->in_function = false;
   parser->in_scope = false;
+  parser->after_return = false;
   parser->current_function_name = NULL;
 
   parser->semantic_enabled = false;
@@ -683,7 +684,7 @@ bool return_t(Parser* parser) {
   SymtableItem* func = search_var_in_tables(parser, parser->current_function_name);
 
   if (func == NULL) {
-    pexit_with_error(parser, INTERNAL_ERROR, "Current function is NULL (should be possible) ((⚠️))");
+    pexit_with_error(parser, INTERNAL_ERROR, "Current function is NULL (shouldn't be possible) ((⚠️))");
   }
 
   // return_t -> eps rule
@@ -695,8 +696,25 @@ bool return_t(Parser* parser) {
     return true;
   }
 
-  if (func->data->function._return->identifier_type.data_type == VOID_TYPE) {
-    pexit_with_error(parser, SEMANTIC_ERR_RETURN, "Void function can't have an <expression> in return statement");
+
+  // return is followed by a function call
+  if (current_token(parser)->type == TOKEN_IDENTIFIER && peek(parser)->type == TOKEN_LPAREN) {
+    // function call is on a new line
+    if (current_token(parser)->after_newline) {
+      // function call is not an expression, so non void function has invalid return
+      if (func->data->function._return->identifier_type.data_type != VOID_TYPE) {
+        pexit_with_error(parser, SEMANTIC_ERR_RETURN, "Non void function must have an <expression> in return statement");
+      } else {
+        parser->after_return = true;
+        return true;
+      }
+    }
+    else {
+      // Statements must be separated by new line
+      if (func->data->function._return->identifier_type.data_type == VOID_TYPE) {
+        pexit_with_error(parser, SEMANTIC_ERR_RETURN, "Function can't have a function call in return statement"); 
+      }
+    }
   }
 
 #ifdef PARSER_TEST
@@ -707,14 +725,15 @@ bool return_t(Parser* parser) {
   generator_function_return_expr(parser->gen, expr_stack);
 #endif
 
-  // printf("%d %d\n", func->data->function._return->identifier_type.data_type,
-  // expression_type.data_type);
-
   if (!compare_symtable_item_types(func->data->function._return->identifier_type, expression_type)) {
-    pexit_with_error(parser, SEMANTIC_ERR_CALL, "Return type doesn't match the function definition");
+    if (func->data->function._return->identifier_type.data_type == VOID_TYPE) {
+      pexit_with_error(parser, SEMANTIC_ERR_RETURN, "Return type doesn't match the function definition");
+    } else {
+      pexit_with_error(parser, SEMANTIC_ERR_CALL, "Return type doesn't match the function definition");
+    }
   }
 
-  //   generator_function_end(parser->gen, NULL);
+  parser->after_return = true;
   return true;
 }
 
@@ -723,6 +742,7 @@ bool body(Parser* parser) {
 
   // body -> eps rule
   if (check_type(parser, TOKEN_RBRACE) || check_type(parser, TOKEN_EOF) || check_keyword(parser, KW_FUNC)) {
+    parser->after_return = false;
     return false;
   }
   // body -> <statement> <body> rule
@@ -824,7 +844,7 @@ else_branch:
   stack_pop(parser->local_tables_stack);
   parser->in_scope = false;
   return valid_return;
-}
+  }
 
 bool statement(Parser* parser) {
   bool valid_return = false;
@@ -879,7 +899,7 @@ bool statement(Parser* parser) {
     stack_pop(parser->local_tables_stack);
     parser->in_scope = false;
     generator_loop_end(parser->gen);
-  }
+    }
   // statement -> return <return_t>
   else if (match_keyword(parser, KW_RETURN, true)) {
     valid_return |= return_t(parser);
@@ -936,7 +956,10 @@ bool statement(Parser* parser) {
         }
 
         stack_reverse(params_stack);
-        generator_function_call(parser->gen, str_new_from_cstr(func_id), params_stack, str_new_from_cstr(variable_id));
+
+        if (!parser->after_return) {
+          generator_function_call(parser->gen, str_new_from_cstr(func_id), params_stack, str_new_from_cstr(variable_id));
+        }
       }
       else {
 #ifdef PARSER_TEST
@@ -954,7 +977,8 @@ bool statement(Parser* parser) {
         if (identifier_type.data_type == UNKNOWN_TYPE) {
           if (expression_type.data_type == VOID_TYPE && !expression_type.nullable) {
             pexit_with_error(parser, SYNTAX_ERR, "Expected type of variable or expression");
-          } else if (expression_type.data_type == VOID_TYPE && expression_type.nullable) {
+          }
+          else if (expression_type.data_type == VOID_TYPE && expression_type.nullable) {
             pexit_with_error(parser, SEMANTIC_ERR_INFER, "Cannot infer type of variable from nil expression");
           }
           identifier_type = expression_type;
@@ -1039,7 +1063,10 @@ bool statement(Parser* parser) {
         check_identifier(current_token(parser)->val);
 
         stack_reverse(params_stack);
-        generator_function_call(parser->gen, str_new_from_cstr(current_token(parser)->val), params_stack, str_new_from_cstr(variable_id));
+
+        if (!parser->after_return) {
+          generator_function_call(parser->gen, str_new_from_cstr(current_token(parser)->val), params_stack, str_new_from_cstr(variable_id));
+        }
       }
       else {
 #ifdef PARSER_TEST
@@ -1079,7 +1106,9 @@ bool statement(Parser* parser) {
       stack_reverse(params_stack);
 
       //   printf("generator_function_call %s \n", func_id);
-      generator_function_call(parser->gen, str_new_from_cstr(func_id), params_stack, NULL);
+      if (!parser->after_return) {
+        generator_function_call(parser->gen, str_new_from_cstr(func_id), params_stack, NULL);
+      }
     }
     // statement -> expression that starts with identifier
     else {
@@ -1108,7 +1137,7 @@ bool statement(Parser* parser) {
   // If current paths leads to valid return or if rest of the body leads to
   // valid return, return true
   return valid_return | body(parser);
-}
+  }
 
 void program(Parser* parser) {
   // program -> eps
@@ -1199,7 +1228,7 @@ SymtableIdentifierType expression(Parser* parser, void_stack_t* expr_stack, Symt
 #else
   return parse_expression(parser, expr_stack, return_type);
 #endif
-}
+  }
 
 void scanner_consume(Parser* parser) {
   Token token;
