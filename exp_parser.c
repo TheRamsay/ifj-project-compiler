@@ -650,8 +650,8 @@ void y_eet(void_stack_t * stack) {
       stack_push(stack, str_new_from_cstr("?1-"));
       stack_push(stack, str_new_from_cstr("?2-"));
 
-      stack_push(stack, str_new_from_cstr("?1"));
       stack_push(stack, str_new_from_cstr("?2"));
+      stack_push(stack, str_new_from_cstr("?1"));
 
       stack_push(stack, str_new_from_cstr(el->data[0] == '<' ? "<" : ">"));
 
