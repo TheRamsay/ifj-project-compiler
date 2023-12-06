@@ -204,7 +204,7 @@ void push_two_token_expresion(void_stack_t* expresionStack, Stack_token_t action
     stack_push(expresionStack, str_new_from_cstr("="));
     break;
   case TOKEN_NE:
-    stack_push(expresionStack, str_new_from_cstr("!"));
+    stack_push(expresionStack, str_new_from_cstr("!="));
     break;
   case TOKEN_NULL_COALESCING:
     stack_push(expresionStack, str_new_from_cstr("??"));
@@ -571,7 +571,15 @@ void y_eet(void_stack_t * stack) {
       stack_push(stack, str_new_from_cstr("|"));
     }
 
-    stack_push(stack, el);
+    if (strcmp(el->data, "!=") == 0) {
+      stack_push(stack, str_new_from_cstr("=="));
+      stack_push(stack, str_new_from_cstr("bool@false"));
+      stack_push(stack, str_new_from_cstr("=="));
+    }
+
+    else {
+      stack_push(stack, el);
+    }
   }
 
   stack_dispose(temp_stack);
