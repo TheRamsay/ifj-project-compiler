@@ -416,10 +416,10 @@ void handle_equals_case(void_stack_t * stack, Stack_token_t token) {
 
 //Main function start
 #ifdef PARSER_TEST
-Token parse_expression(Token * testExpressionToParse, int inputSize, Parser * parser, void_stack_t * expresionStack){
+Token parse_expression(Token * testExpressionToParse, int inputSize, Parser * parser, void_stack_t * expresionStack) {
   int expIndex = 0;
 #else
-SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresionStack, SymtableIdentifierType expectedType){
+SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresionStack, SymtableIdentifierType expectedType) {
 #endif
 
 
@@ -535,13 +535,14 @@ SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresio
 #ifdef PARSER_TEST
 
   //Converts all ints to double, if there was a double in the expresion
-  if (convert_int_to_double) {
-    for (int i = 0; i < expresionStack->top_index; i++) {
+  Stack_token_t* e = ((Stack_token_t*)stack_top(stack));
+  if (convert_int_to_double || (expectedType.data_type == DOUBLE_TYPE && e->type.data_type == INT_TYPE)) {
+    for (int i = 0; i < expresionStack->top_index + 1; i++) {
       str* el = expresionStack->items[i];
       if (strstr(el->data, "int@") != NULL) {
         char buffer[128];
 
-        sscanf(el->data, "int@%d", buffer);
+        sscanf(el->data, "int@%s", buffer);
 
         str* new_el = str_new_float_const(buffer);
 
@@ -562,8 +563,9 @@ SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresio
 #else
 
   //Converts all ints to double, if there was a double in the expresion
-  if (convert_int_to_double || (expectedType.data_type == DOUBLE_TYPE && ((Stack_token_t *)stack_top(stack))->type.data_type == INT_TYPE)) {
-    for (int i = 0; i < expresionStack->top_index; i++) {
+  Stack_token_t* e = ((Stack_token_t*)stack_top(stack));
+  if (convert_int_to_double || (expectedType.data_type == DOUBLE_TYPE && e->type.data_type == INT_TYPE)) {
+    for (int i = 0; i < expresionStack->top_index + 1; i++) {
       str* el = expresionStack->items[i];
       if (strstr(el->data, "int@") != NULL) {
         char buffer[128];
@@ -578,6 +580,7 @@ SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresio
     }
   }
 
+  stack_print(expresionStack);
 
   SymtableIdentifierType* result = malloc(sizeof(SymtableIdentifierType));
   *result = ((Stack_token_t*)stack_top(stack))->type;
