@@ -944,6 +944,8 @@ bool statement(Parser* parser) {
         if (identifier_type.data_type == UNKNOWN_TYPE) {
           if (expression_type.data_type == VOID_TYPE && !expression_type.nullable) {
             exit_with_error(SYNTAX_ERR, "Expected type of variable or expression");
+          } else if (expression_type.data_type == VOID_TYPE && expression_type.nullable) {
+            exit_with_error(SEMANTIC_ERR_INFER, "Cannot infer type of variable from nil expression");
           }
           identifier_type = expression_type;
         }
