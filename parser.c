@@ -1008,7 +1008,7 @@ bool statement(Parser* parser) {
 
 
     generator_var_create(parser->gen, str_new_from_cstr(variable_id));
-    
+
     if (var_initialized) {
       generator_var_set(parser->gen, str_new_from_cstr(variable_id), str_new_from_cstr("?"));
     }
@@ -1071,6 +1071,8 @@ bool statement(Parser* parser) {
         if (!parser->after_return) {
           generator_function_call(parser->gen, str_new_from_cstr(current_token(parser)->val), params_stack, str_new_from_cstr(variable_id));
         }
+
+        identifier_item->data->variable.initialized = true;
       }
       else {
 #ifdef PARSER_TEST
