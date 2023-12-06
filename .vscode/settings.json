@@ -20,7 +20,10 @@
     "type_traits": "c",
     "utility": "c",
     "variant": "c",
-    "builtin.h": "c"
+    "builtin.h": "c",
+    "string": "c",
+    "span": "c",
+    "cstdlib": "c"
   },
   "C_Cpp.errorSquiggles": "disabled",
   "makefile.launchConfigurations": [

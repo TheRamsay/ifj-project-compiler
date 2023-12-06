@@ -312,7 +312,7 @@ void handle_shift_case(void_stack_t * stack, Stack_token_t token) {
   stack_push(stack, new_token);
 }
 
-int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t precedence, void_stack_t * expresionStack) {
+int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t precedence, void_stack_t * expresionStack, bool* convert_int_to_double) {
   stack_reverse(expresionStack);
 
   while (precedence.precedence == R) {
@@ -346,11 +346,11 @@ int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t 
 
           }
           else if (firstToken.type.data_type != thirdToken.type.data_type) {
-            SymtableIdentifierType conversion_result = conversion_possible(firstToken, thirdToken);
+            SymtableIdentifierType conversion_result = conversion_possible(firstToken, secondToken, thirdToken);
             if (conversion_result.data_type != UNKNOWN_TYPE) {
+              //Convert ints to doubles at the end
+              *convert_int_to_double = true;
               *ruleProduct = evaluate_complex_rule(secondToken, conversion_result);
-              stack_pop(expresionStack);
-              stack_pop(expresionStack);
             }
             else {
               exit_with_error(SEMANTIC_ERR, "Cannot use operator on different types");
@@ -413,17 +413,24 @@ void handle_equals_case(void_stack_t * stack, Stack_token_t token) {
   *new_token = token;
   stack_push(stack, new_token);
 }
+
+//Main function start
 #ifdef PARSER_TEST
 Token parse_expression(Token * testExpressionToParse, int inputSize, Parser * parser, void_stack_t * expresionStack) {
   int expIndex = 0;
 #else
-SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresionStack) {
+SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresionStack, SymtableIdentifierType expectedType) {
 #endif
 
+  //Create stack
   void_stack_t* stack = stack_new(8192);
   stack_push(stack,
     &(Stack_token_t){.token = { TOKEN_STACK_BOTTOM, KW_UNKNOWN, "$", 1 }, .precedence = None, .type = { .data_type = UNKNOWN_TYPE, .nullable = false }});
 
+  //Converts all ints to double, if there was a double in the expresion
+  bool convert_int_to_double = false;
+
+  //Get initial token
 #ifdef PARSER_TEST
   Stack_token_t token = get_next_token_wrap(testExpressionToParse, expIndex, inputSize);
   expIndex++;
@@ -431,6 +438,7 @@ SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresio
   Stack_token_t token = get_current_token_wrap(parser);
 #endif
 
+  //Main loop
   while (420 == 420) {
     Stack_token_t stackTop = *(Stack_token_t*)stack_top(stack);
 
@@ -485,7 +493,7 @@ SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresio
 
     case R:
       // If there is no rule, expression is not valid
-      if (handle_reduce_case(stack, token, action, expresionStack) == -1) {
+      if (handle_reduce_case(stack, token, action, expresionStack, &convert_int_to_double) == -1) {
         fprintf(stderr, "No rule for token %d\n", token.token.type);
         exit_with_error(SYNTAX_ERR, "Invalid expression");
       }
@@ -520,7 +528,29 @@ SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresio
     }
   }
 
+
+
+
 #ifdef PARSER_TEST
+
+  //Converts all ints to double, if there was a double in the expresion
+  if (convert_int_to_double) {
+    for (int i = 0; i < expresionStack->top_index; i++) {
+      str* el = expresionStack->items[i];
+      if (strstr(el->data, "int@") != NULL) {
+        char buffer[128];
+
+        sscanf(el->data, "int@%d", buffer);
+
+        str* new_el = str_new_float_const(buffer);
+
+        str_dispose(el);
+        expresionStack->items[i] = new_el;
+      }
+    }
+  }
+
+
   Token* result = malloc(sizeof(Token));
   *result = ((Stack_token_t*)stack_top(stack))->token;
 
@@ -529,6 +559,25 @@ SymtableIdentifierType parse_expression(Parser * parser, void_stack_t * expresio
   free(stack);
   return *result;
 #else
+
+  //Converts all ints to double, if there was a double in the expresion
+  if (convert_int_to_double || (expectedType.data_type == DOUBLE_TYPE && stackTop(stack)->type.data_type == INT_TYPE)) {
+    for (int i = 0; i < expresionStack->top_index; i++) {
+      str* el = expresionStack->items[i];
+      if (strstr(el->data, "int@") != NULL) {
+        char buffer[128];
+
+        sscanf(el->data, "int@%d", buffer);
+
+        str* new_el = str_new_float_const(buffer);
+
+        str_dispose(el);
+        expresionStack->items[i] = new_el;
+      }
+    }
+  }
+
+
   SymtableIdentifierType* result = malloc(sizeof(SymtableIdentifierType));
   *result = ((Stack_token_t*)stack_top(stack))->type;
 
@@ -577,8 +626,8 @@ void y_eet(void_stack_t * stack) {
   stack_dispose(temp_stack);
 }
 
-bool is_relational_operator(TokenType type) {
-  switch (type) {
+bool is_relational_operator(Stack_token_t token) {
+  switch (token.token.type) {
   case TOKEN_LT:
   case TOKEN_LTE:
   case TOKEN_GT:
@@ -592,8 +641,8 @@ bool is_relational_operator(TokenType type) {
   }
 }
 
-bool is_arithmetic_operator(TokenType type) {
-  switch (type) {
+bool is_arithmetic_operator(Stack_token_t token) {
+  switch (token.token.type) {
   case TOKEN_PLUS:
   case TOKEN_MINUS:
   case TOKEN_MULTIPLY:
@@ -605,13 +654,13 @@ bool is_arithmetic_operator(TokenType type) {
   }
 }
 
-SymtableIdentifierType conversion_possible(Stack_token_t token1, Stack_token_t token2) {
+SymtableIdentifierType conversion_possible(Stack_token_t token1, Stack_token_t token_operator, Stack_token_t token2) {
   SymtableIdentifierType converted_type = { .data_type = UNKNOWN_TYPE, .nullable = token1.type.nullable | token2.type.nullable };
 
-  if (is_arithmetic_operator(token1.token.type) && is_arithmetic_operator(token2.token.type)) {
+  if (is_arithmetic_operator(token_operator)) {
     converted_type.data_type = DOUBLE_TYPE;
   }
-  else if (is_relational_operator(token1.token.type) && is_relational_operator(token2.token.type)) {
+  else if (is_relational_operator(token_operator)) {
     converted_type.data_type = BOOL_TYPE;
   }
   else {
