@@ -194,7 +194,7 @@ void determine_token_type(Token* token) {
       break;
     case '<':
       c = fgetc(source_file);
-      if (token->val[1] == '=') {
+       if (c == '=') {
         token->val[1] = '=';
         token->type = TOKEN_LTE;
       }
@@ -202,6 +202,7 @@ void determine_token_type(Token* token) {
         ungetc(c, source_file);
         token->type = TOKEN_LT;
       }
+      break;
       break;
     case '>':
       c = fgetc(source_file);
