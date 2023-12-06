@@ -1061,6 +1061,10 @@ bool statement(Parser* parser) {
         pexit_with_error(parser, SEMANTIC_ERR, "Cannot reassign constant variable '%s'", identifier_item->key);
       }
 
+      if (check_type(parser, TOKEN_IDENTIFIER) && !current_token(parser)->after_newline) {
+        pexit_with_error(parser, SYNTAX_ERR, "Statements must be separated by new line");
+      }
+
       consume(parser, TOKEN_IDENTIFIER, "Expected identifier");
       consume(parser, TOKEN_ASSIGN, "Expected '='");
 
