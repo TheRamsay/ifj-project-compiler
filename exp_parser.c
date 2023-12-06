@@ -645,6 +645,8 @@ void y_eet(void_stack_t * stack) {
     str* el = stack_pop(temp_stack);
 
     if (strcmp(el->data, "<=") == 0 || strcmp(el->data, ">=") == 0) {
+      stack_reverse(stack);
+
       stack_push(stack, str_new_from_cstr("?1-"));
       stack_push(stack, str_new_from_cstr("?2-"));
 
@@ -659,6 +661,8 @@ void y_eet(void_stack_t * stack) {
       stack_push(stack, str_new_from_cstr("="));
 
       stack_push(stack, str_new_from_cstr("|"));
+
+      stack_reverse(stack);
     }
 
     else if (strcmp(el->data, "!=") == 0) {
