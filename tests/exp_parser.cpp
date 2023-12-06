@@ -5,6 +5,7 @@ extern "C" {
 #include "../scanner.h"
 #include "../stack.h"
 #include "../symtable.h"
+#include "../error.h"
 }
 
 #include <gtest/gtest.h>
