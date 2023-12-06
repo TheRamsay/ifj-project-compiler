@@ -10,8 +10,8 @@ extern "C" {
 #include "./test_utils.cpp"
 #include "gtest/gtest.h"
 
-void createTmpFile(str *content) {
-  FILE *tmpFile = fopen("./tmp", "w");
+void createTmpFile(str* content) {
+  FILE* tmpFile = fopen("./tmp", "w");
   fwrite(content->data, 1, strlen(content->data), tmpFile);
   fclose(tmpFile);
 }
@@ -19,7 +19,7 @@ void createTmpFile(str *content) {
 void deleteTmpFile() { std::filesystem::remove("./tmp"); }
 
 TEST(GeneratorTest, HeaderFooter) {
-  gen_t *gen = generator_new();
+  gen_t* gen = generator_new();
 
   generator_header(gen);
   generator_footer(gen);
@@ -35,15 +35,15 @@ TEST(GeneratorTest, HeaderFooter) {
 }
 
 TEST(GeneratorTest, BuiltInWrite) {
-  gen_t *gen = generator_new();
+  gen_t* gen = generator_new();
   generator_header(gen);
 
-  void_stack_t *args = stack_new(20);
+  void_stack_t* args = stack_new(20);
 
-  str *str1 = str_new(50);
-  str *str2 = str_new(50);
+  str* str1 = str_new(50);
+  str* str2 = str_new(50);
 
-  str *expected_output = str_new(50);
+  str* expected_output = str_new(50);
 
   str_set_cstr(str2, "int@3");
   stack_push(args, str_new_from_str(str2));
@@ -94,13 +94,13 @@ TEST(GeneratorTest, BuiltInWrite) {
 }
 
 TEST(GeneratorTest, BuiltInConversions) {
-  gen_t *gen = generator_new();
+  gen_t* gen = generator_new();
   generator_header(gen);
 
-  void_stack_t *args = stack_new(20);
+  void_stack_t* args = stack_new(20);
 
-  str *str1 = str_new(50);
-  str *str2 = str_new(50);
+  str* str1 = str_new(50);
+  str* str2 = str_new(50);
 
   str_set_cstr(str1, "var_int");
   generator_var_create(gen, str1);
@@ -142,13 +142,13 @@ TEST(GeneratorTest, BuiltInConversions) {
 }
 
 TEST(GeneratorTest, BuiltInLength) {
-  gen_t *gen = generator_new();
+  gen_t* gen = generator_new();
   generator_header(gen);
 
-  void_stack_t *args = stack_new(20);
+  void_stack_t* args = stack_new(20);
 
-  str *str1 = str_new(50);
-  str *str2 = str_new(50);
+  str* str1 = str_new(50);
+  str* str2 = str_new(50);
 
   str_set_cstr(str1, "var_string");
   generator_var_create(gen, str1);
@@ -188,13 +188,13 @@ TEST(GeneratorTest, BuiltInLength) {
 }
 
 TEST(GeneratorTest, BuiltInOrd) {
-  gen_t *gen = generator_new();
+  gen_t* gen = generator_new();
   generator_header(gen);
 
-  void_stack_t *args = stack_new(20);
+  void_stack_t* args = stack_new(20);
 
-  str *str1 = str_new(50);
-  str *str2 = str_new(50);
+  str* str1 = str_new(50);
+  str* str2 = str_new(50);
 
   str_set_cstr(str1, "var_string");
   generator_var_create(gen, str1);
@@ -235,13 +235,13 @@ TEST(GeneratorTest, BuiltInOrd) {
 }
 
 TEST(GeneratorTest, BuiltInChr) {
-  gen_t *gen = generator_new();
+  gen_t* gen = generator_new();
   generator_header(gen);
 
-  void_stack_t *args = stack_new(20);
+  void_stack_t* args = stack_new(20);
 
-  str *str1 = str_new(50);
-  str *str2 = str_new(50);
+  str* str1 = str_new(50);
+  str* str2 = str_new(50);
 
   str_set_cstr(str1, "var_int");
   generator_var_create(gen, str1);
@@ -282,13 +282,13 @@ TEST(GeneratorTest, BuiltInChr) {
 }
 
 TEST(GeneratorTest, BuiltInSubstring) {
-  gen_t *gen = generator_new();
+  gen_t* gen = generator_new();
   generator_header(gen);
 
-  void_stack_t *args = stack_new(20);
+  void_stack_t* args = stack_new(20);
 
-  str *str1 = str_new(50);
-  str *str2 = str_new(50);
+  str* str1 = str_new(50);
+  str* str2 = str_new(50);
 
   str_set_cstr(str1, "var_string");
   generator_var_create(gen, str1);
@@ -415,13 +415,13 @@ TEST(GeneratorTest, BuiltInSubstring) {
 }
 
 TEST(GeneratorTest, WhileLoop) {
-  gen_t *gen = generator_new();
+  gen_t* gen = generator_new();
   generator_header(gen);
 
-  void_stack_t *args = stack_new(20);
+  void_stack_t* args = stack_new(20);
 
-  str *str1 = str_new(50);
-  str *str2 = str_new(50);
+  str* str1 = str_new(50);
+  str* str2 = str_new(50);
 
   str_set_cstr(str1, "var_int");
   generator_var_create(gen, str1);
@@ -466,13 +466,13 @@ TEST(GeneratorTest, WhileLoop) {
 }
 
 TEST(GeneratorTest, WhileLoopInFn) {
-  gen_t *gen = generator_new();
+  gen_t* gen = generator_new();
   generator_header(gen);
 
-  void_stack_t *args = stack_new(20);
+  void_stack_t* args = stack_new(20);
 
-  str *str1 = str_new(50);
-  str *str2 = str_new(50);
+  str* str1 = str_new(50);
+  str* str2 = str_new(50);
 
   generator_function_begin(gen, str_new_from_cstr("test"), NULL);
 
@@ -524,13 +524,13 @@ TEST(GeneratorTest, WhileLoopInFn) {
 }
 
 TEST(GeneratorTest, ReturnExpr) {
-  gen_t *gen = generator_new();
+  gen_t* gen = generator_new();
   generator_header(gen);
 
-  void_stack_t *args = stack_new(20);
+  void_stack_t* args = stack_new(20);
 
-  str *str1 = str_new(50);
-  str *str2 = str_new(50);
+  str* str1 = str_new(50);
+  str* str2 = str_new(50);
 
   str_set_cstr(str1, "var_ret");
   generator_var_create(gen, str1);
@@ -576,17 +576,56 @@ TEST(GeneratorTest, ReturnExpr) {
   generator_dispose(gen);
 }
 
-TEST(GeneratorTest, FunAndGames) {
-  return;
-  gen_t *gen = generator_new();
+TEST(GeneratorTest, Coal) {
+  gen_t* gen = generator_new();
 
   generator_header(gen);
 
-  str *name = str_new_from_cstr("a");
+  generator_var_create(gen, str_new_from_cstr("a"));
+  generator_var_set(gen, str_new_from_cstr("a"), str_new_from_cstr("string@a"));
+
+  void_stack_t* args = stack_new(20);
+  stack_push(args, str_new_from_cstr("a"));
+  stack_push(args, str_new_from_cstr("??"));
+  stack_push(args, str_new_from_cstr("string@wrong"));
+  stack_push(args, str_new_from_cstr("a"));
+  generator_expr(gen, args);
+
+  generator_var_create(gen, str_new_from_cstr("b"));
+  generator_var_set(gen, str_new_from_cstr("b"), str_new_from_cstr("nil@nil"));
+  stack_push(args, str_new_from_cstr("b"));
+  stack_push(args, str_new_from_cstr("??"));
+  stack_push(args, str_new_from_cstr("string@b"));
+  stack_push(args, str_new_from_cstr("b"));
+  generator_expr(gen, args);
+
+  stack_push(args, str_new_from_cstr("int@2"));
+  stack_push(args, str_new_from_cstr("a"));
+  stack_push(args, str_new_from_cstr("b"));
+  generator_function_call(gen, str_new_from_cstr("write"), args, NULL);
+
+  generator_footer(gen);
+
+  createTmpFile(gen->out_str);
+  auto [output, returnCode] = run_interpreter("./tmp");
+  deleteTmpFile();
+
+  EXPECT_EQ(returnCode, 0);
+  EXPECT_STREQ(output, "ab");
+
+  generator_dispose(gen);
+}
+
+TEST(GeneratorTest, FunAndGames) {
+  return;
+  gen_t* gen = generator_new();
+
+  generator_header(gen);
+
+  str* name = str_new_from_cstr("a");
   generator_var_create(gen, name);
 
-  generator_if_begin(gen, str_new_from_cstr("int@1"), true,
-                     str_new_from_cstr("int@1"));
+  generator_if_begin(gen, str_new_from_cstr("int@1"), true, str_new_from_cstr("int@1"));
   generator_if_else(gen);
   generator_var_create(gen, name);
   generator_if_end(gen);
@@ -595,19 +634,19 @@ TEST(GeneratorTest, FunAndGames) {
   generator_var_create(gen, name);
   generator_var_set(gen, name, str_new_from_cstr("int@1"));
   generator_if_begin(gen, str_new_from_cstr("a"), true,
-                     str_new_from_cstr("int@1"));
+    str_new_from_cstr("int@1"));
   generator_var_create(gen, name);
   generator_var_set(gen, name, str_new_from_cstr("int@1"));
   generator_if_else(gen);
   generator_var_create(gen, name);
   generator_if_end(gen);
   generator_if_begin(gen, str_new_from_cstr("a"), true,
-                     str_new_from_cstr("int@1"));
+    str_new_from_cstr("int@1"));
   generator_if_else(gen);
   generator_if_end(gen);
   generator_function_end(gen, NULL);
 
-  void_stack_t *args = stack_new(20);
+  void_stack_t* args = stack_new(20);
   stack_push(args, str_new_from_cstr("arg3"));
   stack_push(args, str_new_from_cstr("arg2"));
   stack_push(args, str_new_from_cstr("arg1"));
@@ -627,7 +666,7 @@ TEST(GeneratorTest, FunAndGames) {
   stack_push(args, str_new_from_cstr("arg1"));
   generator_function_begin(gen, str_new_from_cstr("test-return"), args);
   generator_if_begin(gen, str_new_from_cstr("arg1"), false,
-                     str_new_from_cstr("int@1"));
+    str_new_from_cstr("int@1"));
   generator_function_return(gen, str_new_from_cstr("arg1"));
   generator_if_else(gen);
   generator_function_return(gen, str_new_from_cstr("int@0"));
@@ -637,7 +676,7 @@ TEST(GeneratorTest, FunAndGames) {
   generator_var_create(gen, str_new_from_cstr("returnvar"));
   stack_push(args, str_new_from_cstr("arg1"));
   generator_function_call(gen, str_new_from_cstr("test-return"), args,
-                          str_new_from_cstr("returnvar"));
+    str_new_from_cstr("returnvar"));
 
   generator_var_set(gen, str_new_from_cstr("arg1"), str_new_from_cstr("int@5"));
   // arg1 = (arg1 * arg1) + arg1

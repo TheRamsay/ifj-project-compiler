@@ -231,8 +231,8 @@ void add_indentation(gen_t* gen) {
   }
 }
 
-str* get_instruction(char symbol) {
-  switch (symbol) {
+str* get_instruction(str* symbol) {
+  switch (symbol->data[0]) {
   case '+': {
     return str_new_from_cstr("ADDS\n");
   }
@@ -455,9 +455,15 @@ void generator_function_return_expr(gen_t* gen, void_stack_t* expr_stack) {
   while (!stack_is_empty(expr_stack)) {
     item = stack_pop(expr_stack);
 
+    if (strcmp(item->data, "??") == 0) {
+      generator_coalesce(gen);
+      str_dispose(item);
+      continue;
+    }
+
     add_indentation(gen);
 
-    str* instruction = get_instruction(item->data[0]);
+    str* instruction = get_instruction(item);
     if (instruction != NULL) {
       str_append_str_dispose(gen->fn_str, &instruction);
     }
@@ -594,9 +600,15 @@ void generator_if_begin_stack(gen_t* gen, bool is_true, void_stack_t* expr_stack
   while (!stack_is_empty(expr_stack)) {
     item = stack_pop(expr_stack);
 
+    if (strcmp(item->data, "??") == 0) {
+      generator_coalesce(gen);
+      str_dispose(item);
+      continue;
+    }
+
     add_indentation(gen);
 
-    str* instruction = get_instruction(item->data[0]);
+    str* instruction = get_instruction(item);
     if (instruction != NULL) {
       str_append_str_dispose(dest, &instruction);
     }
@@ -711,9 +723,15 @@ void generator_expr(gen_t* gen, void_stack_t* expr_stack) {
       break;
     }
 
+    if (strcmp(item->data, "??") == 0) {
+      generator_coalesce(gen);
+      str_dispose(item);
+      continue;
+    }
+
     add_indentation(gen);
 
-    str* instruction = get_instruction(item->data[0]);
+    str* instruction = get_instruction(item);
     if (instruction != NULL) {
       str_append_str_dispose(dest, &instruction);
     }
@@ -760,9 +778,15 @@ void generator_loop_start(gen_t* gen, void_stack_t* expr_stack) {
   while (!stack_is_empty(expr_stack)) {
     item = stack_pop(expr_stack);
 
+    if (strcmp(item->data, "??") == 0) {
+      generator_coalesce(gen);
+      str_dispose(item);
+      continue;
+    }
+
     add_indentation(gen);
 
-    str* instruction = get_instruction(item->data[0]);
+    str* instruction = get_instruction(item);
     if (instruction != NULL) {
       str_append_str_dispose(dest, &instruction);
     }
@@ -816,4 +840,53 @@ void generator_loop_end(gen_t* gen) {
   str_append_cstr(dest, "end$\n");
 
   str_dispose(stack_pop(gen->label_stack));
+}
+
+void generator_coalesce(gen_t* gen) {
+  str* dest = get_dest(gen, false);
+
+  intptr_t struct_count = (intptr_t)stack_pop(gen->construct_count_stack);
+  stack_push(gen->construct_count_stack, (void*)(struct_count + 1));
+
+  add_indentation(gen);
+  str_append_cstr(dest, "POPS GF@$?1\n");
+
+  add_indentation(gen);
+  str_append_cstr(dest, "POPS GF@$?2\n");
+
+  add_indentation(gen);
+  str_append_cstr(dest, "PUSHS GF@$?2\n");
+
+  add_indentation(gen);
+  str_append_cstr(dest, "PUSHS nil@nil\n");
+
+  add_indentation(gen);
+  str_append_cstr(dest, "JUMPIFNEQS ");
+  str_append_str(dest, get_label(gen, -1));
+  str_append_int(dest, struct_count);
+  str_append_cstr(dest, "coalnil$\n");
+
+  add_indentation(gen);
+  str_append_cstr(dest, "PUSHS GF@$?1\n");
+
+  add_indentation(gen);
+  str_append_cstr(dest, "JUMP ");
+  str_append_str(dest, get_label(gen, -1));
+  str_append_int(dest, struct_count);
+  str_append_cstr(dest, "coalend$\n");
+
+  add_indentation(gen);
+  str_append_cstr(dest, "LABEL ");
+  str_append_str(dest, get_label(gen, -1));
+  str_append_int(dest, struct_count);
+  str_append_cstr(dest, "coalnil$\n");
+
+  add_indentation(gen);
+  str_append_cstr(dest, "PUSHS GF@$?2\n");
+
+  add_indentation(gen);
+  str_append_cstr(dest, "LABEL ");
+  str_append_str(dest, get_label(gen, -1));
+  str_append_int(dest, struct_count);
+  str_append_cstr(dest, "coalend$\n");
 }
