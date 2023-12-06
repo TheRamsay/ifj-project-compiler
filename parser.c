@@ -767,8 +767,12 @@ bool if_statement(Parser* parser) {
 
   // if_cond -> <expr> | VAR_DEFINITION_KW IDENTIFIER '=' <expr>
   if (match_keyword(parser, KW_LET, false)) {
-    char* var_id = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
-    check_identifier(var_id);
+    char* tmp = current_token(parser)->val;
+    char* var_id = malloc(sizeof(char) * (strlen(tmp) + 1));
+    strcpy(var_id, tmp);
+    check_identifier(tmp);
+
+    consume(parser, TOKEN_IDENTIFIER, "Expected identifier");
 
     SymtableItem* result = search_var_in_tables(parser, var_id);
 
@@ -909,9 +913,12 @@ bool statement(Parser* parser) {
     SymtableIdentifierType identifier_type = (SymtableIdentifierType){ .data_type = UNKNOWN_TYPE, .nullable = false };
     bool var_initialized = false;
 
-    char* variable_id = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
-
+    char* tmp = current_token(parser)->val;
+    char *variable_id = malloc(sizeof(char) * (strlen(tmp) + 1));
+    strcpy(variable_id, tmp);
     check_identifier(variable_id);
+
+    consume(parser, TOKEN_IDENTIFIER, "Expected identifier");
 
     // Variable type definition
     if (match(parser, TOKEN_COLON, false)) {
@@ -940,8 +947,12 @@ bool statement(Parser* parser) {
       if (check_type(parser, TOKEN_IDENTIFIER) && peek(parser)->type == TOKEN_LPAREN) {
         void_stack_t* params_stack = stack_new(100);
 
-        char* func_id = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
-        check_identifier(current_token(parser)->val);
+        char* tmp = current_token(parser)->val;
+        char* func_id = malloc(sizeof(char) * (strlen(tmp) + 1));
+        strcpy(func_id, tmp);
+        check_identifier(func_id);
+
+        consume(parser, TOKEN_IDENTIFIER, "Expected identifier");
         SymtableIdentifierType returned_type = func_call(parser, func_id, params_stack);
 
         if (returned_type.data_type == VOID_TYPE) {
@@ -1006,8 +1017,11 @@ bool statement(Parser* parser) {
       }
     }
 
+    SymtableItem *result = search_var_in_tables(parser, variable_id);
 
-    generator_var_create(parser->gen, str_new_from_cstr(variable_id));
+    if (result == NULL || !result->data->variable.param) {
+      generator_var_create(parser->gen, str_new_from_cstr(variable_id));
+    }
 
     if (var_initialized) {
       generator_var_set(parser->gen, str_new_from_cstr(variable_id), str_new_from_cstr("?"));
@@ -1053,7 +1067,13 @@ bool statement(Parser* parser) {
       if (check_type(parser, TOKEN_IDENTIFIER) && peek(parser)->type == TOKEN_LPAREN) {
         void_stack_t* params_stack = stack_new(100);
 
-        char* func_id = consume(parser, TOKEN_IDENTIFIER, "Expected identifier").val;
+        char* tmp = current_token(parser)->val;
+        char *func_id = malloc(sizeof(char) * (strlen(tmp) + 1));
+        strcpy(func_id, tmp);
+        check_identifier(func_id);
+
+        consume(parser, TOKEN_IDENTIFIER, "Expected identifier");
+
         SymtableIdentifierType returned_type = func_call(parser, func_id, params_stack);
 
         if (returned_type.data_type == VOID_TYPE) {
@@ -1064,12 +1084,10 @@ bool statement(Parser* parser) {
           pexit_with_error(parser, SEMANTIC_ERR_EXPR, "Cannot assign %s to %s", "<returned_type>", "<identifier_type>");
         }
 
-        check_identifier(current_token(parser)->val);
-
         stack_reverse(params_stack);
 
         if (!parser->after_return) {
-          generator_function_call(parser->gen, str_new_from_cstr(current_token(parser)->val), params_stack, str_new_from_cstr(variable_id));
+          generator_function_call(parser->gen, str_new_from_cstr(func_id), params_stack, str_new_from_cstr(variable_id));
         }
 
         identifier_item->data->variable.initialized = true;
