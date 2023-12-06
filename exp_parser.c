@@ -62,7 +62,7 @@ int get_operator_index(TokenType op) {
     return 11;
   case TOKEN_NULL_COALESCING:
     return 12;
-  case TOKEN_NOT:
+  case TOKEN_IDENTIFIER_NOT_NULL:
     return 13;
   case TOKEN_IDENTIFIER:
   case TOKEN_STRING_LITERAL:
@@ -332,7 +332,6 @@ int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t 
         *ruleProduct = (Stack_token_t){ .token = {TOKEN_EOF, KW_UNKNOWN, "eof", 1}, .precedence = None };
       }
       else {
-
         Stack_token_t thirdToken = *(Stack_token_t*)stack_pop(stack);
 
         // E+E
@@ -369,8 +368,9 @@ int handle_reduce_case(void_stack_t * stack, Stack_token_t token, Stack_token_t 
         }
 
         // E!
-        if (firstToken.token.type == TOKEN_NOT && (secondToken.token.type == TOKEN_EXPRESSION)) {
-          *ruleProduct = (Stack_token_t){ .token = {TOKEN_EXPRESSION, KW_UNKNOWN, "E", 1}, .precedence = None, .type = firstToken.type };
+        if (firstToken.token.type == TOKEN_IDENTIFIER_NOT_NULL && secondToken.token.type == TOKEN_EXPRESSION) {
+          secondToken.type.nullable = false;
+          *ruleProduct = secondToken;
           // Return third token
           stack_push(stack, &thirdToken);
         }
@@ -649,7 +649,7 @@ void y_eet(void_stack_t * stack) {
       stack_push(stack, str_new_from_cstr("|"));
     }
 
-    if (strcmp(el->data, "!=") == 0) {
+    else if (strcmp(el->data, "!=") == 0) {
       stack_push(stack, str_new_from_cstr("=="));
       stack_push(stack, str_new_from_cstr("bool@false"));
       stack_push(stack, str_new_from_cstr("=="));
