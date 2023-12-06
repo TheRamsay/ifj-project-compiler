@@ -968,7 +968,7 @@ bool statement(Parser* parser) {
         void_stack_t* expr_stack = stack_new(128);
 
         SymtableIdentifierType expression_type = expression(parser, expr_stack, identifier_type);
-
+        
         stack_reverse(expr_stack);
         stack_push(expr_stack, str_new_from_cstr("?"));
         stack_reverse(expr_stack);
@@ -1008,7 +1008,11 @@ bool statement(Parser* parser) {
 
 
     generator_var_create(parser->gen, str_new_from_cstr(variable_id));
-    generator_var_set(parser->gen, str_new_from_cstr(variable_id), str_new_from_cstr("?"));
+    
+    if (var_initialized) {
+      generator_var_set(parser->gen, str_new_from_cstr(variable_id), str_new_from_cstr("?"));
+    }
+
     SymtableItem* item = symtable_add_symbol(table, variable_id, SYMTABLE_VARIABLE, false, false, false);
 
     // Set variable data

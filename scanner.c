@@ -362,12 +362,12 @@ int get_next_token(Token* token) {
           c = fgetc(source_file);
         }
 
-        if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.') {
+        if (c != ' ' && c != '\n' && c != EOF && !isalpha(c) && c != '.' && c != '+' && c != '-') {
           fprintf(stderr, "Invalid decimal literal: %s\n", token->val);
           exit(1);
         }
 
-        token->type = TOKEN_EXPONENT;
+        token->type = TOKEN_DECIMAL_LITERAL;
       }
 
       if (c == '.') { // Decimal literal
@@ -408,7 +408,7 @@ int get_next_token(Token* token) {
             exit(1);
           }
 
-          token->type = TOKEN_EXPONENT; // Set the token type to exponent
+          token->type = TOKEN_DECIMAL_LITERAL; // Set the token type to exponent
         }
         else if (multiline_string != true && token->type != TOKEN_EXPONENT) {
           token->type = TOKEN_DECIMAL_LITERAL;
@@ -584,6 +584,15 @@ int get_next_token(Token* token) {
     else if (c == '!') {
       char_to_token(token, c);
       token->type = TOKEN_IDENTIFIER_NOT_NULL;
+
+      c = fgetc(source_file);
+      if (c == '=') {
+        token->val[1] = '=';
+        token->type = TOKEN_NE;
+      }
+      else {
+        ungetc(c, source_file);
+      }
       break;
     }
     else if (isalpha(c) || c == '_') { // Identifier
